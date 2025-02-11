@@ -21,8 +21,10 @@ public class Isometric3DMapRenderer implements Disposable {
     private final int tilesetColumns;
     private final int tilePadding;
 
-    private DecalBatch decalBatch;
-    private Array<Decal> decals;
+    private final DecalBatch decalBatch;
+    private final Array<Decal> decals;
+
+    private static final Quaternion faceCamera = new Quaternion().setEulerAngles(0, 90, 0);
 
     public Isometric3DMapRenderer(Camera camera, Map map, Texture tileset, int tileSize, int tilesetColumns, int tilePadding) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
@@ -65,8 +67,8 @@ public class Isometric3DMapRenderer implements Disposable {
 
         decal.setPosition(worldX, worldY, worldZ);
 
-        // Fix rotation: Decals should always face upwards, no rotation
-        decal.setRotation(new Quaternion().setEulerAngles(0, 90, 0));
+        // Fix rotation: Decals should always face the camera, no rotation
+        decal.setRotation(faceCamera);
 
         return decal;
     }
