@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.ScreenUtils;
 import gdx.liftoff.game.Isometric3DMapRenderer;
 import gdx.liftoff.game.Map;
 import gdx.liftoff.game.Player;
@@ -17,10 +18,10 @@ import gdx.liftoff.game.TestMap;
 public class IsoEngine3D extends ApplicationAdapter {
     private static IsoEngine3D instance;
 
-    public static final String TILESET_FILE_NAME = "everything.atlas";
-    public static final float TILE_WIDTH = 24f;
-    public static final float TILE_HEIGHT = 12f;
-    public static final float TILE_RATIO = TILE_WIDTH / TILE_HEIGHT;
+    public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
+    public static final int TILE_WIDTH = 16;
+    public static final int TILE_HEIGHT = 8;
+    public static final float TILE_RATIO = 2f;
     public static final int TILE_SIZE = 24;
     private static final int TILE_PADDING = 4;
     public static final int MAP_SIZE = 20;
@@ -51,11 +52,11 @@ public class IsoEngine3D extends ApplicationAdapter {
 
         tileset = new TextureAtlas(TILESET_FILE_NAME);
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
-        player = new Player(map);
+        player = new Player(map, tileset, MathUtils.random(0, 15));
 
         createCamera();
 
-        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_SIZE, TILESET_COLUMNS, TILE_PADDING);
+        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_WIDTH, TILE_HEIGHT);
         isometric3DMapRenderer.generateDecals();
 
         bitmapFont = new BitmapFont();
@@ -94,8 +95,7 @@ public class IsoEngine3D extends ApplicationAdapter {
         }
         camera.update();
 
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        Gdx.gl.glClearColor(.14f, .15f, .2f, 1f);
+        ScreenUtils.clear(.14f, .15f, .2f, 1f, true);
 
         // Draw the player
         player.render(isometric3DMapRenderer.getDecalBatch());

@@ -1,12 +1,14 @@
 package gdx.liftoff.game;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.IsoEngine3D;
 
 public class Player {
@@ -16,10 +18,9 @@ public class Player {
     private Map map;
 
     private Decal playerDecal;
-    private Texture spriteSheet;
-    private TextureRegion[][] frames;
-    private Animation<TextureRegion>[] walkAnimations;
-    private TextureRegion[] idleFrames;
+    private TextureAtlas spriteSheet;
+    private Array<Array<Animation<Sprite>>> animations;
+    public final int playerId;
     private float stateTime;
     private int currentDirection;
 
@@ -28,34 +29,38 @@ public class Player {
     private static final float JUMP_FORCE = 0.25f;
     private static final float MOVE_SPEED = 0.03f;
     private static final float PLAYER_SIZE = 1f;
-    private static final int FRAME_COLS = 8;
-    private static final int FRAME_ROWS = 12;
 
-    public Player(Map map) {
+    public Player(Map map, TextureAtlas tileset, int playerId) {
         this.map = map;
         this.position = new Vector3(0f, 5f, 2f);
         this.velocity = new Vector3(0, 0, 0);
         this.stateTime = 0;
-        this.currentDirection = 4; // Default: facing down
+        this.currentDirection = 0; // Default: facing down
+        this.playerId = playerId;
 
         // Load sprite sheet
-        spriteSheet = new Texture("Characters_by_AxulArt.png");
-        frames = TextureRegion.split(spriteSheet, spriteSheet.getWidth() / FRAME_COLS, spriteSheet.getHeight() / FRAME_ROWS);
+        spriteSheet = tileset;
 
+        Array<Sprite> entities = spriteSheet.createSprites("entity");
         // Extract animations
-        walkAnimations = new Animation[8];
-        idleFrames = new TextureRegion[8];
-
-        for (int i = 0; i < 8; i++) {
-            // Walking animations (3 frames from row 9 & 11)
-            walkAnimations[i] = new Animation<>(0.1f, frames[9][i], frames[10][i], frames[11][i]);
-
-            // Idle frames (middle row of bottom 3)
-            idleFrames[i] = frames[10][i];
+        animations = Array.with(
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class));
+        for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
+            /* Index 0 is front-facing idle animations. */
+            animations.get(0).add(new Animation<>(0.4f, Array.with(entities.get(outer+0), entities.get(outer+1)), Animation.PlayMode.LOOP));
+            /* Index 1 is rear-facing idle animations. */
+            animations.get(1).add(new Animation<>(0.4f, Array.with(entities.get(outer+4), entities.get(outer+5)), Animation.PlayMode.LOOP));
+            /* Index 2 is front-facing attack animations. */
+            animations.get(2).add(new Animation<>(0.2f, Array.with(entities.get(outer+2), entities.get(outer+3)), Animation.PlayMode.LOOP));
+            /* Index 3 is rear-facing attack animations. */
+            animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
         }
 
         // Initialize the decal
-        playerDecal = Decal.newDecal(1f, 1f, idleFrames[currentDirection], true);
+        playerDecal = Decal.newDecal(1f, 1f, animations.get(currentDirection).get(playerId).getKeyFrame(stateTime), true);
     }
 
     public void update(float deltaTime) {
@@ -68,9 +73,10 @@ public class Player {
         // Update animation frame
         TextureRegion currentFrame;
         if (velocity.x != 0 || velocity.z != 0) {
-            currentFrame = walkAnimations[currentDirection].getKeyFrame(stateTime, true);
+            currentFrame = animations.get(currentDirection).get(playerId).getKeyFrame(stateTime, true);
         } else {
-            currentFrame = idleFrames[currentDirection];
+            /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
+            currentFrame = animations.get(currentDirection + 2).get(playerId).getKeyFrame(stateTime, true);
         }
 
         // Update decal
@@ -117,14 +123,8 @@ public class Player {
         if (dx == 0 && dz == 0) return;
 
         // Determine direction based on movement
-        if (dx > 0 && dz > 0) currentDirection = 1; // Up-right
-        else if (dx > 0 && dz < 0) currentDirection = 3; // Down-right
-        else if (dx < 0 && dz > 0) currentDirection = 7; // Up-left
-        else if (dx < 0 && dz < 0) currentDirection = 5; // Down-left
-        else if (dx > 0) currentDirection = 2; // Right
-        else if (dx < 0) currentDirection = 6; // Left
-        else if (dz > 0) currentDirection = 0; // Up
-        else if (dz < 0) currentDirection = 4; // Down
+        if (dz > 0) currentDirection = 1; // Up
+        else currentDirection = 0; // Down
     }
 
     private void handleCollision() {

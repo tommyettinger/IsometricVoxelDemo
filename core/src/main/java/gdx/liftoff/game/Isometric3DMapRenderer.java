@@ -17,23 +17,21 @@ import com.badlogic.gdx.utils.NumberUtils;
 public class Isometric3DMapRenderer implements Disposable {
     private final Map map;
     private final Array<TextureAtlas.AtlasRegion> tiles;
-    private final int tileSize;
-    private final int tilesetColumns;
-    private final int tilePadding;
+    private final int tileWidth;
+    private final int tileHeight;
 
     private final DecalBatch decalBatch;
     private final Array<Decal> decals;
 
     private static final Quaternion faceCamera = new Quaternion().setEulerAngles(0, 90, 0);
 
-    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileSize, int tilesetColumns, int tilePadding) {
+    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileWidth, int tileHeight) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
         decals = new Array<>();
         this.map = map;
         this.tiles = tiles;
-        this.tileSize = tileSize;
-        this.tilesetColumns = tilesetColumns;
-        this.tilePadding = tilePadding;
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
     }
 
     public void generateDecals() {
@@ -87,11 +85,11 @@ public class Isometric3DMapRenderer implements Disposable {
             for (int x = 0; x < map.getXSize(); x++) {
                 for (int y = 0; y < map.getYSize(); y++) {
                     if (map.getTile(x, y, z) != -1) { // Only check existing tiles
-                        Vector3 tilePos = new Vector3((x - y) * tileSize, z * tileSize, (x + y) * (tileSize / 2f));
+                        Vector3 tilePos = new Vector3((x - y) * tileWidth, z * tileWidth, (x + y) * (tileWidth / 2f));
 
                         BoundingBox bbox = new BoundingBox(
-                                new Vector3(tilePos.x - tileSize / 2f, tilePos.y, tilePos.z - tileSize / 2f),
-                                new Vector3(tilePos.x + tileSize / 2f, tilePos.y + tileSize, tilePos.z + tileSize / 2f)
+                                new Vector3(tilePos.x - tileWidth / 2f, tilePos.y, tilePos.z - tileWidth / 2f),
+                                new Vector3(tilePos.x + tileWidth / 2f, tilePos.y + tileWidth, tilePos.z + tileWidth / 2f)
                         );
 
                         if (Intersector.intersectRayBoundsFast(ray, bbox)) {
