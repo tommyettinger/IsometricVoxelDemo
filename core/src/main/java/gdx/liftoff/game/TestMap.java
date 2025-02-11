@@ -35,13 +35,13 @@ public class TestMap extends Map {
                 }
             }
         }
-        tiles[0][0][0] = 24;
-        tiles[0][0][1] = 24;
-        tiles[width-1][0][0] = 24;
-        tiles[width-1][0][1] = 24;
-        tiles[0][height-1][0] = 24;
-        tiles[0][height-1][1] = 24;
-        tiles[width-1][height-1][0] = 24;
-        tiles[width-1][height-1][1] = 24;
+        tiles[0][0][0] = 2;
+        tiles[0][0][1] = 2;
+        tiles[width-1][0][0] = 2;
+        tiles[width-1][0][1] = 2;
+        tiles[0][height-1][0] = 2;
+        tiles[0][height-1][1] = 2;
+        tiles[width-1][height-1][0] = 2;
+        tiles[width-1][height-1][1] = 2;
     }
 }

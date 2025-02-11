@@ -5,6 +5,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.game.Map;
 import gdx.liftoff.game.TestMap;
 
@@ -12,14 +13,16 @@ import java.util.Random;
 
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
-    private Texture tileset;
+    private TextureAtlas tileset;
     private Map map;
     private OrthographicCamera camera;
     private Vector3 selectedTile;
+    private Array<Sprite> tiles;
 
-    private static final int TILE_WIDTH = 32;
-    private static final int TILE_HEIGHT = 16;
-    private static final int SPRITE_SIZE = 32;
+    public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
+    public static final int TILE_WIDTH = 8;
+    public static final int TILE_HEIGHT = 4;
+    public static final int TILE_DEPTH = 8;
     private static final int MAP_SIZE = 20;
     private static final int TILESET_COLUMNS = 18;
     private static final float CAMERA_ZOOM = .25f;
@@ -27,7 +30,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        tileset = new Texture("McBlocks_2_5_c.png");
+        tileset = new TextureAtlas(TILESET_FILE_NAME);
+        tiles = tileset.createSprites("tile");
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
@@ -53,9 +57,9 @@ public class IsoEngine2D extends ApplicationAdapter {
                         int blockId = map.getTile(x, y, z);
                         if (blockId != -1) {
                             Vector2 pos = isoToScreen(x, y, z);
-                            int srcX = (blockId % TILESET_COLUMNS) * SPRITE_SIZE;
-                            int srcY = (blockId / TILESET_COLUMNS) * SPRITE_SIZE;
-                            batch.draw(tileset, pos.x, pos.y, SPRITE_SIZE, SPRITE_SIZE, srcX, srcY, SPRITE_SIZE, SPRITE_SIZE, false, false);
+                            Sprite spr = tiles.get(blockId % tiles.size);
+                            spr.setPosition(pos.x, pos.y);
+                            spr.draw(batch);
                         }
                     }
                 }
@@ -146,8 +150,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     }
 
     private Vector2 isoToScreen(int x, int y, int z) {
-        float screenX = (x - y) * TILE_WIDTH / 2f;
-        float screenY = (x + y) * TILE_HEIGHT / 2f + (z * TILE_HEIGHT);
+        float screenX = (x - y) * TILE_WIDTH;
+        float screenY = (x + y) * TILE_HEIGHT + z * (TILE_DEPTH);
         return new Vector2(screenX, screenY);
     }
 
@@ -156,8 +160,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     }
 
     private Vector3 screenToIso(float screenX, float screenY) {
-        float isoX = (screenX / (TILE_WIDTH / 2f) + screenY / (TILE_HEIGHT / 2f)) / 2 - 1;
-        float isoY = (screenY / (TILE_HEIGHT / 2f) - screenX / (TILE_WIDTH / 2f)) / 2;
+        float isoX = (screenX / (TILE_WIDTH) + screenY / (TILE_HEIGHT)) * 0.5f - 1;
+        float isoY = (screenY / (TILE_HEIGHT) - screenX / (TILE_WIDTH)) * 0.5f;
         return new Vector3(isoX, isoY, 0);
     }
 

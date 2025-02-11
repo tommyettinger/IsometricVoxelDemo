@@ -2,6 +2,7 @@ package gdx.liftoff.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import gdx.liftoff.IsoEngine2D;
 import gdx.liftoff.IsoEngine3D;
 
 /** Launches the desktop (LWJGL3) application. */
@@ -12,7 +13,7 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new IsoEngine3D(), getDefaultConfiguration());
+        return new Lwjgl3Application(new IsoEngine2D(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
