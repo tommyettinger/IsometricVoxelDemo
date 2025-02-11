@@ -17,30 +17,22 @@ public class IsoEngine2D extends ApplicationAdapter {
     private OrthographicCamera camera;
     private Vector3 selectedTile;
 
-    private static final int TILE_WIDTH = 16;
-    private static final int TILE_HEIGHT = 10;
-    private static final int SPRITE_SIZE = 18;
+    private static final int TILE_WIDTH = 32;
+    private static final int TILE_HEIGHT = 16;
+    private static final int SPRITE_SIZE = 32;
     private static final int MAP_SIZE = 20;
-    private static final int TILESET_COLUMNS = 10;
+    private static final int TILESET_COLUMNS = 18;
     private static final float CAMERA_ZOOM = .25f;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-//        tileset = new Texture(file("TiynBlocks_1.1/TineBlock_NOinnerLine/tinyBlocks_NOiL.png"));
-        tileset = new Texture(file("TiynBlocks_1.1/TinyBlock_innerLine/tinyBlocks.png"));
+        tileset = new Texture("McBlocks_2_5_c.png");
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
         camera.update();
-    }
-
-    private FileHandle file(String fileName) {
-        if (Gdx.app.getType() == Application.ApplicationType.WebGL) {
-            return Gdx.files.internal(fileName);
-        }
-        return Gdx.files.local(fileName);
     }
 
     @Override

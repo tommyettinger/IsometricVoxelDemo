@@ -19,17 +19,19 @@ public class Isometric3DMapRenderer implements Disposable {
     private final Texture tileset;
     private final int tileSize;
     private final int tilesetColumns;
+    private final int tilePadding;
 
     private DecalBatch decalBatch;
     private Array<Decal> decals;
 
-    public Isometric3DMapRenderer(Camera camera, Map map, Texture tileset, int tileSize, int tilesetColumns) {
+    public Isometric3DMapRenderer(Camera camera, Map map, Texture tileset, int tileSize, int tilesetColumns, int tilePadding) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
         decals = new Array<>();
         this.map = map;
         this.tileset = tileset;
         this.tileSize = tileSize;
         this.tilesetColumns = tilesetColumns;
+        this.tilePadding = tilePadding;
     }
 
     public void generateDecals() {
@@ -55,11 +57,11 @@ public class Isometric3DMapRenderer implements Disposable {
         float worldY = z * 2;
         float worldZ = (x + y) * 0.22f;
 
-        int srcX = (tileId % tilesetColumns) * tileSize;
-        int srcY = (tileId / tilesetColumns) * tileSize;
+        int srcX = (tileId % tilesetColumns) * (tileSize + tilePadding * 2);
+        int srcY = (tileId / tilesetColumns) * (tileSize + tilePadding * 2);
 
         Decal decal = Decal.newDecal(1f, 1f,
-                new TextureRegion(tileset, srcX, srcY, tileSize, tileSize), true);
+                new TextureRegion(tileset, srcX + tilePadding, srcY + tilePadding, tileSize, tileSize), true);
 
         decal.setPosition(worldX, worldY, worldZ);
 

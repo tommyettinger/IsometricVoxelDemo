@@ -17,10 +17,11 @@ public class IsoEngine3D extends ApplicationAdapter {
     private static IsoEngine3D instance;
 
     public static final String TILESET_FILE_NAME = "McBlocks_2_5_c.png";
-    public static final float TILE_WIDTH = 32f;
-    public static final float TILE_HEIGHT = 16f;
+    public static final float TILE_WIDTH = 24f;
+    public static final float TILE_HEIGHT = 12f;
     public static final float TILE_RATIO = TILE_WIDTH / TILE_HEIGHT;
-    public static final int TILE_SIZE = 32;
+    public static final int TILE_SIZE = 24;
+    private static final int TILE_PADDING = 4;
     public static final int MAP_SIZE = 20;
     public static final int TILESET_COLUMNS = 18;
     public static final float CAMERA_SCALE = 60.0f;
@@ -53,7 +54,7 @@ public class IsoEngine3D extends ApplicationAdapter {
 
         createCamera();
 
-        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset, TILE_SIZE, TILESET_COLUMNS);
+        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset, TILE_SIZE, TILESET_COLUMNS, TILE_PADDING);
         isometric3DMapRenderer.generateDecals();
 
         bitmapFont = new BitmapFont();

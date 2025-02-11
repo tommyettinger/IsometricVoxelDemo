@@ -39,7 +39,7 @@ public class Player {
         this.currentDirection = 4; // Default: facing down
 
         // Load sprite sheet
-        spriteSheet = new Texture("Small-8-Direction-Characters_by_AxulArt.png");
+        spriteSheet = new Texture("Characters_by_AxulArt.png");
         frames = TextureRegion.split(spriteSheet, spriteSheet.getWidth() / FRAME_COLS, spriteSheet.getHeight() / FRAME_ROWS);
 
         // Extract animations
