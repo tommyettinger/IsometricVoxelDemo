@@ -4,6 +4,7 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
@@ -16,7 +17,7 @@ import gdx.liftoff.game.TestMap;
 public class IsoEngine3D extends ApplicationAdapter {
     private static IsoEngine3D instance;
 
-    public static final String TILESET_FILE_NAME = "McBlocks_2_5_c.png";
+    public static final String TILESET_FILE_NAME = "everything.atlas";
     public static final float TILE_WIDTH = 24f;
     public static final float TILE_HEIGHT = 12f;
     public static final float TILE_RATIO = TILE_WIDTH / TILE_HEIGHT;
@@ -28,7 +29,7 @@ public class IsoEngine3D extends ApplicationAdapter {
 
     public Camera camera;
     CameraInputController cameraInputController;
-    private Texture tileset;
+    private TextureAtlas tileset;
     private Map map;
     Isometric3DMapRenderer isometric3DMapRenderer;
     Player player;
@@ -48,13 +49,13 @@ public class IsoEngine3D extends ApplicationAdapter {
     public void create() {
         instance = this;
 
-        tileset = new Texture(Gdx.files.local(TILESET_FILE_NAME));
+        tileset = new TextureAtlas(TILESET_FILE_NAME);
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
         player = new Player(map);
 
         createCamera();
 
-        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset, TILE_SIZE, TILESET_COLUMNS, TILE_PADDING);
+        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_SIZE, TILESET_COLUMNS, TILE_PADDING);
         isometric3DMapRenderer.generateDecals();
 
         bitmapFont = new BitmapFont();

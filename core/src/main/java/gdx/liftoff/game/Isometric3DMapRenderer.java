@@ -1,8 +1,7 @@
 package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
@@ -13,10 +12,11 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.NumberUtils;
 
 public class Isometric3DMapRenderer implements Disposable {
     private final Map map;
-    private final Texture tileset;
+    private final Array<TextureAtlas.AtlasRegion> tiles;
     private final int tileSize;
     private final int tilesetColumns;
     private final int tilePadding;
@@ -26,11 +26,11 @@ public class Isometric3DMapRenderer implements Disposable {
 
     private static final Quaternion faceCamera = new Quaternion().setEulerAngles(0, 90, 0);
 
-    public Isometric3DMapRenderer(Camera camera, Map map, Texture tileset, int tileSize, int tilesetColumns, int tilePadding) {
+    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileSize, int tilesetColumns, int tilePadding) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
         decals = new Array<>();
         this.map = map;
-        this.tileset = tileset;
+        this.tiles = tiles;
         this.tileSize = tileSize;
         this.tilesetColumns = tilesetColumns;
         this.tilePadding = tilePadding;
@@ -51,19 +51,16 @@ public class Isometric3DMapRenderer implements Disposable {
         }
 
         // Sort decals by Y value (depth sorting to prevent clipping issues)
-        decals.sort((a, b) -> Float.compare(b.getY(), a.getY()));
+        // This approach does not permit NaN as a y-value, but that would be bad anyway.
+        decals.sort((a, b) -> NumberUtils.floatToIntBits(b.getY() - a.getY()));
     }
 
     private Decal createTileDecal(int x, int y, int z, int tileId) {
         float worldX = (x - y) * .5f;
         float worldY = z * 2;
-        float worldZ = (x + y) * 0.22f;
+        float worldZ = (x + y) * 0.25f;
 
-        int srcX = (tileId % tilesetColumns) * (tileSize + tilePadding * 2);
-        int srcY = (tileId / tilesetColumns) * (tileSize + tilePadding * 2);
-
-        Decal decal = Decal.newDecal(1f, 1f,
-                new TextureRegion(tileset, srcX + tilePadding, srcY + tilePadding, tileSize, tileSize), true);
+        Decal decal = Decal.newDecal(1f, 1f, tiles.get(tileId % tiles.size), true);
 
         decal.setPosition(worldX, worldY, worldZ);
 
