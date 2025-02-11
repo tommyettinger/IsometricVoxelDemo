@@ -19,19 +19,21 @@ public class Isometric3DMapRenderer implements Disposable {
     private final Array<TextureAtlas.AtlasRegion> tiles;
     private final int tileWidth;
     private final int tileHeight;
+    private final int tileDepth;
 
     private final DecalBatch decalBatch;
     private final Array<Decal> decals;
 
     private static final Quaternion faceCamera = new Quaternion().setEulerAngles(0, 90, 0);
 
-    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileWidth, int tileHeight) {
+    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileWidth, int tileHeight, int tileDepth) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
         decals = new Array<>();
         this.map = map;
         this.tiles = tiles;
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
+        this.tileDepth = tileDepth;
     }
 
     public void generateDecals() {
@@ -54,8 +56,8 @@ public class Isometric3DMapRenderer implements Disposable {
     }
 
     private Decal createTileDecal(int x, int y, int z, int tileId) {
-        float worldX = (x - y) * .5f;
-        float worldY = z * 2;
+        float worldX = (x - y) * 0.5f;
+        float worldY = z * 1.666f;
         float worldZ = (x + y) * 0.25f;
 
         Decal decal = Decal.newDecal(1f, 1f, tiles.get(tileId % tiles.size), true);

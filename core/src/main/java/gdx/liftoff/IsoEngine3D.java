@@ -21,6 +21,7 @@ public class IsoEngine3D extends ApplicationAdapter {
     public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 16;
     public static final int TILE_HEIGHT = 8;
+    public static final int TILE_DEPTH = 17;
     public static final float TILE_RATIO = 2f;
     public static final int TILE_SIZE = 24;
     private static final int TILE_PADDING = 4;
@@ -56,7 +57,7 @@ public class IsoEngine3D extends ApplicationAdapter {
 
         createCamera();
 
-        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_WIDTH, TILE_HEIGHT);
+        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH);
         isometric3DMapRenderer.generateDecals();
 
         bitmapFont = new BitmapFont();
