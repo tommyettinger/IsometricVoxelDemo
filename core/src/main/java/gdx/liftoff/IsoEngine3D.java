@@ -19,14 +19,11 @@ public class IsoEngine3D extends ApplicationAdapter {
     private static IsoEngine3D instance;
 
     public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
-    public static final int TILE_WIDTH = 16;
-    public static final int TILE_HEIGHT = 8;
-    public static final int TILE_DEPTH = 17;
+    public static final int TILE_WIDTH = 8;
+    public static final int TILE_HEIGHT = 4;
+    public static final int TILE_DEPTH = 8;
     public static final float TILE_RATIO = 2f;
-    public static final int TILE_SIZE = 24;
-    private static final int TILE_PADDING = 4;
     public static final int MAP_SIZE = 20;
-    public static final int TILESET_COLUMNS = 18;
     public static final float CAMERA_SCALE = 60.0f;
 
     public Camera camera;
@@ -68,7 +65,7 @@ public class IsoEngine3D extends ApplicationAdapter {
 
     private void createCamera() {
         if (usePerspectiveCamera) {
-            camera = new PerspectiveCamera(15, Gdx.graphics.getWidth() / CAMERA_SCALE, Gdx.graphics.getHeight() / CAMERA_SCALE);
+            camera = new PerspectiveCamera(10.3f, Gdx.graphics.getWidth() / CAMERA_SCALE, Gdx.graphics.getHeight() / CAMERA_SCALE);
             cameraInputController = new CameraInputController(camera);
             cameraInputController.rotateLeftKey = -1;
             cameraInputController.rotateRightKey = -1;
@@ -79,7 +76,7 @@ public class IsoEngine3D extends ApplicationAdapter {
 
         camera.position.set(0, 90, -20); // Move camera to an overhead position
 //        camera.position.set(0, CHUNK_SIZE, 0); // Move camera to an overhead position
-        camera.direction.set(0, -1, 0.28f).nor(); // Look downward at the world
+        camera.direction.set(0, -1, 0.27f).nor(); // Look downward at the world
         camera.up.set(0, 0, 1); // Keep Z as "up"
 //        camera.lookAt(CHUNK_SIZE / 2f, CHUNK_SIZE / 2f, 0f);
 //        camera.near = .1f;
