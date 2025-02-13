@@ -61,22 +61,45 @@ public class IsoEngine2D extends ApplicationAdapter {
         viewport.apply();
         batch.begin();
 
-        for (int z = 0; z < MAP_SIZE; z++) { // Draw lowest layers first
-            for (int sum = MAP_SIZE * 2 - 2; sum >= 0; sum--) { // Iterate in reverse
-                for (int x = 0; x < MAP_SIZE; x++) {
-                    int y = sum - x;
-                    if (y >= 0 && y < MAP_SIZE) {
-                        int blockId = map.getTile(x, y, z);
-                        if (blockId != -1) {
-                            Vector2 pos = isoToScreen(x, y, z);
-                            Sprite spr = tiles.get(blockId % tiles.size);
-                            spr.setPosition(pos.x, pos.y);
-                            spr.draw(batch);
-                        }
+        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
+            int span = Math.min(line + 1, maxLines - line);
+            int offset = line + 1 - span >> 1;
+            int f = Math.max(MAP_SIZE - 1 - line, 0);
+            int g = MAP_SIZE - 1 - offset;
+            for (int across = 0; across < span; across++) {
+                g--;
+                f++;
+                for (int z = 0; z < MAP_PEAK; z++) {
+                    int blockId = map.getTile(f, g, z);
+                    if (blockId != -1) {
+                        Vector2 pos = isoToScreen(f, g, z);
+//                        int x = line * -TILE_WIDTH + (across + offset) * (TILE_WIDTH * 2);
+//                        int y = (maxLines - line) * TILE_HEIGHT;
+                        Sprite spr = tiles.get(blockId % tiles.size);
+                        spr.setPosition(pos.x, pos.y);
+                        spr.draw(batch);
                     }
                 }
             }
         }
+
+
+//        for (int z = 0; z < MAP_SIZE; z++) { // Draw lowest layers first
+//            for (int sum = MAP_SIZE * 2 - 2; sum >= 0; sum--) { // Iterate in reverse
+//                for (int x = 0; x < MAP_SIZE; x++) {
+//                    int y = sum - x;
+//                    if (y >= 0 && y < MAP_SIZE) {
+//                        int blockId = map.getTile(x, y, z);
+//                        if (blockId != -1) {
+//                            Vector2 pos = isoToScreen(x, y, z);
+//                            Sprite spr = tiles.get(blockId % tiles.size);
+//                            spr.setPosition(pos.x, pos.y);
+//                            spr.draw(batch);
+//                        }
+//                    }
+//                }
+//            }
+//        }
         batch.end();
     }
 
