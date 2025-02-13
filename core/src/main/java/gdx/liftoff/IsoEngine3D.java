@@ -11,7 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import gdx.liftoff.game.Isometric3DMapRenderer;
-import gdx.liftoff.game.Map;
+import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.Player;
 import gdx.liftoff.game.TestMap;
 
@@ -29,7 +29,7 @@ public class IsoEngine3D extends ApplicationAdapter {
     public Camera camera;
     CameraInputController cameraInputController;
     private TextureAtlas tileset;
-    private Map map;
+    private LocalMap map;
     Isometric3DMapRenderer isometric3DMapRenderer;
     Player player;
 

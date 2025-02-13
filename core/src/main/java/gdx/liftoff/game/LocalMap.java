@@ -1,9 +1,9 @@
 package gdx.liftoff.game;
 
-public class Map {
+public class LocalMap {
     int[][][] tiles;
 
-    public Map(int width, int height, int depth) {
+    public LocalMap(int width, int height, int depth) {
         tiles = new int[width][height][depth];
 
         for (int x = 0; x < width; x++) {

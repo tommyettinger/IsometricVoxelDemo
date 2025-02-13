@@ -15,7 +15,7 @@ public class Player {
     public Vector3 position;
     private Vector3 velocity;
     private boolean isGrounded;
-    private Map map;
+    private LocalMap map;
 
     private Decal playerDecal;
     private TextureAtlas spriteSheet;
@@ -30,7 +30,7 @@ public class Player {
     private static final float MOVE_SPEED = 0.03f;
     private static final float PLAYER_SIZE = 1f;
 
-    public Player(Map map, TextureAtlas tileset, int playerId) {
+    public Player(LocalMap map, TextureAtlas tileset, int playerId) {
         this.map = map;
         this.position = new Vector3(0f, 5f, 2f);
         this.velocity = new Vector3(0, 0, 0);

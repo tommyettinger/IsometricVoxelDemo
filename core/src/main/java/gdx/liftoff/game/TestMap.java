@@ -2,7 +2,7 @@ package gdx.liftoff.game;
 
 import com.badlogic.gdx.math.MathUtils;
 
-public class TestMap extends Map {
+public class TestMap extends LocalMap {
     public TestMap(int width, int height, int depth) {
         super(width, height, depth);
 

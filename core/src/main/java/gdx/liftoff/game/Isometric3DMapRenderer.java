@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.NumberUtils;
 
 public class Isometric3DMapRenderer implements Disposable {
-    private final Map map;
+    private final LocalMap map;
     private final Array<TextureAtlas.AtlasRegion> tiles;
     private final int tileWidth;
     private final int tileHeight;
@@ -26,7 +26,7 @@ public class Isometric3DMapRenderer implements Disposable {
 
     private static final Quaternion faceCamera = new Quaternion().setEulerAngles(0, 90, 0);
 
-    public Isometric3DMapRenderer(Camera camera, Map map, Array<TextureAtlas.AtlasRegion> tiles, int tileWidth, int tileHeight, int tileDepth) {
+    public Isometric3DMapRenderer(Camera camera, LocalMap map, Array<TextureAtlas.AtlasRegion> tiles, int tileWidth, int tileHeight, int tileDepth) {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
         decals = new Array<>();
         this.map = map;

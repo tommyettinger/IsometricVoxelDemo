@@ -12,13 +12,13 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
-import gdx.liftoff.game.Map;
+import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.TestMap;
 
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
     private TextureAtlas tileset;
-    private Map map;
+    private LocalMap map;
     private OrthographicCamera camera;
     private Array<Sprite> tiles;
 
