@@ -67,8 +67,6 @@ public class IsoEngine2D extends ApplicationAdapter {
             int f = Math.max(MAP_SIZE - 1 - line, 0);
             int g = MAP_SIZE - 1 - offset;
             for (int across = 0; across < span; across++) {
-                g--;
-                f++;
                 for (int z = 0; z < MAP_PEAK; z++) {
                     int blockId = map.getTile(f, g, z);
                     if (blockId != -1) {
@@ -80,26 +78,10 @@ public class IsoEngine2D extends ApplicationAdapter {
                         spr.draw(batch);
                     }
                 }
+                g--;
+                f++;
             }
         }
-
-
-//        for (int z = 0; z < MAP_SIZE; z++) { // Draw lowest layers first
-//            for (int sum = MAP_SIZE * 2 - 2; sum >= 0; sum--) { // Iterate in reverse
-//                for (int x = 0; x < MAP_SIZE; x++) {
-//                    int y = sum - x;
-//                    if (y >= 0 && y < MAP_SIZE) {
-//                        int blockId = map.getTile(x, y, z);
-//                        if (blockId != -1) {
-//                            Vector2 pos = isoToScreen(x, y, z);
-//                            Sprite spr = tiles.get(blockId % tiles.size);
-//                            spr.setPosition(pos.x, pos.y);
-//                            spr.draw(batch);
-//                        }
-//                    }
-//                }
-//            }
-//        }
         batch.end();
     }
 
