@@ -30,6 +30,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_DEPTH = 8;
     private static final int MAP_SIZE = 20;
     private static final int MAP_PEAK = 4;
+    private static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
+    private static final int SCREEN_VERTICAL = (MAP_SIZE * 2 - 1) * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
     private static final float CAMERA_ZOOM = 1f;
 
     private final Vector3 projectionTempVector = new Vector3();
@@ -115,20 +117,21 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         // Check from highest to lowest Z
         for (int z = MAP_SIZE - 1; z >= 0; z--) {
-            for (int sum = MAP_SIZE * 2 - 2; sum >= 0; sum--) {
-                for (int x = MAP_SIZE - 1; x >= 0; x--) { // Reverse X order
-                    int y = sum - x;
-                    if (y >= 0 && y < MAP_SIZE) {
-                        if (map.getTile(x, y, z) != -1) { // Found a solid block
-                            Vector2 tilePos = isoToScreen(x, y, z);
-                            float dx = worldPos.x - tilePos.x;
-                            float dy = worldPos.y - tilePos.y;
+            float h = z;
+            float f = worldPos.y / TILE_HEIGHT + worldPos.x / TILE_WIDTH - h;
+            float g = worldPos.y / TILE_HEIGHT - worldPos.x / TILE_WIDTH - h;
+            int x = MathUtils.round(f);
+            int y = MathUtils.round(g);
+            if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE) {
+                if (map.getTile(x, y, z) != -1) { // Found a solid block
+                    Vector2 tilePos = isoToScreen(x, y, z);
+                    float dx = tilePos.x - worldPos.x;
+                    float dy = tilePos.y - worldPos.y;
 
-                            // Check if click is inside tile bounds
-                            if (Math.abs(dx) < TILE_WIDTH / 2f && Math.abs(dy) < TILE_HEIGHT / 2f) {
-                                return isoTempVector.set(x-1, y, z); // Return the first valid block found
-                            }
-                        }
+                    // Check if click is inside tile bounds
+                    if (Math.abs(dx) < TILE_WIDTH / 2f && Math.abs(dy) < TILE_HEIGHT / 2f) {
+                        System.out.println("Valid block found at " + x + ", " + y + ", " + z);
+                        return isoTempVector.set(x, y, z); // Return the first valid block found
                     }
                 }
             }
@@ -145,7 +148,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         float localX = screenX - tileCenter.x;
         float localY = screenY - tileCenter.y;
 
-        if (localY > TILE_DEPTH * 0.5f) {
+        if (localY > TILE_DEPTH) {
             return faceTempVector.set(blockPos.x, blockPos.y, blockPos.z + 1); // Top face
         } else if (localX < TILE_WIDTH * -0.5f) {
             return faceTempVector.set(blockPos.x, blockPos.y + 1, blockPos.z); // Left face (Remove x shift)
@@ -157,13 +160,13 @@ public class IsoEngine2D extends ApplicationAdapter {
     }
 
     private Vector2 isoToScreen(int x, int y, int z) {
-        float screenX = (x - y) * TILE_WIDTH;
-        float screenY = (x + y) * TILE_HEIGHT + z * (TILE_DEPTH);
+        float screenX = (x - y + 0.5f) * TILE_WIDTH;
+        float screenY = (x + y + 0.5f) * TILE_HEIGHT + (z + 0.5f) * (TILE_DEPTH);
         return screenTempVector.set(screenX, screenY);
     }
 
     private Vector3 screenToIso(float screenX, float screenY) {
-        float isoX = (screenX / (TILE_WIDTH) + screenY / (TILE_HEIGHT)) * 0.5f - 1;
+        float isoX = (screenX / (TILE_WIDTH) + screenY / (TILE_HEIGHT)) * 0.5f;
         float isoY = (screenY / (TILE_HEIGHT) - screenX / (TILE_WIDTH)) * 0.5f;
         return isoTempVector.set(isoX, isoY, 0);
     }
