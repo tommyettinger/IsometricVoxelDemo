@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.TestMap;
 
@@ -20,6 +21,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private TextureAtlas tileset;
     private LocalMap map;
     private OrthographicCamera camera;
+    private ScreenViewport viewport;
     private Array<Sprite> tiles;
 
     public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
@@ -27,7 +29,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
     private static final int MAP_SIZE = 20;
-    private static final float CAMERA_ZOOM = .25f;
+    private static final int MAP_PEAK = 4;
+    private static final float CAMERA_ZOOM = 1f;
 
     private final Vector3 projectionTempVector = new Vector3();
     private final Vector3 isoTempVector = new Vector3();
@@ -44,6 +47,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
         camera.update();
+        viewport = new ScreenViewport(camera);
     }
 
     @Override
@@ -52,6 +56,7 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         batch.setProjectionMatrix(camera.combined);
+        viewport.apply();
         batch.begin();
 
         for (int z = 0; z < MAP_SIZE; z++) { // Draw lowest layers first
@@ -172,6 +177,18 @@ public class IsoEngine2D extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
         tileset.dispose();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        // If unitsPerPixel are a fraction like 1f/2 or 1f/3, then that makes each pixel 2x or 3x the size, resp.
+        // This will only divide 1f by an integer amount 1 or greater, which makes pixels always the exact right size.
+        // This meant to fit an isometric map that is about MAP_SIZE by MAP_PEAK by MAP_SIZE, where MAP_PEAK is how many
+        // layers of voxels can be stacked on top of each other.
+        viewport.setUnitsPerPixel(1f / Math.max(1, (int)(Math.min(
+            width / ((MAP_SIZE+1f) * TILE_WIDTH * 2f),
+            height / ((MAP_SIZE+1f) * (TILE_HEIGHT * 2f) + TILE_DEPTH * MAP_PEAK)))));
+        viewport.update(width, height);
     }
 }
 
