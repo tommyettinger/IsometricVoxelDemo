@@ -28,6 +28,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
+    public static final int TILE_PIXEL_SPACE = 16;
     private static final int MAP_SIZE = 20;
     private static final int MAP_PEAK = 4;
     private static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
@@ -71,8 +72,6 @@ public class IsoEngine2D extends ApplicationAdapter {
                     int blockId = map.getTile(f, g, z);
                     if (blockId != -1) {
                         Vector2 pos = isoToScreen(f, g, z);
-//                        int x = line * -TILE_WIDTH + (across + offset) * (TILE_WIDTH * 2);
-//                        int y = (maxLines - line) * TILE_HEIGHT;
                         Sprite spr = tiles.get(blockId % tiles.size);
                         spr.setPosition(pos.x, pos.y);
                         spr.draw(batch);
@@ -101,17 +100,17 @@ public class IsoEngine2D extends ApplicationAdapter {
         camera.update();
 
         if (Gdx.input.justTouched()) {
-            Vector3 blockHit = raycastToBlock(Gdx.input.getX(), Gdx.input.getY());
-            Vector3 targetBlock = getClickedFace(blockHit, Gdx.input.getX(), Gdx.input.getY());
+            Vector3 targetBlock = raycastToBlock(Gdx.input.getX(), Gdx.input.getY());
+//            Vector3 targetBlock = getClickedFace(blockHit, Gdx.input.getX(), Gdx.input.getY());
 
-            System.out.println("blockHit " + blockHit);
-//            System.out.println("targetBlock " + targetBlock);
+//            System.out.print("blockHit " + blockHit);
+            System.out.println("targetBlock " + targetBlock);
 
             if (map.isValid(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z))) {
                 if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                    map.setTile(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z), MathUtils.random(3));
+                    map.setTile(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z + 1), MathUtils.random(3));
                 } else if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-                    map.setTile(Math.round(blockHit.x), Math.round(blockHit.y), Math.round(blockHit.z), -1);
+                    map.setTile(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z), -1);
                 }
             }
         }
@@ -119,25 +118,26 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     private Vector3 raycastToBlock(float screenX, float screenY) {
         Vector3 worldPos = camera.unproject(projectionTempVector.set(screenX, screenY, 0));
-
+        worldPos.x -= TILE_WIDTH;
+        worldPos.y -= TILE_HEIGHT * 4;
         // Check from highest to lowest Z
-        for (int z = MAP_SIZE - 1; z >= 0; z--) {
+        for (int z = MAP_PEAK - 1; z >= 0; z--) {
             float h = z;
-            float f = worldPos.y / TILE_HEIGHT + worldPos.x / TILE_WIDTH - h;
-            float g = worldPos.y / TILE_HEIGHT - worldPos.x / TILE_WIDTH - h;
-            int x = MathUtils.round(f);
-            int y = MathUtils.round(g);
-            if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE) {
-                if (map.getTile(x, y, z) != -1) { // Found a solid block
-                    Vector2 tilePos = isoToScreen(x, y, z);
-                    float dx = tilePos.x - worldPos.x;
-                    float dy = tilePos.y - worldPos.y;
+            float f = worldPos.y * (0.5f / TILE_HEIGHT) + worldPos.x * (0.5f / TILE_WIDTH) - h;
+            float g = worldPos.y * (0.5f / TILE_HEIGHT) - worldPos.x * (0.5f / TILE_WIDTH) - h;
+            int cf = MathUtils.ceil(f);
+            int cg = MathUtils.ceil(g);
+            if (cf >= 0 && cf < MAP_SIZE && cg >= 0 && cg < MAP_SIZE) {
+                if (map.getTile(cf, cg, z) != -1) { // Found a solid block
+//                    Vector2 tilePos = isoToScreen(cf, cg, z);
+//                    float dx = tilePos.x - worldPos.x;
+//                    float dy = tilePos.y - worldPos.y;
 
                     // Check if click is inside tile bounds
-                    if (Math.abs(dx) < TILE_WIDTH / 2f && Math.abs(dy) < TILE_HEIGHT / 2f) {
-                        System.out.println("Valid block found at " + x + ", " + y + ", " + z);
-                        return isoTempVector.set(x, y, z); // Return the first valid block found
-                    }
+//                    if (Math.abs(dx) < TILE_PIXEL_SPACE * 0.5f && Math.abs(dy) < TILE_PIXEL_SPACE * 0.5f) {
+                        System.out.println("Valid block found at " + cf + ", " + cg + ", " + z);
+                        return isoTempVector.set(cf, cg, z); // Return the first valid block found
+//                    }
                 }
             }
         }
@@ -149,24 +149,24 @@ public class IsoEngine2D extends ApplicationAdapter {
 
 
     private Vector3 getClickedFace(Vector3 blockPos, float screenX, float screenY) {
-        Vector2 tileCenter = isoToScreen(Math.round(blockPos.x), Math.round(blockPos.y), Math.round(blockPos.z));
-        float localX = screenX - tileCenter.x;
-        float localY = screenY - tileCenter.y;
+        Vector2 tileCenter = isoToScreen(MathUtils.round(blockPos.x), MathUtils.round(blockPos.y), MathUtils.round(blockPos.z));
+        float localX = screenX - tileCenter.x + TILE_WIDTH * 0.5f;
+        float localY = screenY - tileCenter.y + TILE_HEIGHT * 0.5f;
 
         if (localY > TILE_DEPTH) {
             return faceTempVector.set(blockPos.x, blockPos.y, blockPos.z + 1); // Top face
-        } else if (localX < TILE_WIDTH * -0.5f) {
-            return faceTempVector.set(blockPos.x, blockPos.y + 1, blockPos.z); // Left face (Remove x shift)
         } else if (localX > TILE_WIDTH * 0.5f) {
-            return faceTempVector.set(blockPos.x + 1, blockPos.y, blockPos.z); // Right face (Only adjust X)
+            return faceTempVector.set(blockPos.x, blockPos.y - 1, blockPos.z); // Left face (Remove x shift)
+        } else if (localX < TILE_WIDTH * -0.5f) {
+            return faceTempVector.set(blockPos.x - 1, blockPos.y, blockPos.z); // Right face (Only adjust X)
         }
 
         return faceTempVector.set(blockPos); // Default to selecting the block itself
     }
 
     private Vector2 isoToScreen(int x, int y, int z) {
-        float screenX = (x - y + 0.5f) * TILE_WIDTH;
-        float screenY = (x + y + 0.5f) * TILE_HEIGHT + (z + 0.5f) * (TILE_DEPTH);
+        float screenX = (x - y) * TILE_WIDTH;
+        float screenY = (x + y) * TILE_HEIGHT + (z) * (TILE_DEPTH);
         return screenTempVector.set(screenX, screenY);
     }
 
