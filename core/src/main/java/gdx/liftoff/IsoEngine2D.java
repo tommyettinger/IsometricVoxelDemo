@@ -1,5 +1,6 @@
 package gdx.liftoff;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -28,19 +29,21 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
-    private static final int MAP_SIZE = 20;
-    private static final int MAP_PEAK = 4;
-    private static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
-    private static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
+    public static final int MAP_SIZE = 20;
+    public static final int MAP_PEAK = 4;
+    public static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
+    public static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
     private static final float CAMERA_ZOOM = 1f;
 
-    private final Vector3 projectionTempVector = new Vector3();
-    private final Vector3 isoTempVector = new Vector3();
-    private final Vector3 faceTempVector = new Vector3();
-    private final Vector2 screenTempVector = new Vector2();
+    private static final Vector3 projectionTempVector = new Vector3();
+    private static final Vector3 isoTempVector = new Vector3();
+    private static final Vector2 screenTempVector = new Vector2();
 
     @Override
     public void create() {
+        // Change this to LOG_ERROR or LOG_NONE when releasing anything.
+        Gdx.app.setLogLevel(Application.LOG_INFO);
+
         batch = new SpriteBatch();
         tileset = new TextureAtlas(TILESET_FILE_NAME);
         tiles = tileset.createSprites("tile");
@@ -100,11 +103,10 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         if (Gdx.input.justTouched()) {
             Vector3 targetBlock = raycastToBlock(Gdx.input.getX(), Gdx.input.getY());
-//            Vector3 targetBlock = getClickedFace(blockHit, Gdx.input.getX(), Gdx.input.getY());
 
-            int f = Math.round(targetBlock.x), g = Math.round(targetBlock.y), h = Math.round(targetBlock.z);
-//            System.out.print("blockHit " + blockHit);
-            System.out.println("targetBlock " + targetBlock);
+            // raycastToBlock() returns a Vector3 full of integers; they just need to be cast to int.
+            int f = (int)targetBlock.x, g = (int)targetBlock.y, h = (int)targetBlock.z;
+            Gdx.app.log("CLICK", "targetBlock " + targetBlock);
 
             if (map.isValid(f, g, h)) {
                 if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -119,7 +121,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         }
     }
 
-    private Vector3 raycastToBlock(float screenX, float screenY) {
+    public Vector3 raycastToBlock(float screenX, float screenY) {
         Vector3 worldPos = camera.unproject(projectionTempVector.set(screenX, screenY, 0));
         // Why is the projection slightly off on both x and y? It is a mystery!
         worldPos.x -= TILE_WIDTH;
@@ -140,30 +142,13 @@ public class IsoEngine2D extends ApplicationAdapter {
         return groundCoords.set(MathUtils.ceil(groundCoords.x), MathUtils.ceil(groundCoords.y), 0);
     }
 
-
-    private Vector3 getClickedFace(Vector3 blockPos, float screenX, float screenY) {
-        Vector2 tileCenter = isoToScreen(MathUtils.round(blockPos.x), MathUtils.round(blockPos.y), MathUtils.round(blockPos.z));
-        float localX = screenX - tileCenter.x + TILE_WIDTH * 0.5f;
-        float localY = screenY - tileCenter.y + TILE_HEIGHT * 0.5f;
-
-        if (localY > TILE_DEPTH) {
-            return faceTempVector.set(blockPos.x, blockPos.y, blockPos.z + 1); // Top face
-        } else if (localX > TILE_WIDTH * 0.5f) {
-            return faceTempVector.set(blockPos.x, blockPos.y - 1, blockPos.z); // Left face (Remove x shift)
-        } else if (localX < TILE_WIDTH * -0.5f) {
-            return faceTempVector.set(blockPos.x - 1, blockPos.y, blockPos.z); // Right face (Only adjust X)
-        }
-
-        return faceTempVector.set(blockPos); // Default to selecting the block itself
-    }
-
-    private Vector2 isoToScreen(int x, int y, int z) {
-        float screenX = (x - y) * TILE_WIDTH;
-        float screenY = (x + y) * TILE_HEIGHT + z * TILE_DEPTH;
+    public static Vector2 isoToScreen(float f, float g, float h) {
+        float screenX = (f - g) * TILE_WIDTH;
+        float screenY = (f + g) * TILE_HEIGHT + h * TILE_DEPTH;
         return screenTempVector.set(screenX, screenY);
     }
 
-    private Vector3 screenToIso(float screenX, float screenY) {
+    public static Vector3 screenToIso(float screenX, float screenY) {
         float f = screenY * (0.5f / TILE_HEIGHT) + screenX * (0.5f / TILE_WIDTH) + 1;
         float g = screenY * (0.5f / TILE_HEIGHT) - screenX * (0.5f / TILE_WIDTH) + 1;
         return isoTempVector.set(f, g, 0);
