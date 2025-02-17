@@ -30,7 +30,7 @@ public class Player {
     private static final float MOVE_SPEED = 0.03f;
     private static final float PLAYER_SIZE = 1f;
 
-    public Player(LocalMap map, TextureAtlas tileset, int playerId) {
+    public Player(LocalMap map, Array<Array<Animation<Sprite>>> animations, int playerId) {
         this.map = map;
         this.position = new Vector3(0f, 5f, 2f);
         this.velocity = new Vector3(0, 0, 0);
@@ -38,26 +38,7 @@ public class Player {
         this.currentDirection = 0; // Default: facing down
         this.playerId = playerId;
 
-        // Load sprite sheet
-        spriteSheet = tileset;
-
-        Array<Sprite> entities = spriteSheet.createSprites("entity");
-        // Extract animations
-        animations = Array.with(
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class));
-        for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
-            /* Index 0 is front-facing idle animations. */
-            animations.get(0).add(new Animation<>(0.4f, Array.with(entities.get(outer+0), entities.get(outer+1)), Animation.PlayMode.LOOP));
-            /* Index 1 is rear-facing idle animations. */
-            animations.get(1).add(new Animation<>(0.4f, Array.with(entities.get(outer+4), entities.get(outer+5)), Animation.PlayMode.LOOP));
-            /* Index 2 is front-facing attack animations. */
-            animations.get(2).add(new Animation<>(0.2f, Array.with(entities.get(outer+2), entities.get(outer+3)), Animation.PlayMode.LOOP));
-            /* Index 3 is rear-facing attack animations. */
-            animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
-        }
+        this.animations = animations;
 
         // Initialize the decal
         playerDecal = Decal.newDecal(1f, 1f, animations.get(currentDirection).get(playerId).getKeyFrame(stateTime), true);

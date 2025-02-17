@@ -2,13 +2,12 @@ package gdx.liftoff;
 
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import gdx.liftoff.game.Isometric3DMapRenderer;
 import gdx.liftoff.game.LocalMap;
@@ -29,6 +28,7 @@ public class IsoEngine3D extends ApplicationAdapter {
     public Camera camera;
     CameraInputController cameraInputController;
     private TextureAtlas tileset;
+    private Array<Array<Animation<Sprite>>> animations;
     private LocalMap map;
     Isometric3DMapRenderer isometric3DMapRenderer;
     Player player;
@@ -49,8 +49,26 @@ public class IsoEngine3D extends ApplicationAdapter {
         instance = this;
 
         tileset = new TextureAtlas(TILESET_FILE_NAME);
+        Array<Sprite> entities = tileset.createSprites("entity");
+        // Extract animations
+        animations = Array.with(
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class));
+        for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
+            /* Index 0 is front-facing idle animations. */
+            animations.get(0).add(new Animation<>(0.4f, Array.with(entities.get(outer+0), entities.get(outer+1)), Animation.PlayMode.LOOP));
+            /* Index 1 is rear-facing idle animations. */
+            animations.get(1).add(new Animation<>(0.4f, Array.with(entities.get(outer+4), entities.get(outer+5)), Animation.PlayMode.LOOP));
+            /* Index 2 is front-facing attack animations. */
+            animations.get(2).add(new Animation<>(0.2f, Array.with(entities.get(outer+2), entities.get(outer+3)), Animation.PlayMode.LOOP));
+            /* Index 3 is rear-facing attack animations. */
+            animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
+        }
+
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
-        player = new Player(map, tileset, MathUtils.random(0, 15));
+        player = new Player(map, animations, MathUtils.random(0, 15));
 
         createCamera();
 

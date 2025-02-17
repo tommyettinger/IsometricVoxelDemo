@@ -2,7 +2,6 @@ package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.IsoEngine2D;
 
@@ -11,8 +10,8 @@ import gdx.liftoff.IsoEngine2D;
  * There are many possible isometric coordinate systems, so the one used here intentionally avoids calling the isometric
  * axes x, y, or z - here, the axes are f, g, and h, with mnemonics to help remember them. This uses an origin point at
  * the bottom center of the rotated rectangular map, typically the lowest corner of the map. The f and g axes are
- * diagonal, and correspond to movement at a shallow angle on both screen x and screen y. The h axis is used for
- * elevation, and corresponds to movement on screen y. The mnemonics here work as if on a world map, with the origin
+ * diagonal, and correspond to movement at a shallow angle on both world x and world y. The h axis is used for
+ * elevation, and corresponds to movement on world y. The mnemonics here work as if on a world map, with the origin
  * somewhere in Belgium or the Netherlands:
  * <ul>
  *     <li>The f axis is roughly the diagonal from France to Finland.</li>
@@ -41,18 +40,18 @@ public class IsoSprite implements Comparable<IsoSprite> {
         this.f = f;
         this.g = g;
         this.h = h;
-        float screenX = (f - g) * (2 * UNIT);
-        float screenY = (f + g) * UNIT + h * (2 * UNIT);
-        sprite.setPosition(screenX, screenY);
+        float worldX = (f - g) * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        sprite.setPosition(worldX, worldY);
     }
 
     public void setOriginBasedPosition(float f, float g, float h) {
         this.f = f;
         this.g = g;
         this.h = h;
-        float screenX = (f - g) * (2 * UNIT);
-        float screenY = (f + g) * UNIT + h * (2 * UNIT);
-        sprite.setOriginBasedPosition(screenX, screenY);
+        float worldX = (f - g) * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        sprite.setOriginBasedPosition(worldX, worldY);
     }
     public void setOrigin(float originX, float originY) {
         sprite.setOrigin(originX, originY);
@@ -60,6 +59,38 @@ public class IsoSprite implements Comparable<IsoSprite> {
 
     public void setOriginCenter() {
         sprite.setOriginCenter();
+    }
+
+    public Sprite getSprite() {
+        return sprite;
+    }
+
+    public void setSprite(Sprite sprite) {
+        this.sprite = sprite;
+    }
+
+    public float getF() {
+        return f;
+    }
+
+    public void setF(float f) {
+        this.f = f;
+    }
+
+    public float getG() {
+        return g;
+    }
+
+    public void setG(float g) {
+        this.g = g;
+    }
+
+    public float getH() {
+        return h;
+    }
+
+    public void setH(float h) {
+        this.h = h;
     }
 
     /**

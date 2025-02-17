@@ -5,6 +5,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -20,6 +21,7 @@ import gdx.liftoff.game.TestMap;
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
     private TextureAtlas tileset;
+    private Array<Array<Animation<Sprite>>> animations;
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
@@ -47,6 +49,25 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch = new SpriteBatch();
         tileset = new TextureAtlas(TILESET_FILE_NAME);
         tiles = tileset.createSprites("tile");
+
+        Array<Sprite> entities = tileset.createSprites("entity");
+        // Extract animations
+        animations = Array.with(
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class),
+            new Array<>(true, 16, Animation.class));
+        for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
+            /* Index 0 is front-facing idle animations. */
+            animations.get(0).add(new Animation<>(0.4f, Array.with(entities.get(outer+0), entities.get(outer+1)), Animation.PlayMode.LOOP));
+            /* Index 1 is rear-facing idle animations. */
+            animations.get(1).add(new Animation<>(0.4f, Array.with(entities.get(outer+4), entities.get(outer+5)), Animation.PlayMode.LOOP));
+            /* Index 2 is front-facing attack animations. */
+            animations.get(2).add(new Animation<>(0.2f, Array.with(entities.get(outer+2), entities.get(outer+3)), Animation.PlayMode.LOOP));
+            /* Index 3 is rear-facing attack animations. */
+            animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
+        }
+
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
