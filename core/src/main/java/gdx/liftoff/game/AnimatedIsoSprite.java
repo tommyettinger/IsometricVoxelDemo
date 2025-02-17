@@ -58,11 +58,28 @@ public class AnimatedIsoSprite extends IsoSprite {
         }
     }
 
-    public void updateAnimation(float stateTime) {
-        updateAnimation(stateTime, true);
+    /**
+     * Changes the currently drawn Sprite based on the current key frame in {@link #animation} given {@code stateTime}.
+     * This delegates to {@link #update(float, boolean)} with {@code looping} set to true.
+     *
+     * @param stateTime time, in seconds; typically since this was constructed or since the last time the game un-paused
+     */
+    @Override
+    public void update(float stateTime) {
+        update(stateTime, true);
     }
 
-    public void updateAnimation(float stateTime, boolean looping) {
+    /**
+     * Changes the currently drawn Sprite based on the current key frame in {@link #animation} given {@code stateTime}.
+     * If {@code looping} is true, then sequential {@link Animation.PlayMode} settings will always loop, or if looping
+     * is false, then if stateTime is greater than {@link Animation#getAnimationDuration()}, the last Sprite will be
+     * used instead of wrapping around.
+     *
+     * @param stateTime time, in seconds; typically since this was constructed or since the last time the game un-paused
+     * @param looping if true, the animation will always loop to the beginning; if false, it will end on the last Sprite
+     *               in the animation if stateTime is too high
+     */
+    public void update(float stateTime, boolean looping) {
         super.setSprite(animation.getKeyFrame(stateTime, looping));
     }
 }

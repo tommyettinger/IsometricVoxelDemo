@@ -130,6 +130,13 @@ public class IsoSprite implements Comparable<IsoSprite> {
         sprite.draw(batch, alphaModulation);
     }
 
+    /**
+     * Does nothing here, but can be overridden in subclasses to do something with a current time.
+     * @param stateTime time, typically in seconds, and typically since some event started (like creating this object)
+     */
+    public void update(float stateTime) {
+    }
+
     @Override
     public int compareTo(IsoSprite other) {
         return NumberUtils.floatToIntBits(getViewDistance() - other.getViewDistance() + 0f);
