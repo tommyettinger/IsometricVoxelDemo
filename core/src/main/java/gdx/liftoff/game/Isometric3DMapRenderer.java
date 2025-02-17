@@ -52,7 +52,7 @@ public class Isometric3DMapRenderer implements Disposable {
 
         // Sort decals by Y value (depth sorting to prevent clipping issues)
         // This approach does not permit NaN as a y-value, but that would be bad anyway.
-        decals.sort((a, b) -> NumberUtils.floatToIntBits(b.getY() - a.getY()));
+//        decals.sort((a, b) -> NumberUtils.floatToIntBits(b.getY() - a.getY()));
     }
 
     private Decal createTileDecal(int x, int y, int z, int tileId) {

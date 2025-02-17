@@ -28,11 +28,10 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
-    public static final int TILE_PIXEL_SPACE = 16;
     private static final int MAP_SIZE = 20;
     private static final int MAP_PEAK = 4;
     private static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
-    private static final int SCREEN_VERTICAL = (MAP_SIZE * 2 - 1) * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
+    private static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
     private static final float CAMERA_ZOOM = 1f;
 
     private final Vector3 projectionTempVector = new Vector3();
@@ -68,10 +67,10 @@ public class IsoEngine2D extends ApplicationAdapter {
             int f = Math.max(MAP_SIZE - 1 - line, 0);
             int g = MAP_SIZE - 1 - offset;
             for (int across = 0; across < span; across++) {
-                for (int z = 0; z < MAP_PEAK; z++) {
-                    int blockId = map.getTile(f, g, z);
+                for (int h = 0; h < MAP_PEAK; h++) {
+                    int blockId = map.getTile(f, g, h);
                     if (blockId != -1) {
-                        Vector2 pos = isoToScreen(f, g, z);
+                        Vector2 pos = isoToScreen(f, g, h);
                         Sprite spr = tiles.get(blockId % tiles.size);
                         spr.setPosition(pos.x, pos.y);
                         spr.draw(batch);
@@ -103,14 +102,18 @@ public class IsoEngine2D extends ApplicationAdapter {
             Vector3 targetBlock = raycastToBlock(Gdx.input.getX(), Gdx.input.getY());
 //            Vector3 targetBlock = getClickedFace(blockHit, Gdx.input.getX(), Gdx.input.getY());
 
+            int f = Math.round(targetBlock.x), g = Math.round(targetBlock.y), h = Math.round(targetBlock.z);
 //            System.out.print("blockHit " + blockHit);
             System.out.println("targetBlock " + targetBlock);
 
-            if (map.isValid(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z))) {
+            if (map.isValid(f, g, h)) {
                 if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-                    map.setTile(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z + 1), MathUtils.random(3));
+                    if(map.getTile(f, g, h) == -1)
+                        map.setTile(f, g, h, MathUtils.random(3));
+                    else
+                        map.setTile(f, g, h + 1, MathUtils.random(3));
                 } else if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-                    map.setTile(Math.round(targetBlock.x), Math.round(targetBlock.y), Math.round(targetBlock.z), -1);
+                    map.setTile(f, g, h, -1);
                 }
             }
         }
@@ -118,33 +121,23 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     private Vector3 raycastToBlock(float screenX, float screenY) {
         Vector3 worldPos = camera.unproject(projectionTempVector.set(screenX, screenY, 0));
+        // Why is the projection slightly off on both x and y? It is a mystery!
         worldPos.x -= TILE_WIDTH;
         worldPos.y -= TILE_HEIGHT * 4;
         // Check from highest to lowest Z
-        for (int z = MAP_PEAK - 1; z >= 0; z--) {
-            float h = z;
-            float f = worldPos.y * (0.5f / TILE_HEIGHT) + worldPos.x * (0.5f / TILE_WIDTH) - h;
-            float g = worldPos.y * (0.5f / TILE_HEIGHT) - worldPos.x * (0.5f / TILE_WIDTH) - h;
-            int cf = MathUtils.ceil(f);
-            int cg = MathUtils.ceil(g);
-            if (cf >= 0 && cf < MAP_SIZE && cg >= 0 && cg < MAP_SIZE) {
-                if (map.getTile(cf, cg, z) != -1) { // Found a solid block
-//                    Vector2 tilePos = isoToScreen(cf, cg, z);
-//                    float dx = tilePos.x - worldPos.x;
-//                    float dy = tilePos.y - worldPos.y;
-
-                    // Check if click is inside tile bounds
-//                    if (Math.abs(dx) < TILE_PIXEL_SPACE * 0.5f && Math.abs(dy) < TILE_PIXEL_SPACE * 0.5f) {
-                        System.out.println("Valid block found at " + cf + ", " + cg + ", " + z);
-                        return isoTempVector.set(cf, cg, z); // Return the first valid block found
-//                    }
+        for (int h = MAP_PEAK - 1; h >= 0; h--) {
+            int f = MathUtils.ceil(worldPos.y * (0.5f / TILE_HEIGHT) + worldPos.x * (0.5f / TILE_WIDTH) - h);
+            int g = MathUtils.ceil(worldPos.y * (0.5f / TILE_HEIGHT) - worldPos.x * (0.5f / TILE_WIDTH) - h);
+            if (f >= 0 && f < MAP_SIZE && g >= 0 && g < MAP_SIZE) {
+                if (map.getTile(f, g, h) != -1) { // Found a solid block
+                    return isoTempVector.set(f, g, h); // Return the first valid block found
                 }
             }
         }
 
         // No block was hit, return ground level
         Vector3 groundCoords = screenToIso(worldPos.x, worldPos.y);
-        return groundCoords.set(Math.round(groundCoords.x), Math.round(groundCoords.y), 0);
+        return groundCoords.set(MathUtils.ceil(groundCoords.x), MathUtils.ceil(groundCoords.y), 0);
     }
 
 
@@ -166,14 +159,14 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     private Vector2 isoToScreen(int x, int y, int z) {
         float screenX = (x - y) * TILE_WIDTH;
-        float screenY = (x + y) * TILE_HEIGHT + (z) * (TILE_DEPTH);
+        float screenY = (x + y) * TILE_HEIGHT + z * TILE_DEPTH;
         return screenTempVector.set(screenX, screenY);
     }
 
     private Vector3 screenToIso(float screenX, float screenY) {
-        float isoX = (screenX / (TILE_WIDTH) + screenY / (TILE_HEIGHT)) * 0.5f;
-        float isoY = (screenY / (TILE_HEIGHT) - screenX / (TILE_WIDTH)) * 0.5f;
-        return isoTempVector.set(isoX, isoY, 0);
+        float f = screenY * (0.5f / TILE_HEIGHT) + screenX * (0.5f / TILE_WIDTH) + 1;
+        float g = screenY * (0.5f / TILE_HEIGHT) - screenX * (0.5f / TILE_WIDTH) + 1;
+        return isoTempVector.set(f, g, 0);
     }
 
     private void reset() {
@@ -193,9 +186,9 @@ public class IsoEngine2D extends ApplicationAdapter {
         // This will only divide 1f by an integer amount 1 or greater, which makes pixels always the exact right size.
         // This meant to fit an isometric map that is about MAP_SIZE by MAP_PEAK by MAP_SIZE, where MAP_PEAK is how many
         // layers of voxels can be stacked on top of each other.
-        viewport.setUnitsPerPixel(1f / Math.max(1, (int)(Math.min(
-            width / ((MAP_SIZE+1f) * TILE_WIDTH * 2f),
-            height / ((MAP_SIZE+1f) * (TILE_HEIGHT * 2f) + TILE_DEPTH * MAP_PEAK)))));
+        viewport.setUnitsPerPixel(1f / Math.max(1, (int) Math.min(
+            width  / ((MAP_SIZE+1f) * (TILE_WIDTH * 2f)),
+            height / ((MAP_SIZE+1f) * (TILE_HEIGHT * 2f) + TILE_DEPTH * MAP_PEAK))));
         viewport.update(width, height);
     }
 }
