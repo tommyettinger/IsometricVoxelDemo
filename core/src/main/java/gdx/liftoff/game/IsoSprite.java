@@ -3,6 +3,7 @@ package gdx.liftoff.game;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.IsoEngine2D;
 
 /**
@@ -19,7 +20,7 @@ import gdx.liftoff.IsoEngine2D;
  *     <li>The h axis is the vertical line from your heel to your head (or Hell to Heaven).</li>
  * </ul>
  */
-public class IsoSprite {
+public class IsoSprite implements Comparable<IsoSprite> {
     public static float UNIT = IsoEngine2D.TILE_HEIGHT;
     public Sprite sprite;
     public float f, g, h;
@@ -62,13 +63,24 @@ public class IsoSprite {
     }
 
     /**
-     * Gets a float that roughly determines how far this IsoSprite is from the viewer/camera, for sorting purposes.
+     * Gets a float that roughly determines how close this IsoSprite is to the viewer/camera, for sorting purposes.
      * This won't work for IsoSprites that can have f or g go outside the -1023 to 1023 range.
      * The distance this returns is only useful relative to other results of this method, not in-general position.
-     * @return an estimate of the distance this IsoSprite is from the viewer/camera, in no particular scale.
+     * Higher returned values mean the IsoSprite is closer to the camera, and so should be rendered later.
+     * @return an estimate of how close this IsoSprite is to the viewer/camera, in no particular scale
      */
     public float getViewDistance() {
         return (h + h - f - g) + (f - g) * (1f/2048);
+    }
+
+    /**
+     * Just like {@link #getViewDistance()}, but this returns an int for cases where sorting ints is easier.
+     * Higher returned values mean the IsoSprite is closer to the camera, and so should be rendered later.
+     * @return an int code that will be greater for IsoSprites that are closer to the camera
+     */
+    public int getSortCode() {
+        int bits = NumberUtils.floatToIntBits((h + h - f - g) + (f - g) * (1f/2048) + 0f);
+        return bits ^ (bits >> 31 & 0x7FFFFFFF);
     }
 
     public void draw(Batch batch) {
@@ -77,5 +89,10 @@ public class IsoSprite {
 
     public void draw(Batch batch, float alphaModulation) {
         sprite.draw(batch, alphaModulation);
+    }
+
+    @Override
+    public int compareTo(IsoSprite other) {
+        return NumberUtils.floatToIntBits(getViewDistance() - other.getViewDistance() + 0f);
     }
 }
