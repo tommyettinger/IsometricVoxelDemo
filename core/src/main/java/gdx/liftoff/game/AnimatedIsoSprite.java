@@ -4,20 +4,21 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class AnimatedIsoSprite extends IsoSprite {
-    public Animation<Sprite> animation;
+    public Animation<? extends Sprite> animation;
 
     private AnimatedIsoSprite() {
         super();
     }
 
-    public AnimatedIsoSprite(Animation<Sprite> animation) {
+    public AnimatedIsoSprite(Animation<? extends Sprite> animation) {
         super(animation.getKeyFrame(0, true));
         this.animation = animation;
     }
 
-    public AnimatedIsoSprite(Animation<Sprite> animation, float f, float g, float h) {
-        super(animation.getKeyFrame(0, true), f, g, h);
+    public AnimatedIsoSprite(Animation<? extends Sprite> animation, float f, float g, float h) {
+        super(animation.getKeyFrame(0, true));
         this.animation = animation;
+        setPosition(f, g, h);
     }
 
     @Override

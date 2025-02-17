@@ -15,17 +15,23 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import gdx.liftoff.game.AnimatedIsoSprite;
+import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.TestMap;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
     private TextureAtlas tileset;
-    private Array<Array<Animation<Sprite>>> animations;
+    private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
-    private Array<Sprite> tiles;
+    private Array<TextureAtlas.AtlasRegion> tiles;
+    private ArrayList<IsoSprite> everything;
 
     public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -48,9 +54,10 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         batch = new SpriteBatch();
         tileset = new TextureAtlas(TILESET_FILE_NAME);
-        tiles = tileset.createSprites("tile");
+        tiles = tileset.findRegions("tile");
+        everything = new ArrayList<>(MAP_SIZE * MAP_SIZE * MAP_PEAK >>> 1);
 
-        Array<Sprite> entities = tileset.createSprites("entity");
+        Array<TextureAtlas.AtlasRegion> entities = tileset.findRegions("entity");
         // Extract animations
         animations = Array.with(
             new Array<>(true, 16, Animation.class),
@@ -59,16 +66,26 @@ public class IsoEngine2D extends ApplicationAdapter {
             new Array<>(true, 16, Animation.class));
         for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
             /* Index 0 is front-facing idle animations. */
-            animations.get(0).add(new Animation<>(0.4f, Array.with(entities.get(outer+0), entities.get(outer+1)), Animation.PlayMode.LOOP));
             /* Index 1 is rear-facing idle animations. */
-            animations.get(1).add(new Animation<>(0.4f, Array.with(entities.get(outer+4), entities.get(outer+5)), Animation.PlayMode.LOOP));
             /* Index 2 is front-facing attack animations. */
-            animations.get(2).add(new Animation<>(0.2f, Array.with(entities.get(outer+2), entities.get(outer+3)), Animation.PlayMode.LOOP));
             /* Index 3 is rear-facing attack animations. */
-            animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
+            animations.get(0).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+0)), new TextureAtlas.AtlasSprite(entities.get(outer+1))), Animation.PlayMode.LOOP));
+            animations.get(1).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+4)), new TextureAtlas.AtlasSprite(entities.get(outer+5))), Animation.PlayMode.LOOP));
+            animations.get(2).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+2)), new TextureAtlas.AtlasSprite(entities.get(outer+3))), Animation.PlayMode.LOOP));
+            animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
+        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_PEAK);
+        for (int f = 0; f < MAP_SIZE; f++) {
+            for (int g = 0; g < MAP_SIZE; g++) {
+                for (int h = 0; h < MAP_PEAK; h++) {
+                    int t = map.getTile(f, g, h);
+                    if(t != -1)
+                        everything.add(new IsoSprite(new TextureAtlas.AtlasSprite(tiles.get(t)), f, g, h));
+                }
+            }
+        }
+        everything.add(new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 2));
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
@@ -80,30 +97,34 @@ public class IsoEngine2D extends ApplicationAdapter {
     public void render() {
         handleInput();
 
+        Collections.sort(everything);
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         batch.setProjectionMatrix(camera.combined);
         viewport.apply();
         batch.begin();
-
-        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
-            int span = Math.min(line + 1, maxLines - line);
-            int offset = line + 1 - span >> 1;
-            int f = Math.max(MAP_SIZE - 1 - line, 0);
-            int g = MAP_SIZE - 1 - offset;
-            for (int across = 0; across < span; across++) {
-                for (int h = 0; h < MAP_PEAK; h++) {
-                    int blockId = map.getTile(f, g, h);
-                    if (blockId != -1) {
-                        Vector2 pos = isoToScreen(f, g, h);
-                        Sprite spr = tiles.get(blockId % tiles.size);
-                        spr.setPosition(pos.x, pos.y);
-                        spr.draw(batch);
-                    }
-                }
-                g--;
-                f++;
-            }
+        for (int i = 0, n = everything.size(); i < n; i++) {
+            everything.get(i).draw(batch);
         }
+
+//        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
+//            int span = Math.min(line + 1, maxLines - line);
+//            int offset = line + 1 - span >> 1;
+//            int f = Math.max(MAP_SIZE - 1 - line, 0);
+//            int g = MAP_SIZE - 1 - offset;
+//            for (int across = 0; across < span; across++) {
+//                for (int h = 0; h < MAP_PEAK; h++) {
+//                    int blockId = map.getTile(f, g, h);
+//                    if (blockId != -1) {
+//                        Vector2 pos = isoToScreen(f, g, h);
+//                        Sprite spr = tiles.get(blockId % tiles.size);
+//                        spr.setPosition(pos.x, pos.y);
+//                        spr.draw(batch);
+//                    }
+//                }
+//                g--;
+//                f++;
+//            }
+//        }
         batch.end();
     }
 
