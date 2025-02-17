@@ -61,6 +61,14 @@ public class IsoSprite implements Comparable<IsoSprite> {
         sprite.setOriginCenter();
     }
 
+    public float getOriginX() {
+        return sprite.getOriginX();
+    }
+
+    public float getOriginY() {
+        return sprite.getOriginY();
+    }
+
     public Sprite getSprite() {
         return sprite;
     }
