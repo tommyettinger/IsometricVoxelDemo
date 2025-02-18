@@ -95,6 +95,11 @@ public class IsoSprite implements Comparable<IsoSprite> {
     }
 
     public void setSprite(Sprite sprite) {
+        float worldX = (f - g) * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        sprite.setPosition(worldX, worldY);
+        sprite.setPackedColor(this.sprite.getPackedColor());
+        sprite.setOrigin(this.sprite.getOriginX(), this.sprite.getOriginY());
         this.sprite = sprite;
     }
 

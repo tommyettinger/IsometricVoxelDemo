@@ -56,7 +56,6 @@ public class LocalMap {
             } else {
                 IsoSprite iso;
                 if ((iso = everything.get(tempPointB.set(f, g, h))) != null) {
-                    iso.setPosition(f, g, h);
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
                     everything.put(new GridPoint3(f, g, h), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
