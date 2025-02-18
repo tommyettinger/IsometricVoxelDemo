@@ -12,7 +12,6 @@ public class LocalMap {
 
     private static final GridPoint3 tempPointA = new GridPoint3();
     private static final GridPoint3 tempPointB = new GridPoint3();
-    private static final GridPoint3 tempPointC = new GridPoint3();
 
     public LocalMap(int width, int height, int depth, Array<TextureAtlas.AtlasRegion> tileset) {
         this.tileset = tileset;

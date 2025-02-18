@@ -12,17 +12,13 @@ import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.NumberUtils;
-import com.badlogic.gdx.utils.OrderedMap;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
 import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.TestMap;
 
-import java.util.Collections;
 import java.util.Comparator;
 
 public class IsoEngine2D extends ApplicationAdapter {
@@ -44,7 +40,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     private static final float MAP_CENTER = (MAP_SIZE - 1f) * 0.5f;
 
     public float CAMERA_ZOOM = 1f;
-    public float rotationDegrees = 0f;
+    public float rotationDegrees = 0f, previousRotation = 0f, targetRotation = 0f;
+    public long startTime, animationStart = -1000000L;
 
     private static final Vector3 projectionTempVector = new Vector3();
     private static final Vector3 isoTempVector = new Vector3();
@@ -60,6 +57,7 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     @Override
     public void create() {
+        startTime = TimeUtils.millis();
         // Change this to LOG_ERROR or LOG_NONE when releasing anything.
         Gdx.app.setLogLevel(Application.LOG_INFO);
 
@@ -85,7 +83,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         }
 
         map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_PEAK, tileset.findRegions("tile"));
-        map.setEntity(3, 3, 2, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 2));
+        map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
@@ -96,7 +94,9 @@ public class IsoEngine2D extends ApplicationAdapter {
     @Override
     public void render() {
         handleInput();
-
+        float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
+        rotationDegrees = MathUtils.lerpAngleDeg(previousRotation, targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
+        if(MathUtils.isEqual(rotationDegrees, targetRotation)) previousRotation = targetRotation;
         final Array<GridPoint3> order = map.everything.orderedKeys();
         order.sort(comparator);
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
@@ -104,7 +104,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         viewport.apply();
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
-            map.everything.get(order.get(i)).draw(batch);
+            map.everything.get(order.get(i)).update(time).draw(batch, MAP_CENTER, MAP_CENTER, rotationDegrees);
         }
 
 //        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
@@ -141,6 +141,17 @@ public class IsoEngine2D extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.D)) camera.translate(5, 0);
         if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) camera.zoom += .25f;
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) camera.zoom -= .25f;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
+            previousRotation = rotationDegrees;
+            targetRotation = (MathUtils.round(rotationDegrees * (1f/90f)) + 1 & 3) * 90;
+            animationStart = TimeUtils.millis();
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT_BRACKET)) {
+            previousRotation = rotationDegrees;
+            targetRotation = (MathUtils.round(rotationDegrees * (1f/90f)) - 1 & 3) * 90;
+            animationStart = TimeUtils.millis();
+        }
 
         camera.update();
 
@@ -200,6 +211,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private void reset() {
         dispose();
         create();
+        resize(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
     }
 
     @Override
