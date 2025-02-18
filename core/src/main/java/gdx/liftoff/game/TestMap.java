@@ -1,17 +1,19 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
 
 public class TestMap extends LocalMap {
-    public TestMap(int width, int height, int depth) {
-        super(width, height, depth);
+    public TestMap(int width, int height, int depth, Array<TextureAtlas.AtlasRegion> tileset) {
+        super(width, height, depth, tileset);
 
         // ground
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 for (int z = 0; z < depth; z++) {
                     if (z == 0) {
-                        tiles[x][y][z] = MathUtils.random(3) + MathUtils.random(1) * 44;
+                        setTile(x, y, z, MathUtils.random(3) + MathUtils.random(1) * 44);
                     }
                 }
             }
@@ -22,7 +24,7 @@ public class TestMap extends LocalMap {
         for (int x = margin; x < width - margin; x++) {
             for (int y = margin; y < height - margin; y++) {
                 if (MathUtils.randomBoolean(.4f)) {
-                    tiles[x][y][1] = MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11;
+                    setTile(x,y,1, MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11);
                 }
             }
         }
@@ -31,17 +33,17 @@ public class TestMap extends LocalMap {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if ((x == 0 || x == width - 1) || (y == 0 || y == height - 1)) {
-                    tiles[x][y][0] = 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22;
+                    setTile(x,y,0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
                 }
             }
         }
-        tiles[0][0][0] = 2;
-        tiles[0][0][1] = 2;
-        tiles[width-1][0][0] = 2;
-        tiles[width-1][0][1] = 2;
-        tiles[0][height-1][0] = 2;
-        tiles[0][height-1][1] = 2;
-        tiles[width-1][height-1][0] = 2;
-        tiles[width-1][height-1][1] = 2;
+        setTile(0,0,0, 2);
+        setTile(0,0,1, 2);
+        setTile(width-1,0,0, 2);
+        setTile(width-1,0,1, 2);
+        setTile(0,height-1,0, 2);
+        setTile(0,height-1,1, 2);
+        setTile(width-1,height-1,0, 2);
+        setTile(width-1,height-1,1, 2);
     }
 }
