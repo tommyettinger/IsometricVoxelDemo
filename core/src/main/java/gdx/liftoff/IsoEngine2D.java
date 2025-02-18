@@ -6,13 +6,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.NumberUtils;
+import com.badlogic.gdx.utils.OrderedMap;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
@@ -20,8 +22,8 @@ import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.TestMap;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
@@ -30,8 +32,6 @@ public class IsoEngine2D extends ApplicationAdapter {
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
-    private Array<TextureAtlas.AtlasRegion> tiles;
-    private ArrayList<IsoSprite> everything;
 
     public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -41,11 +41,22 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int MAP_PEAK = 4;
     public static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
     public static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
-    private static final float CAMERA_ZOOM = 1f;
+    private static final float MAP_CENTER = (MAP_SIZE - 1f) * 0.5f;
+
+    public float CAMERA_ZOOM = 1f;
+    public float rotationDegrees = 0f;
 
     private static final Vector3 projectionTempVector = new Vector3();
     private static final Vector3 isoTempVector = new Vector3();
     private static final Vector2 screenTempVector = new Vector2();
+    private static final GridPoint3 tempPointA = new GridPoint3();
+    private static final GridPoint3 tempPointB = new GridPoint3();
+    private static final GridPoint3 tempPointC = new GridPoint3();
+
+    public final Comparator<? super GridPoint3> comparator =
+        (a, b) -> NumberUtils.floatToIntBits(
+            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees)
+                - IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + 0f);
 
     @Override
     public void create() {
@@ -54,8 +65,6 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         batch = new SpriteBatch();
         tileset = new TextureAtlas(TILESET_FILE_NAME);
-        tiles = tileset.findRegions("tile");
-        everything = new ArrayList<>(MAP_SIZE * MAP_SIZE * MAP_PEAK >>> 1);
 
         Array<TextureAtlas.AtlasRegion> entities = tileset.findRegions("entity");
         // Extract animations
@@ -75,17 +84,8 @@ public class IsoEngine2D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_PEAK);
-        for (int f = 0; f < MAP_SIZE; f++) {
-            for (int g = 0; g < MAP_SIZE; g++) {
-                for (int h = 0; h < MAP_PEAK; h++) {
-                    int t = map.getTile(f, g, h);
-                    if(t != -1)
-                        everything.add(new IsoSprite(new TextureAtlas.AtlasSprite(tiles.get(t)), f, g, h));
-                }
-            }
-        }
-        everything.add(new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 2));
+        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_PEAK, tileset.findRegions("tile"));
+        map.setEntity(3, 3, 2, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 2));
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
@@ -97,13 +97,14 @@ public class IsoEngine2D extends ApplicationAdapter {
     public void render() {
         handleInput();
 
-        Collections.sort(everything);
+        final Array<GridPoint3> order = map.everything.orderedKeys();
+        order.sort(comparator);
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         batch.setProjectionMatrix(camera.combined);
         viewport.apply();
         batch.begin();
-        for (int i = 0, n = everything.size(); i < n; i++) {
-            everything.get(i).draw(batch);
+        for (int i = 0, n = order.size; i < n; i++) {
+            map.everything.get(order.get(i)).draw(batch);
         }
 
 //        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {

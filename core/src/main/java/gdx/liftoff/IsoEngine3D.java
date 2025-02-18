@@ -67,7 +67,7 @@ public class IsoEngine3D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
         }
 
-        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE);
+        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_SIZE, tileset.findRegions("tile"));
         player = new Player(map, animations, MathUtils.random(0, 15));
 
         createCamera();

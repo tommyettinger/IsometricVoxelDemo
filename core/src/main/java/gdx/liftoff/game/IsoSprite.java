@@ -132,6 +132,16 @@ public class IsoSprite implements Comparable<IsoSprite> {
     public float getViewDistance() {
         return (h + h - f - g) + (f - g) * (1f/2048);
     }
+    public static float viewDistance(float f, float g, float h) {
+        return (h + h - f - g) + (f - g) * (1f/2048);
+    }
+    public static float viewDistance(float f, float g, float h, float originF, float originG, float rotationDegrees) {
+        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+        f -= originF;
+        g -= originG;
+        float rf = c * f + s * g + originF, rg = c * g - s * f + originG;
+        return (h + h - rf - rg) + (rf - rg) * (1f/2048);
+    }
 
     /**
      * Just like {@link #getViewDistance()}, but this returns an int for cases where sorting ints is easier.
