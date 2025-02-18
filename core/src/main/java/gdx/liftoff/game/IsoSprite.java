@@ -2,6 +2,9 @@ package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.GridPoint3;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.IsoEngine2D;
 
@@ -36,6 +39,16 @@ public class IsoSprite implements Comparable<IsoSprite> {
         setPosition(f, g, h);
     }
 
+    public IsoSprite(Sprite sprite, Vector3 position) {
+        this.sprite = sprite;
+        setPosition(position.x, position.y, position.z);
+    }
+
+    public IsoSprite(Sprite sprite, GridPoint3 position) {
+        this.sprite = sprite;
+        setPosition(position.x, position.y, position.z);
+    }
+
     public void setPosition(float f, float g, float h) {
         this.f = f;
         this.g = g;
@@ -43,6 +56,14 @@ public class IsoSprite implements Comparable<IsoSprite> {
         float worldX = (f - g) * (2 * UNIT);
         float worldY = (f + g) * UNIT + h * (2 * UNIT);
         sprite.setPosition(worldX, worldY);
+    }
+
+    public void setPosition(GridPoint3 point) {
+        setPosition(point.x, point.y, point.z);
+    }
+
+    public void setPosition(Vector3 point) {
+        setPosition(point.x, point.y, point.z);
     }
 
     public void setOriginBasedPosition(float f, float g, float h) {
