@@ -166,11 +166,35 @@ public class IsoSprite implements Comparable<IsoSprite> {
         sprite.draw(batch, alphaModulation);
     }
 
+    public void draw(Batch batch, float originF, float originG, float rotationDegrees) {
+        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+        float af = f - originF;
+        float ag = g - originG;
+        float rf = c * af + s * ag + originF, rg = c * ag - s * af + originG;
+        float worldX = (rf - rg) * (2 * UNIT);
+        float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
+        sprite.setPosition(worldX, worldY);
+        sprite.draw(batch);
+    }
+
+    public void draw(Batch batch, float alphaModulation, float originF, float originG, float rotationDegrees) {
+        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+        float af = f - originF;
+        float ag = g - originG;
+        float rf = c * af + s * ag + originF, rg = c * ag - s * af + originG;
+        float worldX = (rf - rg) * (2 * UNIT);
+        float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
+        sprite.setPosition(worldX, worldY);
+        sprite.draw(batch, alphaModulation);
+    }
+
     /**
      * Does nothing here, but can be overridden in subclasses to do something with a current time.
      * @param stateTime time, typically in seconds, and typically since some event started (like creating this object)
+     * @return this object, for chaining
      */
-    public void update(float stateTime) {
+    public IsoSprite update(float stateTime) {
+        return this;
     }
 
     @Override

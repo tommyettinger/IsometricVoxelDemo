@@ -66,8 +66,8 @@ public class AnimatedIsoSprite extends IsoSprite {
      * @param stateTime time, in seconds; typically since this was constructed or since the last time the game un-paused
      */
     @Override
-    public void update(float stateTime) {
-        update(stateTime, true);
+    public AnimatedIsoSprite update(float stateTime) {
+        return update(stateTime, true);
     }
 
     /**
@@ -80,7 +80,8 @@ public class AnimatedIsoSprite extends IsoSprite {
      * @param looping if true, the animation will always loop to the beginning; if false, it will end on the last Sprite
      *               in the animation if stateTime is too high
      */
-    public void update(float stateTime, boolean looping) {
+    public AnimatedIsoSprite update(float stateTime, boolean looping) {
         super.setSprite(animation.getKeyFrame(stateTime, looping));
+        return this;
     }
 }
