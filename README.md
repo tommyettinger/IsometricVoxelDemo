@@ -1,8 +1,8 @@
-# VoxelDecalExample
+# VoxelExample
 
-A sample [libGDX](https://libgdx.com/) project showing voxels as 3D decals.
+A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3D positions.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+Based on [voxelia by bergice](https://gitlab.com/bergice/voxelia/-/tree/master).
 
 ## Platforms
 
