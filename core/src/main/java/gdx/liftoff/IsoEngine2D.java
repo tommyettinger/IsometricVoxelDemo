@@ -36,7 +36,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int MAP_PEAK = 4;
     public static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
     public static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
-    private static final float MAP_CENTER = (MAP_SIZE - 1f) * 0.5f;
+    public float mapCenter = (MAP_SIZE - 1f) * 0.5f;
 
     public float CAMERA_ZOOM = 1f;
     public float rotationDegrees = 0f, previousRotation = 0f, targetRotation = 0f;
@@ -50,7 +50,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private static final GridPoint3 tempPointC = new GridPoint3();
 
     /**
-     * Used to depth-sort isometric points, including if the map is mid-rotation. This requires {@link #MAP_CENTER}
+     * Used to depth-sort isometric points, including if the map is mid-rotation. This requires {@link #mapCenter}
      * to be set to the center point on the floor of a map that is assumed square, and permits {@link #rotationDegrees}
      * to be any finite value in degrees.
      * <br>
@@ -62,8 +62,8 @@ public class IsoEngine2D extends ApplicationAdapter {
      */
     public final Comparator<? super GridPoint3> comparator =
         (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees) -
-                IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + 0.0f);
+            IsoSprite.viewDistance(a.x, a.y, a.z, mapCenter, mapCenter, rotationDegrees) -
+                IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) + 0.0f);
 
     // The above is equivalent to:
 //    public final Comparator<? super GridPoint3> comparator =
@@ -73,7 +73,6 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     @Override
     public void create() {
-        startTime = TimeUtils.millis();
         // Change this to LOG_ERROR or LOG_NONE when releasing anything.
         Gdx.app.setLogLevel(Application.LOG_INFO);
 
@@ -98,21 +97,30 @@ public class IsoEngine2D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        map = LocalMap.generateTestMap(
-            /* The seed will change after just over one hour, and will stay the same for over an hour. */
-            TimeUtils.millis() >>> 22,
-            /* Used for both dimensions of the ground plane. */
-            MAP_SIZE,
-            /* Used for the depth of the map, in elevation. */
-            MAP_PEAK,
-            /* All terrain tiles in the tileset. */
-            tileset.findRegions("tile"));
-        map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
-
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         camera.position.set(0, 100, 0);
         camera.update();
         viewport = new ScreenViewport(camera);
+
+        regenerate(
+            /* The seed will change after just over one hour, and will stay the same for over an hour. */
+            TimeUtils.millis() >>> 22);
+    }
+
+    public void regenerate(long seed) {
+
+        startTime = TimeUtils.millis();
+        map = LocalMap.generateTestMap(
+            seed,
+            /* Used for both dimensions of the ground plane. */
+            MAP_SIZE + ((int)seed & 3),
+            /* Used for the depth of the map, in elevation. */
+            MAP_PEAK,
+            /* All terrain tiles in the tileset. */
+            tileset.findRegions("tile"));
+        mapCenter = (map.getFSize() - 1f) * 0.5f;
+        map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
+
     }
 
     @Override
@@ -128,7 +136,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         viewport.apply();
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
-            map.everything.get(order.get(i)).update(time).draw(batch, MAP_CENTER, MAP_CENTER, rotationDegrees);
+            map.everything.get(order.get(i)).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
         }
 
 //        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
@@ -154,6 +162,10 @@ public class IsoEngine2D extends ApplicationAdapter {
     }
 
     private void handleInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            Gdx.app.exit();
+            return;
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             reset();
             return;
@@ -233,9 +245,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     }
 
     private void reset() {
-        dispose();
-        create();
-        resize(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+        regenerate(MathUtils.random.nextLong());
     }
 
     @Override

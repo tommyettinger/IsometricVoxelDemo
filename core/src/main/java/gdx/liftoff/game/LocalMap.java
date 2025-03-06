@@ -142,7 +142,7 @@ public class LocalMap {
         for (int f = margin; f < mapSize - margin; f++) {
             for (int g = margin; g < mapSize - margin; g++) {
                 if (MathUtils.randomBoolean(.4f)) {
-                    map.setTile(f, g, 1, MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11);
+                    map.setTile(f, g, 1, 8 + MathUtils.random(2) + MathUtils.random(3) * 11);
                 }
             }
         }
