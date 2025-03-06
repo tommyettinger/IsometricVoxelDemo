@@ -18,7 +18,6 @@ public class Player {
     private LocalMap map;
 
     private Decal playerDecal;
-    private TextureAtlas spriteSheet;
     private Array<Array<Animation<Sprite>>> animations;
     public final int playerId;
     private float stateTime;
@@ -123,25 +122,23 @@ public class Player {
             new Vector3(position.x - PLAYER_SIZE / 2, position.y, position.z - PLAYER_SIZE / 2),
             new Vector3(position.x + PLAYER_SIZE / 2, position.y + PLAYER_SIZE, position.z + PLAYER_SIZE / 2)
         );
+        BoundingBox blockBox = new BoundingBox();
 
         for (int f = 0; f < map.getFSize(); f++) {
             for (int g = 0; g < map.getGSize(); g++) {
                 for (int h = 0; h < map.getHSize(); h++) {
                     if (map.getTile(f, g, h) != -1) {
-                        BoundingBox blockBox = new BoundingBox(
-                            new Vector3(f, g, h),
-                            new Vector3(f + 1, g + 1, h + 1)
-                        );
-
+                        blockBox.min.set(f, g, h);
+                        blockBox.max.set(f + 1, g + 1, h + 1);
                         if (playerBox.intersects(blockBox)) {
                             if (position.y > g) { // Check if falling onto a tile
                                 position.y = g + 1; // Snap player to tile height
                                 velocity.y = 0;
                                 isGrounded = true;
-                            } /*else { // tile collision from the side
+                            } else { // tile collision from the side
                                 velocity.x = 0;
                                 velocity.z = 0;
-                            }*/
+                            }
                         }
                     }
                 }

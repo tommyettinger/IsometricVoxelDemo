@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.TimeUtils;
 import gdx.liftoff.game.Isometric3DMapRenderer;
 import gdx.liftoff.game.LocalMap;
 import gdx.liftoff.game.Player;
@@ -66,12 +67,20 @@ public class IsoEngine3D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(entities.get(outer+6), entities.get(outer+7)), Animation.PlayMode.LOOP));
         }
 
-        map = new LocalMap(MAP_SIZE, MAP_SIZE, MAP_SIZE, tileset.findRegions("tile")).setToTestMap();
+        map = LocalMap.generateTestMap(
+            /* The seed will change after just over one hour, and will stay the same for over an hour. */
+            TimeUtils.millis() >>> 22,
+            /* Used for both dimensions of the ground plane. */
+            MAP_SIZE,
+            /* Used for the depth of the map, in elevation. */
+            MAP_SIZE,
+            /* All terrain tiles in the tileset. */
+            tileset.findRegions("tile"));
         player = new Player(map, animations, MathUtils.random(0, 15));
 
         createCamera();
 
-        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, tileset.findRegions("tile"), TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH);
+        isometric3DMapRenderer = new Isometric3DMapRenderer(camera, map, map.tileset, TILE_WIDTH, TILE_HEIGHT, TILE_DEPTH);
         isometric3DMapRenderer.generateDecals();
 
         bitmapFont = new BitmapFont();

@@ -112,44 +112,58 @@ public class LocalMap {
         return tiles[0][0].length;
     }
 
-    public LocalMap setToTestMap() {
+    /**
+     * Generates a simple test map that assumes a specific tileset (using {@code isometric-trpg.atlas} as
+     * {@code tileset}, {@code tileset.findRegions("tile")}). Allows setting a specific seed to get the same map every
+     * time. This requires a minimum {@code mapSize} of 11 and a minimum {@code mapPeak} of 4.
+     * @param seed if this {@code long} is the same, the same map will be produced on each call
+     * @param mapSize the width and height of the map, or the dimensions of the ground plane in tiles
+     * @param mapPeak the depth or max elevation of the map
+     * @param tileset should probably be all regions called {@code "tile"} in {@code isometric-trpg.atlas}
+     * @return a new LocalMap
+     */
+    public static LocalMap generateTestMap(long seed, int mapSize, int mapPeak, Array<TextureAtlas.AtlasRegion> tileset) {
 
-        int width = getWidth(), height = getHeight(), depth = getDepth();
+        MathUtils.random.setSeed(seed);
 
+        mapSize = Math.max(11, mapSize);
+        mapPeak = Math.max(mapPeak, 4);
+
+        LocalMap map = new LocalMap(mapSize, mapSize, mapPeak, tileset);
         // ground
-        for (int f = 0; f < width; f++) {
-            for (int g = 0; g < height; g++) {
-                setTile(f, g, 0, MathUtils.random(3) + MathUtils.random(1) * 44);
+        for (int f = 0; f < mapSize; f++) {
+            for (int g = 0; g < mapSize; g++) {
+                map.setTile(f, g, 0, MathUtils.random(3) + MathUtils.random(1) * 44);
             }
         }
 
         // place random tiles in center of map
         int margin = 5;
-        for (int f = margin; f < width - margin; f++) {
-            for (int g = margin; g < height - margin; g++) {
+        for (int f = margin; f < mapSize - margin; f++) {
+            for (int g = margin; g < mapSize - margin; g++) {
                 if (MathUtils.randomBoolean(.4f)) {
-                    setTile(f, g, 1, MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11);
+                    map.setTile(f, g, 1, MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11);
                 }
             }
         }
 
         // outline
-        for (int f = 0; f < width; f++) {
-            for (int g = 0; g < height; g++) {
-                if ((f == 0 || f == width - 1) || (g == 0 || g == height - 1)) {
-                    setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
+        for (int f = 0; f < mapSize; f++) {
+            for (int g = 0; g < mapSize; g++) {
+                if ((f == 0 || f == mapSize - 1) || (g == 0 || g == mapSize - 1)) {
+                    map.setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
                 }
             }
         }
-        setTile(0,0,0, 2);
-        setTile(0,0,1, 2);
-        setTile(width-1,0,0, 2);
-        setTile(width-1,0,1, 2);
-        setTile(0,height-1,0, 2);
-        setTile(0,height-1,1, 2);
-        setTile(width-1,height-1,0, 2);
-        setTile(width-1,height-1,1, 2);
+        map.setTile(0, 0, 0, 2);
+        map.setTile(0, 0, 1, 2);
+        map.setTile(mapSize -1, 0, 0, 2);
+        map.setTile(mapSize -1, 0, 1, 2);
+        map.setTile(0, mapSize -1, 0, 2);
+        map.setTile(0, mapSize -1, 1, 2);
+        map.setTile(mapSize -1, mapSize -1, 0, 2);
+        map.setTile(mapSize -1, mapSize -1 ,1, 2);
 
-        return this;
+        return map;
     }
 }

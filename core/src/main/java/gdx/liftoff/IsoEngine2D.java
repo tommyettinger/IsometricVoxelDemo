@@ -98,7 +98,15 @@ public class IsoEngine2D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        map = new LocalMap(MAP_SIZE, MAP_SIZE, MAP_PEAK, tileset.findRegions("tile")).setToTestMap();
+        map = LocalMap.generateTestMap(
+            /* The seed will change after just over one hour, and will stay the same for over an hour. */
+            TimeUtils.millis() >>> 22,
+            /* Used for both dimensions of the ground plane. */
+            MAP_SIZE,
+            /* Used for the depth of the map, in elevation. */
+            MAP_PEAK,
+            /* All terrain tiles in the tileset. */
+            tileset.findRegions("tile"));
         map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
