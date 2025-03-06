@@ -17,7 +17,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
 import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
-import gdx.liftoff.game.TestMap;
 
 import java.util.Comparator;
 
@@ -50,10 +49,27 @@ public class IsoEngine2D extends ApplicationAdapter {
     private static final GridPoint3 tempPointB = new GridPoint3();
     private static final GridPoint3 tempPointC = new GridPoint3();
 
+    /**
+     * Used to depth-sort isometric points, including if the map is mid-rotation. This requires {@link #MAP_CENTER}
+     * to be set to the center point on the floor of a map that is assumed square, and permits {@link #rotationDegrees}
+     * to be any finite value in degrees.
+     * <br>
+     * Internally, this uses {@link NumberUtils#floatToIntBits(float)} instead of {@link Float#compare(float, float)}
+     * because it still returns a completely valid comparison value (it only distinguishes between an int that is
+     * positive, negative, or zero), and seems a tiny bit faster. To avoid {@code -0.0f} being treated as a negative
+     * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
+     * trick, and it is probably unnecessary and gratuitous!
+     */
     public final Comparator<? super GridPoint3> comparator =
         (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees)
-                - IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + 0f);
+            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees) -
+                IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + 0.0f);
+
+    // The above is equivalent to:
+//    public final Comparator<? super GridPoint3> comparator =
+//        (a, b) -> Float.compare(
+//            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees),
+//            IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees));
 
     @Override
     public void create() {
@@ -82,7 +98,7 @@ public class IsoEngine2D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        map = new TestMap(MAP_SIZE, MAP_SIZE, MAP_PEAK, tileset.findRegions("tile"));
+        map = new LocalMap(MAP_SIZE, MAP_SIZE, MAP_PEAK, tileset.findRegions("tile")).setToTestMap();
         map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);

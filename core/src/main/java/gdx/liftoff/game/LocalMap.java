@@ -2,6 +2,7 @@ package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.GridPoint3;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
 
@@ -87,15 +88,68 @@ public class LocalMap {
         }
     }
 
-    public int getXSize() {
+    public int getFSize() {
         return tiles.length;
     }
 
-    public int getYSize() {
+    public int getGSize() {
         return tiles[0].length;
     }
 
-    public int getZSize() {
+    public int getHSize() {
         return tiles[0][0].length;
+    }
+
+    public int getWidth() {
+        return tiles.length;
+    }
+
+    public int getHeight() {
+        return tiles[0].length;
+    }
+
+    public int getDepth() {
+        return tiles[0][0].length;
+    }
+
+    public LocalMap setToTestMap() {
+
+        int width = getWidth(), height = getHeight(), depth = getDepth();
+
+        // ground
+        for (int f = 0; f < width; f++) {
+            for (int g = 0; g < height; g++) {
+                setTile(f, g, 0, MathUtils.random(3) + MathUtils.random(1) * 44);
+            }
+        }
+
+        // place random tiles in center of map
+        int margin = 5;
+        for (int f = margin; f < width - margin; f++) {
+            for (int g = margin; g < height - margin; g++) {
+                if (MathUtils.randomBoolean(.4f)) {
+                    setTile(f, g, 1, MathUtils.random(3) + MathUtils.random(1) * 44 + MathUtils.random(1) * 11);
+                }
+            }
+        }
+
+        // outline
+        for (int f = 0; f < width; f++) {
+            for (int g = 0; g < height; g++) {
+                if ((f == 0 || f == width - 1) || (g == 0 || g == height - 1)) {
+                    setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
+                }
+            }
+        }
+        setTile(0,0,0, 2);
+        setTile(0,0,1, 2);
+        setTile(width-1,0,0, 2);
+        setTile(width-1,0,1, 2);
+        setTile(0,height-1,0, 2);
+        setTile(0,height-1,1, 2);
+        setTile(width-1,height-1,0, 2);
+        setTile(width-1,height-1,1, 2);
+
+        return this;
     }
 }

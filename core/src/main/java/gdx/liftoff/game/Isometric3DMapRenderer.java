@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.NumberUtils;
 
 public class Isometric3DMapRenderer implements Disposable {
     private final LocalMap map;
@@ -38,9 +37,9 @@ public class Isometric3DMapRenderer implements Disposable {
 
     public void generateDecals() {
         decals.clear();
-        for (int z = 0; z < map.getZSize(); z++) {
-            for (int x = 0; x < map.getXSize(); x++) {
-                for (int y = 0; y < map.getYSize(); y++) {
+        for (int z = 0; z < map.getHSize(); z++) {
+            for (int x = 0; x < map.getFSize(); x++) {
+                for (int y = 0; y < map.getGSize(); y++) {
                     int tileId = map.getTile(x, y, z);
                     if (tileId != -1) {
                         Decal decal = createTileDecal(x, y, z, tileId);
@@ -83,9 +82,9 @@ public class Isometric3DMapRenderer implements Disposable {
         Vector3 closestTile = null;
         float closestDistance = Float.MAX_VALUE;
 
-        for (int z = 0; z < map.getZSize(); z++) {
-            for (int x = 0; x < map.getXSize(); x++) {
-                for (int y = 0; y < map.getYSize(); y++) {
+        for (int z = 0; z < map.getHSize(); z++) {
+            for (int x = 0; x < map.getFSize(); x++) {
+                for (int y = 0; y < map.getGSize(); y++) {
                     if (map.getTile(x, y, z) != -1) { // Only check existing tiles
                         Vector3 tilePos = new Vector3((x - y) * tileWidth, z * tileWidth, (x + y) * (tileWidth / 2f));
 

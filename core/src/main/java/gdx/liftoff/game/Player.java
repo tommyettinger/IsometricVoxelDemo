@@ -124,18 +124,18 @@ public class Player {
             new Vector3(position.x + PLAYER_SIZE / 2, position.y + PLAYER_SIZE, position.z + PLAYER_SIZE / 2)
         );
 
-        for (int y = 0; y < map.getYSize(); y++) {
-            for (int x = 0; x < map.getXSize(); x++) {
-                for (int z = 0; z < map.getZSize(); z++) {
-                    if (map.getTile(x, y, z) != -1) {
+        for (int f = 0; f < map.getFSize(); f++) {
+            for (int g = 0; g < map.getGSize(); g++) {
+                for (int h = 0; h < map.getHSize(); h++) {
+                    if (map.getTile(f, g, h) != -1) {
                         BoundingBox blockBox = new BoundingBox(
-                            new Vector3(x, y, z),
-                            new Vector3(x + 1, y + 1, z + 1)
+                            new Vector3(f, g, h),
+                            new Vector3(f + 1, g + 1, h + 1)
                         );
 
                         if (playerBox.intersects(blockBox)) {
-                            if (position.y > y) { // Check if falling onto a tile
-                                position.y = y + 1; // Snap player to tile height
+                            if (position.y > g) { // Check if falling onto a tile
+                                position.y = g + 1; // Snap player to tile height
                                 velocity.y = 0;
                                 isGrounded = true;
                             } /*else { // tile collision from the side
