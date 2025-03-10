@@ -1,5 +1,6 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.utils.IntSet;
 import com.badlogic.gdx.utils.ObjectIntMap;
 
 /**
@@ -19,7 +20,8 @@ import com.badlogic.gdx.utils.ObjectIntMap;
  * France, Germany, Tallinn (in Estonia), and Reykjavík (in Iceland) relative to Amsterdam in the center.
  * Tiles that are not meant to be stackable have "DECO" in their constant name.
  * Bed tiles have "BED" in the name and a suffix indicating the faces that touch the footboard and headboard.
- *
+ * Some tiles have "CAP" in their name to indicate that only the top face is a given type, and the rest of the unit
+ * voxel is simply dirt.
  */
 @SuppressWarnings("PointlessArithmeticExpression")
 public final class AssetNames {
@@ -139,7 +141,6 @@ public final class AssetNames {
     public static final int HALF_DECO_BED_FT     =   9 + 99;
     public static final int DECO_FENCE_FT        =  10 + 99;
 
-
     public static final int KNIGHT      = 0;
     public static final int LANCER      = 1;
     public static final int ARCHER      = 2;
@@ -164,6 +165,14 @@ public final class AssetNames {
 
     public static final ObjectIntMap<String> TILES = new ObjectIntMap<>(128);
     public static final ObjectIntMap<String> ENTITIES = new ObjectIntMap<>(24);
+    public static final IntSet UNIT_VOXELS;
+    public static final IntSet HALF_VOXELS;
+    public static final IntSet BASE_VOXELS;
+    public static final IntSet HALF_COVERS;
+    public static final IntSet BASE_COVERS;
+    public static final IntSet DECORATIONS;
+    public static final IntSet HALF_DECORATIONS;
+
     static {
         TILES.put("dirt"                , DIRT                );
         TILES.put("grass"               , GRASS               );
@@ -293,5 +302,32 @@ public final class AssetNames {
         ENTITIES.put("bat"         , BAT         );
         ENTITIES.put("jelly"       , JELLY       );
 
+        UNIT_VOXELS = new IntSet(128);
+        HALF_VOXELS = new IntSet(64);
+        BASE_VOXELS = new IntSet(64);
+        HALF_COVERS = new IntSet(16);
+        BASE_COVERS = new IntSet(16);
+        DECORATIONS = new IntSet(32);
+        HALF_DECORATIONS = new IntSet(4);
+
+        UNIT_VOXELS.addAll(TILES.values().toArray());
+
+        for(ObjectIntMap.Entry<String> e : TILES.entries()){
+            if(e.key.contains("half")){
+                if(e.key.contains("cover")) HALF_COVERS.add(e.value);
+                else HALF_VOXELS.add(e.value);
+                UNIT_VOXELS.remove(e.value);
+            }
+            if(e.key.contains("base")){
+                if(e.key.contains("cover")) BASE_COVERS.add(e.value);
+                else BASE_VOXELS.add(e.value);
+                UNIT_VOXELS.remove(e.value);
+            }
+            if(e.key.contains("deco")){
+                if(e.key.contains("half")) HALF_DECORATIONS.add(e.value);
+                else DECORATIONS.add(e.value);
+                UNIT_VOXELS.remove(e.value);
+            }
+        }
     }
 }
