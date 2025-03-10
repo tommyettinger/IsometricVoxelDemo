@@ -1,7 +1,6 @@
 package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
