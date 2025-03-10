@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
+import gdx.liftoff.game.AssetNames;
 import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
 
@@ -127,10 +128,24 @@ public class IsoEngine2D extends ApplicationAdapter {
     public void render() {
         handleInput();
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
+        int prevRotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
+
         rotationDegrees = MathUtils.lerpAngleDeg(previousRotation, targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
-        if(MathUtils.isEqual(rotationDegrees, targetRotation)) previousRotation = targetRotation;
         final Array<GridPoint3> order = map.everything.orderedKeys();
         order.sort(comparator);
+
+        int rotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
+        if(prevRotationIndex != rotationIndex) {
+            for (int i = 0, n = order.size; i < n; i++) {
+                GridPoint3 gp = order.get(i);
+                int[] rots = AssetNames.ROTATIONS.get(map.getTile(gp));
+                if(rots != null)
+                    map.everything.get(gp).sprite.setRegion(map.tileset.get(rots[rotationIndex]));
+            }
+        }
+
+        if(MathUtils.isEqual(rotationDegrees, targetRotation))
+            previousRotation = targetRotation;
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         batch.setProjectionMatrix(camera.combined);
         viewport.apply();

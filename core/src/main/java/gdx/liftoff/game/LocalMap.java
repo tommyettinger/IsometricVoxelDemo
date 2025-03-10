@@ -40,6 +40,10 @@ public class LocalMap {
         return isValid(f, g, h) ? tiles[f][g][h] : -1;
     }
 
+    public int getTile(GridPoint3 point) {
+        return isValid(point) ? tiles[point.x][point.y][point.z] : -1;
+    }
+
     public IsoSprite getIsoSprite(int f, int g, int h) {
         return everything.get(tempPointA.set(f, g, h));
     }

@@ -144,7 +144,7 @@ public class IsoSprite implements Comparable<IsoSprite> {
         float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
         f -= originF;
         g -= originG;
-        float rf = c * f + s * g + originF, rg = c * g - s * f + originG;
+        float rf = c * f - s * g + originF, rg = c * g + s * f + originG;
         return (h + h - rf - rg) + (rf - rg) * (1f/2048);
     }
 
@@ -167,10 +167,12 @@ public class IsoSprite implements Comparable<IsoSprite> {
     }
 
     public void draw(Batch batch, float originF, float originG, float rotationDegrees) {
-        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+        float c = MathUtils.cosDeg(rotationDegrees);
+        float s = MathUtils.sinDeg(rotationDegrees);
         float af = f - originF;
         float ag = g - originG;
-        float rf = c * af + s * ag + originF, rg = c * ag - s * af + originG;
+        float rf = c * af - s * ag + originF;
+        float rg = c * ag + s * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
         float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
         sprite.setPosition(worldX, worldY);
@@ -178,10 +180,12 @@ public class IsoSprite implements Comparable<IsoSprite> {
     }
 
     public void draw(Batch batch, float alphaModulation, float originF, float originG, float rotationDegrees) {
-        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+        float c = MathUtils.cosDeg(rotationDegrees);
+        float s = MathUtils.sinDeg(rotationDegrees);
         float af = f - originF;
         float ag = g - originG;
-        float rf = c * af + s * ag + originF, rg = c * ag - s * af + originG;
+        float rf = c * af - s * ag + originF;
+        float rg = c * ag + s * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
         float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
         sprite.setPosition(worldX, worldY);
