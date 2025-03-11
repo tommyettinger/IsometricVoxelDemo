@@ -1,5 +1,6 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.IntSet;
 import com.badlogic.gdx.utils.ObjectIntMap;
@@ -7,7 +8,12 @@ import com.badlogic.gdx.utils.ObjectIntMap;
 /**
  * Constants to provide names for the numbered tiles and entities in the {@code isometric-trpg.atlas}, a map
  * {@link #TILES} that allows looking up tile constants with a String name, and a map {@link #ENTITIES} that allows
- * looking up entity constants (for use in the four Animation Arrays).
+ * looking up entity constants (for use in the four Animation Arrays). Importantly, this also stores data for how to
+ * render some tiles when they rotate, to prevent paths from becoming disconnected when the map rotates.
+ * <br>
+ * If you use a different set of assets, you will not need the values in this file, but you could use it as an example
+ * for how to make your own. You could also just use int indices throughout your project, or name the regions in your
+ * atlas according to your own rules.
  * <br>
  * There are several terms used in the tile names for grouping logically.
  * Tiles that are meant to be approximately half as tall as a unit voxel contain "HALF" in the constant name.
@@ -25,11 +31,11 @@ import com.badlogic.gdx.utils.ObjectIntMap;
  * voxel is simply dirt.
  */
 @SuppressWarnings("PointlessArithmeticExpression")
-public final class AssetNames {
+public final class AssetData {
     /**
      * No need to instantiate.
      */
-    private AssetNames() {}
+    private AssetData() {}
 
     public static final int DIRT                 =   0 +  0;
     public static final int GRASS                =   1 +  0;
@@ -173,6 +179,9 @@ public final class AssetNames {
     public static final IntSet BASE_COVERS;
     public static final IntSet DECORATIONS;
     public static final IntSet HALF_DECORATIONS;
+    public static final IntSet UNIT_ANY;
+    public static final IntSet HALF_ANY;
+    public static final IntSet BASE_ANY;
 
     /**
      * This maps indices of rotation-dependent tiles to their appropriate rotated versions when rotated 0 degrees, 90
@@ -376,13 +385,16 @@ public final class AssetNames {
         BASE_COVERS = new IntSet(16);
         DECORATIONS = new IntSet(32);
         HALF_DECORATIONS = new IntSet(4);
+        UNIT_ANY = new IntSet(64);
+        HALF_ANY = new IntSet(64);
+        BASE_ANY = new IntSet(64);
 
         UNIT_VOXELS.addAll(TILES.values().toArray());
 
         for(ObjectIntMap.Entry<String> e : TILES.entries()){
             if(e.key.contains("half")){
                 if(e.key.contains("cover")) HALF_COVERS.add(e.value);
-                else HALF_VOXELS.add(e.value);
+                else if(!e.key.contains("deco")) HALF_VOXELS.add(e.value);
                 UNIT_VOXELS.remove(e.value);
             }
             if(e.key.contains("base")){
@@ -396,5 +408,24 @@ public final class AssetNames {
                 UNIT_VOXELS.remove(e.value);
             }
         }
+        UNIT_ANY.addAll(UNIT_VOXELS);
+        UNIT_ANY.addAll(DECORATIONS);
+        HALF_ANY.addAll(HALF_VOXELS);
+        HALF_ANY.addAll(HALF_COVERS);
+        HALF_ANY.addAll(HALF_DECORATIONS);
+        BASE_ANY.addAll(BASE_VOXELS);
+        BASE_ANY.addAll(BASE_COVERS);
     }
+
+    public static final IntArray UNIT_VOXELS_ARRAY = UNIT_VOXELS.iterator().toArray();
+    public static final IntArray HALF_VOXELS_ARRAY = HALF_VOXELS.iterator().toArray();
+    public static final IntArray BASE_VOXELS_ARRAY = BASE_VOXELS.iterator().toArray();
+    public static final IntArray HALF_COVERS_ARRAY = HALF_COVERS.iterator().toArray();
+    public static final IntArray BASE_COVERS_ARRAY = BASE_COVERS.iterator().toArray();
+    public static final IntArray DECORATIONS_ARRAY = DECORATIONS.iterator().toArray();
+    public static final IntArray HALF_DECORATIONS_ARRAY = HALF_DECORATIONS.iterator().toArray();
+    public static final IntArray UNIT_ANY_ARRAY = UNIT_ANY.iterator().toArray();
+    public static final IntArray HALF_ANY_ARRAY = HALF_ANY.iterator().toArray();
+    public static final IntArray BASE_ANY_ARRAY = BASE_ANY.iterator().toArray();
+
 }

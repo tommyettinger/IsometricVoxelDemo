@@ -15,7 +15,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
-import gdx.liftoff.game.AssetNames;
+import gdx.liftoff.game.AssetData;
 import gdx.liftoff.game.IsoSprite;
 import gdx.liftoff.game.LocalMap;
 
@@ -138,7 +138,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         if(prevRotationIndex != rotationIndex) {
             for (int i = 0, n = order.size; i < n; i++) {
                 GridPoint3 gp = order.get(i);
-                int[] rots = AssetNames.ROTATIONS.get(map.getTile(gp));
+                int[] rots = AssetData.ROTATIONS.get(map.getTile(gp));
                 if(rots != null)
                     map.everything.get(gp).sprite.setRegion(map.tileset.get(rots[rotationIndex]));
             }

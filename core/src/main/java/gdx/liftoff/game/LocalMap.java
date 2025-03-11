@@ -134,19 +134,20 @@ public class LocalMap {
         mapPeak = Math.max(mapPeak, 4);
 
         LocalMap map = new LocalMap(mapSize, mapSize, mapPeak, tileset);
-        // ground
+        // Random normal-height voxels as a base.
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {
-                map.setTile(f, g, 0, MathUtils.random(3) + MathUtils.random(1) * 44);
+                map.setTile(f, g, 0, AssetData.UNIT_VOXELS_ARRAY.random());
             }
         }
 
-        // place random tiles in center of map
+        // Place random half-height tiles over center of map.
         int margin = 5;
         for (int f = margin; f < mapSize - margin; f++) {
             for (int g = margin; g < mapSize - margin; g++) {
-                if (MathUtils.randomBoolean(.4f)) {
-                    map.setTile(f, g, 1, 8 + MathUtils.random(2) + MathUtils.random(3) * 11);
+                // More likely to place tiles in the middle of the map than the edges.
+                if (MathUtils.randomBoolean(1.4f / (1f + Math.abs(mapSize * 0.5f - f) + Math.abs(mapSize * 0.5f - g)))) {
+                    map.setTile(f, g, 1, AssetData.HALF_VOXELS_ARRAY.random());
                 }
             }
         }
@@ -155,10 +156,12 @@ public class LocalMap {
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {
                 if ((f == 0 || f == mapSize - 1) || (g == 0 || g == mapSize - 1)) {
+                    // Produces either lava or basalt, with lava much more likely.
                     map.setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
                 }
             }
         }
+        // Sets the corners to 2-voxel-tall basalt pillars.
         map.setTile(0, 0, 0, 2);
         map.setTile(0, 0, 1, 2);
         map.setTile(mapSize -1, 0, 0, 2);
