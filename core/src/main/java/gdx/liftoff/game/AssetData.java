@@ -1,9 +1,6 @@
 package gdx.liftoff.game;
 
-import com.badlogic.gdx.utils.IntArray;
-import com.badlogic.gdx.utils.IntMap;
-import com.badlogic.gdx.utils.IntSet;
-import com.badlogic.gdx.utils.ObjectIntMap;
+import com.badlogic.gdx.utils.*;
 
 /**
  * Constants to provide names for the numbered tiles and entities in the {@code isometric-trpg.atlas}, a map
@@ -189,6 +186,11 @@ public final class AssetData {
      * form of indices, each an array of exactly 4 int indices (for the listed rotations, in that order).
      */
     public static final IntMap<int[]> ROTATIONS = new IntMap<>(58);
+    /**
+     * Maps keys that are ints storing data on which adjacent cells are also paths, to indices to the appropriate tiles
+     * to change to.
+     */
+    public static final IntIntMap PATHS = new IntIntMap(16);
 
     static {
         TILES.put("dirt"                , DIRT                );
@@ -377,6 +379,22 @@ public final class AssetData {
         ROTATIONS.put(HALF_DECO_BED_FT, new int[]{HALF_DECO_BED_FT, HALF_DECO_BED_GR, HALF_DECO_BED_FT, HALF_DECO_BED_GR, });
         ROTATIONS.put(DECO_FENCE_GR, new int[]{DECO_FENCE_GR, DECO_FENCE_FT, DECO_FENCE_GR, DECO_FENCE_FT, });
         ROTATIONS.put(DECO_FENCE_FT, new int[]{DECO_FENCE_FT, DECO_FENCE_GR, DECO_FENCE_FT, DECO_FENCE_GR, });
+
+        PATHS.put( 1, PATH_GRASS_FT);
+        PATHS.put( 2, PATH_GRASS_GR);
+        PATHS.put( 3, PATH_GRASS_FG);
+        PATHS.put( 4, PATH_GRASS_FT);
+        PATHS.put( 5, PATH_GRASS_FT);
+        PATHS.put( 6, PATH_GRASS_GT);
+        PATHS.put( 7, PATH_GRASS_FGT);
+        PATHS.put( 8, PATH_GRASS_GR);
+        PATHS.put( 9, PATH_GRASS_FR);
+        PATHS.put(10, PATH_GRASS_GR);
+        PATHS.put(11, PATH_GRASS_FGR);
+        PATHS.put(12, PATH_GRASS_TR);
+        PATHS.put(13, PATH_GRASS_FTR);
+        PATHS.put(14, PATH_GRASS_GTR);
+        PATHS.put(15, PATH_GRASS_FGTR);
 
         UNIT_VOXELS = new IntSet(128);
         HALF_VOXELS = new IntSet(64);
