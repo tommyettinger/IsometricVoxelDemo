@@ -527,4 +527,53 @@ public final class AssetData {
         return centerIndex;
     }
 
+    /**
+     * Given a 3D int array indexed in {@code [f][g][h]} order, this takes existing paths that may have become unaligned
+     * and resets their connections so they link up to each other. This also takes into account neighboring paths with
+     * up to one tile difference on h, higher or lower.
+     * @param tiles a 3D int array indexed in {@code [f][g][h]} order that will be modified in-place
+     * @return {@code tiles}, potentially after modifications, for chaining
+     */
+    public int[][][] realignPaths(int[][][] tiles) {
+        final int fSize = tiles.length, gSize = tiles[0].length, hSize = tiles[0][0].length;
+        final int fLimit = fSize - 1, gLimit = gSize - 1, hLimit = hSize - 1;
+        for (int f = 0; f < fSize; f++) {
+            for (int g = 0; g < gSize; g++) {
+                for (int h = hLimit; h >= 0; h--) {
+                    int t = tiles[f][g][h];
+                    if(t == -1) continue;
+                    int bits = 0;
+                    if(isGrassPath(t)) {
+                        if(f == 0 || isGrassPath(tiles[f-1][g][h]) || (h > 0 && isGrassPath(tiles[f-1][g][h-1])) || (h < hLimit && isGrassPath(tiles[f-1][g][h+1]))) bits |= 1;
+                        if(g == 0 || isGrassPath(tiles[f][g-1][h]) || (h > 0 && isGrassPath(tiles[f][g-1][h-1])) || (h < hLimit && isGrassPath(tiles[f][g-1][h+1]))) bits |= 2;
+                        if(f == fLimit || isGrassPath(tiles[f+1][g][h]) || (h > 0 && isGrassPath(tiles[f+1][g][h-1])) || (h < hLimit && isGrassPath(tiles[f+1][g][h+1]))) bits |= 4;
+                        if(f == gLimit || isGrassPath(tiles[f][g+1][h]) || (h > 0 && isGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        tiles[f][g][h] = PATHS.get(bits, PATH_GRASS_GR);
+                    } else if(isHalfGrassPath(t)) {
+                        if(f == 0 || isHalfGrassPath(tiles[f-1][g][h]) || (h > 0 && isHalfGrassPath(tiles[f-1][g][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f-1][g][h+1]))) bits |= 1;
+                        if(g == 0 || isHalfGrassPath(tiles[f][g-1][h]) || (h > 0 && isHalfGrassPath(tiles[f][g-1][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f][g-1][h+1]))) bits |= 2;
+                        if(f == fLimit || isHalfGrassPath(tiles[f+1][g][h]) || (h > 0 && isHalfGrassPath(tiles[f+1][g][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f+1][g][h+1]))) bits |= 4;
+                        if(f == gLimit || isHalfGrassPath(tiles[f][g+1][h]) || (h > 0 && isHalfGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        tiles[f][g][h] = PATHS.get(bits, PATH_GRASS_GR) + 11;
+                    } else if(isDryPath(t)) {
+                        if(f == 0 || isDryPath(tiles[f-1][g][h]) || (h > 0 && isDryPath(tiles[f-1][g][h-1])) || (h < hLimit && isDryPath(tiles[f-1][g][h+1]))) bits |= 1;
+                        if(g == 0 || isDryPath(tiles[f][g-1][h]) || (h > 0 && isDryPath(tiles[f][g-1][h-1])) || (h < hLimit && isDryPath(tiles[f][g-1][h+1]))) bits |= 2;
+                        if(f == fLimit || isDryPath(tiles[f+1][g][h]) || (h > 0 && isDryPath(tiles[f+1][g][h-1])) || (h < hLimit && isDryPath(tiles[f+1][g][h+1]))) bits |= 4;
+                        if(f == gLimit || isDryPath(tiles[f][g+1][h]) || (h > 0 && isDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isDryPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        tiles[f][g][h] = PATHS.get(bits, PATH_GRASS_GR) + 22;
+                    } else if(isHalfDryPath(t)) {
+                        if(f == 0 || isHalfDryPath(tiles[f-1][g][h]) || (h > 0 && isHalfDryPath(tiles[f-1][g][h-1])) || (h < hLimit && isHalfDryPath(tiles[f-1][g][h+1]))) bits |= 1;
+                        if(g == 0 || isHalfDryPath(tiles[f][g-1][h]) || (h > 0 && isHalfDryPath(tiles[f][g-1][h-1])) || (h < hLimit && isHalfDryPath(tiles[f][g-1][h+1]))) bits |= 2;
+                        if(f == fLimit || isHalfDryPath(tiles[f+1][g][h]) || (h > 0 && isHalfDryPath(tiles[f+1][g][h-1])) || (h < hLimit && isHalfDryPath(tiles[f+1][g][h+1]))) bits |= 4;
+                        if(f == gLimit || isHalfDryPath(tiles[f][g+1][h]) || (h > 0 && isHalfDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfDryPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        tiles[f][g][h] = PATHS.get(bits, PATH_GRASS_GR) + 33;
+                    }
+
+                    break;
+                }
+            }
+        }
+        return tiles;
+    }
+
 }
