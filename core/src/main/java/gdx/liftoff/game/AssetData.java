@@ -188,7 +188,8 @@ public final class AssetData {
     public static final IntMap<int[]> ROTATIONS = new IntMap<>(58);
     /**
      * Maps keys that are ints storing data on which adjacent cells are also paths, to indices to the appropriate tiles
-     * to change to.
+     * to change to. This defaults to returning paths over grass; to get paths over half-voxel grass, add 11. For paths
+     * over dry brush, add 22, and for paths over half-voxel dry brush, add 33.
      */
     public static final IntIntMap PATHS = new IntIntMap(16);
 
@@ -445,5 +446,85 @@ public final class AssetData {
     public static final IntArray UNIT_ANY_ARRAY = UNIT_ANY.iterator().toArray();
     public static final IntArray HALF_ANY_ARRAY = HALF_ANY.iterator().toArray();
     public static final IntArray BASE_ANY_ARRAY = BASE_ANY.iterator().toArray();
+
+    public static boolean isGrass(int index) {
+        return index == GRASS || index == DIRT ||
+            (index >= PATH_GRASS_GR && index <= PATH_GRASS_FR);
+    }
+    public static boolean isHalfGrass(int index) {
+        return index == HALF_GRASS || index == HALF_DIRT ||
+            (index >= HALF_PATH_GRASS_GR && index <= HALF_PATH_GRASS_FR);
+    }
+    public static boolean isDry(int index) {
+        return index == DRY || index == SAND ||
+            (index >= PATH_DRY_GR && index <= PATH_DRY_FR);
+    }
+    public static boolean isHalfDry(int index) {
+        return index == HALF_DRY || index == HALF_SAND ||
+            (index >= HALF_PATH_DRY_GR && index <= HALF_PATH_DRY_FR);
+    }
+    public static boolean isGrassPath(int index) {
+        return (index >= PATH_GRASS_GR && index <= PATH_GRASS_FR);
+    }
+    public static boolean isHalfGrassPath(int index) {
+        return (index >= HALF_PATH_GRASS_GR && index <= HALF_PATH_GRASS_FR);
+    }
+    public static boolean isDryPath(int index) {
+        return (index >= PATH_DRY_GR && index <= PATH_DRY_FR);
+    }
+    public static boolean isHalfDryPath(int index) {
+        return (index >= HALF_PATH_DRY_GR && index <= HALF_PATH_DRY_FR);
+    }
+
+    /**
+     * Meant to be called on a map where paths have been placed but don't necessarily line up or connect fully. If this
+     * can return a path or path-like (walkable) tile, it does that, so it should only be called where you want a path
+     * to form.
+     * @param centerIndex the tile index of the tile you could turn into a path or connect properly to other paths
+     * @param adjacentF the tile index of the tile in the F direction (negative F, towards the front and left)
+     * @param adjacentG the tile index of the tile in the G direction (negative G, towards the front and right)
+     * @param adjacentT the tile index of the tile in the T direction (positive F, towards the back and right)
+     * @param adjacentR the tile index of the tile in the R direction (positive G, towards the back and left)
+     * @return the tile index to use instead of {@code centerIndex} to make it become a path
+     */
+    public static int getPathIndex(int centerIndex, int adjacentF, int adjacentG, int adjacentT, int adjacentR) {
+        int bits = 0;
+
+        if(centerIndex == LAVA || centerIndex == BASALT) centerIndex = BASALT;
+        else if(centerIndex == HALF_LAVA || centerIndex == HALF_BASALT) centerIndex = HALF_BASALT;
+        else if(centerIndex == ICE || centerIndex == SNOW) centerIndex = SNOW;
+        else if(centerIndex == HALF_ICE || centerIndex == HALF_SNOW) centerIndex = HALF_SNOW;
+        else if(centerIndex >= HALF_COVER_WATER_FGH && centerIndex <= HALF_COVER_WATER_H) centerIndex = DRY;
+        else if(centerIndex >= BASE_COVER_WATER_FGH && centerIndex <= BASE_COVER_WATER_H) centerIndex = HALF_DRY;
+        else if(centerIndex >= HALF_COVER_SWAMP_FGH && centerIndex <= HALF_COVER_SWAMP_H) centerIndex = GRASS;
+        else if(centerIndex >= BASE_COVER_SWAMP_FGH && centerIndex <= BASE_COVER_SWAMP_H) centerIndex = HALF_GRASS;
+
+        if(isGrass(centerIndex)) {
+            if(isGrassPath(adjacentF)) bits |= 1;
+            if(isGrassPath(adjacentG)) bits |= 2;
+            if(isGrassPath(adjacentT)) bits |= 4;
+            if(isGrassPath(adjacentR)) bits |= 8;
+            centerIndex = PATHS.get(bits, PATH_GRASS_GR);
+        } else if(isHalfGrass(centerIndex)) {
+            if(isHalfGrassPath(adjacentF)) bits |= 1;
+            if(isHalfGrassPath(adjacentG)) bits |= 2;
+            if(isHalfGrassPath(adjacentT)) bits |= 4;
+            if(isHalfGrassPath(adjacentR)) bits |= 8;
+            centerIndex = PATHS.get(bits, PATH_GRASS_GR) + 11;
+        } else if(isDry(centerIndex)) {
+            if(isDryPath(adjacentF)) bits |= 1;
+            if(isDryPath(adjacentG)) bits |= 2;
+            if(isDryPath(adjacentT)) bits |= 4;
+            if(isDryPath(adjacentR)) bits |= 8;
+            centerIndex = PATHS.get(bits, PATH_GRASS_GR) + 22;
+        } else if(isHalfDry(centerIndex)) {
+            if(isHalfDryPath(adjacentF)) bits |= 1;
+            if(isHalfDryPath(adjacentG)) bits |= 2;
+            if(isHalfDryPath(adjacentT)) bits |= 4;
+            if(isHalfDryPath(adjacentR)) bits |= 8;
+            centerIndex = PATHS.get(bits, PATH_GRASS_GR) + 33;
+        }
+        return centerIndex;
+    }
 
 }
