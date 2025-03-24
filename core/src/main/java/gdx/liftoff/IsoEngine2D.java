@@ -33,10 +33,10 @@ public class IsoEngine2D extends ApplicationAdapter {
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
-    public static final int MAP_SIZE = 20;
-    public static final int MAP_PEAK = 4;
-    public static final int SCREEN_HORIZONTAL = MAP_SIZE * 2 * TILE_WIDTH;
-    public static final int SCREEN_VERTICAL = MAP_SIZE * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
+    public static final int MAP_SIZE = 40;
+    public static final int MAP_PEAK = 10;
+    public static final int SCREEN_HORIZONTAL = (MAP_SIZE+3) * 2 * TILE_WIDTH;
+    public static final int SCREEN_VERTICAL = (MAP_SIZE+3) * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
     public float mapCenter = (MAP_SIZE - 1f) * 0.5f;
 
     public float CAMERA_ZOOM = 1f;
@@ -99,7 +99,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         }
 
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
-        camera.position.set(0, 100, 0);
+        camera.position.set(TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0);
         camera.update();
         viewport = new ScreenViewport(camera);
 
@@ -154,6 +154,7 @@ public class IsoEngine2D extends ApplicationAdapter {
             map.everything.get(order.get(i)).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
         }
 
+        // The old way I used here; still draws from back to front, but is more complicated.
 //        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
 //            int span = Math.min(line + 1, maxLines - line);
 //            int offset = line + 1 - span >> 1;
