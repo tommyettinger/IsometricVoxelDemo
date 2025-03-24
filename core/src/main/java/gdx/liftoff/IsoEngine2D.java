@@ -120,7 +120,12 @@ public class IsoEngine2D extends ApplicationAdapter {
             /* All terrain tiles in the tileset. */
             tileset.findRegions("tile"));
         mapCenter = (map.getFSize() - 1f) * 0.5f;
-        map.setEntity(3, 3, 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
+        for (int h = MAP_PEAK - 2; h >= 0; h--) {
+            if(map.getTile(3, 3, h) != -1) {
+                map.setEntity(3, 3, h + 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
+                break;
+            }
+        }
 
     }
 

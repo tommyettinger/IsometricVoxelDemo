@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
+import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
     public int[][][] tiles;
@@ -128,29 +129,38 @@ public class LocalMap {
      */
     public static LocalMap generateTestMap(long seed, int mapSize, int mapPeak, Array<TextureAtlas.AtlasRegion> tileset) {
 
+        // noise that gradually moves a little
+        MiniNoise baseNoise = new MiniNoise((int) (seed), 0.06f, MiniNoise.FBM, 3);
+        // noise that is usually a low value, but has ridges of high values
+        MiniNoise ridgeNoise = new MiniNoise((int) (seed >> 32), 0.1f, MiniNoise.RIDGED, 3);
         MathUtils.random.setSeed(seed);
 
         mapSize = Math.max(11, mapSize);
         mapPeak = Math.max(mapPeak, 4);
 
         LocalMap map = new LocalMap(mapSize, mapSize, mapPeak, tileset);
-        // Random normal-height voxels as a base.
+        // Random voxels as a base, with height determined by noise. Either dirt 25% of the time, or grass the rest.
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {
-                map.setTile(f, g, 0, Math.max(MathUtils.random(1), MathUtils.random(1)));
-            }
-        }
+                int height = (int)Math.exp(baseNoise.getNoise(f, g) + 0.66 + ridgeNoise.getNoise(f, g) * 0.5);
+                map.setTile(f, g, height, Math.max(MathUtils.random(1), MathUtils.random(1)));
+                for (int h = height - 1; h >= 0; h--) {
+                    map.setTile(f, g, h, AssetData.DIRT);
 
-        // Place random full-height stone tiles over center of map.
-        int margin = 5;
-        for (int f = margin; f < mapSize - margin; f++) {
-            for (int g = margin; g < mapSize - margin; g++) {
-                // More likely to place tiles in the middle of the map than the edges.
-                if (MathUtils.randomBoolean(1.4f / (1f + Math.abs(mapSize * 0.5f - f) + Math.abs(mapSize * 0.5f - g)))) {
-                    map.setTile(f, g, 1, AssetData.BASALT);
                 }
             }
         }
+
+//        // Place random full-height stone tiles over center of map.
+//        int margin = 5;
+//        for (int f = margin; f < mapSize - margin; f++) {
+//            for (int g = margin; g < mapSize - margin; g++) {
+//                // More likely to place tiles in the middle of the map than the edges.
+//                if (MathUtils.randomBoolean(1.4f / (1f + Math.abs(mapSize * 0.5f - f) + Math.abs(mapSize * 0.5f - g)))) {
+//                    map.setTile(f, g, 1, AssetData.BASALT);
+//                }
+//            }
+//        }
 
 //        // outline
 //        for (int f = 0; f < mapSize; f++) {
