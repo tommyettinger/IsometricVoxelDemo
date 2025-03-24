@@ -137,30 +137,30 @@ public class LocalMap {
         // Random normal-height voxels as a base.
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {
-                map.setTile(f, g, 0, AssetData.UNIT_VOXELS_ARRAY.random());
+                map.setTile(f, g, 0, Math.max(MathUtils.random(1), MathUtils.random(1)));
             }
         }
 
-        // Place random half-height tiles over center of map.
+        // Place random full-height stone tiles over center of map.
         int margin = 5;
         for (int f = margin; f < mapSize - margin; f++) {
             for (int g = margin; g < mapSize - margin; g++) {
                 // More likely to place tiles in the middle of the map than the edges.
                 if (MathUtils.randomBoolean(1.4f / (1f + Math.abs(mapSize * 0.5f - f) + Math.abs(mapSize * 0.5f - g)))) {
-                    map.setTile(f, g, 1, AssetData.HALF_VOXELS_ARRAY.random());
+                    map.setTile(f, g, 1, AssetData.BASALT);
                 }
             }
         }
 
-        // outline
-        for (int f = 0; f < mapSize; f++) {
-            for (int g = 0; g < mapSize; g++) {
-                if ((f == 0 || f == mapSize - 1) || (g == 0 || g == mapSize - 1)) {
-                    // Produces either lava or basalt, with lava much more likely.
-                    map.setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
-                }
-            }
-        }
+//        // outline
+//        for (int f = 0; f < mapSize; f++) {
+//            for (int g = 0; g < mapSize; g++) {
+//                if ((f == 0 || f == mapSize - 1) || (g == 0 || g == mapSize - 1)) {
+//                    // Produces either lava or basalt, with lava much more likely.
+//                    map.setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
+//                }
+//            }
+//        }
         // Sets the corners to 2-voxel-tall basalt pillars.
         map.setTile(0, 0, 0, 2);
         map.setTile(0, 0, 1, 2);
@@ -170,7 +170,7 @@ public class LocalMap {
         map.setTile(0, mapSize -1, 1, 2);
         map.setTile(mapSize -1, mapSize -1, 0, 2);
         map.setTile(mapSize -1, mapSize -1 ,1, 2);
-
+        AssetData.realignPaths(map);
         return map;
     }
 }
