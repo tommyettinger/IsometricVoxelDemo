@@ -132,7 +132,7 @@ public class LocalMap {
         // noise that gradually moves a little
         MiniNoise baseNoise = new MiniNoise((int) (seed), 0.06f, MiniNoise.FBM, 3);
         // noise that is usually a low value, but has ridges of high values
-        MiniNoise ridgeNoise = new MiniNoise((int) (seed >> 32), 0.1f, MiniNoise.RIDGED, 3);
+        MiniNoise ridgeNoise = new MiniNoise((int) (seed >> 32), 0.1f, MiniNoise.RIDGED, 1);
         MathUtils.random.setSeed(seed);
 
         mapSize = Math.max(11, mapSize);
@@ -142,11 +142,17 @@ public class LocalMap {
         // Random voxels as a base, with height determined by noise. Either dirt 25% of the time, or grass the rest.
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {
-                int height = (int)Math.exp(baseNoise.getNoise(f, g) + 0.66 + ridgeNoise.getNoise(f, g) * 0.5);
-                map.setTile(f, g, height, Math.max(MathUtils.random(1), MathUtils.random(1)));
+                // I fiddled with this for a while to get results I liked.
+                // This combines baseNoise's slowly changing shallow hills with a little of ridgeNoise's sharp crests.
+                // The result is scaled and moved into the -1.99 to -0.01 range, then fed into
+                // Math.pow with a base of 7, which is pretty much a complete guess that was refined over a few tries.
+                // Then that pow call (which can produce values from close to 0 to almost 1) is scaled by mapPeak.
+                int height = (int)(mapPeak * Math.pow(7.0, baseNoise.getNoise(f, g) * 0.76 + ridgeNoise.getNoise(f, g) * 0.23 - 1.0));
+                // Some tiles are dirt, but most are grass; the 1.1f + 0.6f * baseNoise... is usually 1, but sometimes 0.
+                map.setTile(f, g, height, (int)(1.1f + 0.6f * baseNoise.getNoiseWithSeed(f * 2.3f, g * 2.3f, ~baseNoise.getSeed())));
+                // Anything below one of these tiles must be dirt.
                 for (int h = height - 1; h >= 0; h--) {
                     map.setTile(f, g, h, AssetData.DIRT);
-
                 }
             }
         }
