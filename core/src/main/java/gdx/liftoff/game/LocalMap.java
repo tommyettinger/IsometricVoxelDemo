@@ -191,11 +191,12 @@ public class LocalMap {
 //        map.setTile(mapSize -1, mapSize -1 ,1, 2);
 
         int pathF = mapSize / 2 + MathUtils.random(mapSize / -4, mapSize / 4);
-        int pathG = 0;
+        int pathG = mapSize / 4 + MathUtils.random(mapSize / -6, mapSize / 6);
         float angle = 1f;
         if(MathUtils.randomBoolean()){
+            int temp = pathG;
             pathG = pathF;
-            pathF = 0;
+            pathF = temp;
             angle = 0f;
         }
         if(MathUtils.randomBoolean()){
@@ -204,16 +205,34 @@ public class LocalMap {
             angle += 2f;
         }
 
-        for (int i = 0, n = mapSize * 3 / 2; i < n; i++) {
+        baseNoise.setOctaves(1);
+        for (int i = 0, n = mapSize + mapSize; i < n; i++) {
             if(map.isValid(pathF, pathG, 0)) {
                 for (int h = mapPeak - 1; h >= 0; h--) {
                     if(map.getTile(pathF, pathG, h) != -1) {
-                        map.setTile(pathF, pathG, h, AssetData.PATH_GRASS_FGTR);
+                        if(MathUtils.randomBoolean(0.8f))
+                            map.setTile(pathF, pathG, h, AssetData.PATH_GRASS_FGTR);
                         break;
                     }
                 }
+            } else {
+                pathF = mapSize / 2 + MathUtils.random(mapSize / -4, mapSize / 4);
+                pathG = mapSize / 4 + MathUtils.random(mapSize / -6, mapSize / 6);
+                angle = 1f;
+                if(MathUtils.randomBoolean()){
+                    int temp = pathG;
+                    pathG = pathF;
+                    pathF = temp;
+                    angle = 0f;
+                }
+                if(MathUtils.randomBoolean()){
+                    pathF = mapSize - 1 - pathF;
+                    pathG = mapSize - 1 - pathG;
+                    angle += 2f;
+                }
+
             }
-            angle = (angle + baseNoise.getNoise(i * 5f) * 0.5f + 4f) % 4f;
+            angle = (angle + baseNoise.getNoise(i * 25f) * 0.7f + 4f) % 4f;
             GridPoint2 dir = DIRECTIONS[(int) angle];
             pathF += dir.x;
             pathG += dir.y;
