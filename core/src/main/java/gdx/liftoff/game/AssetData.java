@@ -548,25 +548,25 @@ public final class AssetData {
                         if(f == 0 || isGrassPath(tiles[f-1][g][h]) || (h > 0 && isGrassPath(tiles[f-1][g][h-1])) || (h < hLimit && isGrassPath(tiles[f-1][g][h+1]))) bits |= 1;
                         if(g == 0 || isGrassPath(tiles[f][g-1][h]) || (h > 0 && isGrassPath(tiles[f][g-1][h-1])) || (h < hLimit && isGrassPath(tiles[f][g-1][h+1]))) bits |= 2;
                         if(f == fLimit || isGrassPath(tiles[f+1][g][h]) || (h > 0 && isGrassPath(tiles[f+1][g][h-1])) || (h < hLimit && isGrassPath(tiles[f+1][g][h+1]))) bits |= 4;
-                        if(f == gLimit || isGrassPath(tiles[f][g+1][h]) || (h > 0 && isGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        if(g == gLimit || isGrassPath(tiles[f][g+1][h]) || (h > 0 && isGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
                         area.setTile(f, g, h, PATHS.get(bits, PATH_GRASS_GR));
                     } else if(isHalfGrassPath(t)) {
                         if(f == 0 || isHalfGrassPath(tiles[f-1][g][h]) || (h > 0 && isHalfGrassPath(tiles[f-1][g][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f-1][g][h+1]))) bits |= 1;
                         if(g == 0 || isHalfGrassPath(tiles[f][g-1][h]) || (h > 0 && isHalfGrassPath(tiles[f][g-1][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f][g-1][h+1]))) bits |= 2;
                         if(f == fLimit || isHalfGrassPath(tiles[f+1][g][h]) || (h > 0 && isHalfGrassPath(tiles[f+1][g][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f+1][g][h+1]))) bits |= 4;
-                        if(f == gLimit || isHalfGrassPath(tiles[f][g+1][h]) || (h > 0 && isHalfGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        if(g == gLimit || isHalfGrassPath(tiles[f][g+1][h]) || (h > 0 && isHalfGrassPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfGrassPath(tiles[f][g+1][h+1]))) bits |= 8;
                         area.setTile(f, g, h, PATHS.get(bits, PATH_GRASS_GR) + 11);
                     } else if(isDryPath(t)) {
                         if(f == 0 || isDryPath(tiles[f-1][g][h]) || (h > 0 && isDryPath(tiles[f-1][g][h-1])) || (h < hLimit && isDryPath(tiles[f-1][g][h+1]))) bits |= 1;
                         if(g == 0 || isDryPath(tiles[f][g-1][h]) || (h > 0 && isDryPath(tiles[f][g-1][h-1])) || (h < hLimit && isDryPath(tiles[f][g-1][h+1]))) bits |= 2;
                         if(f == fLimit || isDryPath(tiles[f+1][g][h]) || (h > 0 && isDryPath(tiles[f+1][g][h-1])) || (h < hLimit && isDryPath(tiles[f+1][g][h+1]))) bits |= 4;
-                        if(f == gLimit || isDryPath(tiles[f][g+1][h]) || (h > 0 && isDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isDryPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        if(g == gLimit || isDryPath(tiles[f][g+1][h]) || (h > 0 && isDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isDryPath(tiles[f][g+1][h+1]))) bits |= 8;
                         area.setTile(f, g, h, PATHS.get(bits, PATH_GRASS_GR) + 22);
                     } else if(isHalfDryPath(t)) {
                         if(f == 0 || isHalfDryPath(tiles[f-1][g][h]) || (h > 0 && isHalfDryPath(tiles[f-1][g][h-1])) || (h < hLimit && isHalfDryPath(tiles[f-1][g][h+1]))) bits |= 1;
                         if(g == 0 || isHalfDryPath(tiles[f][g-1][h]) || (h > 0 && isHalfDryPath(tiles[f][g-1][h-1])) || (h < hLimit && isHalfDryPath(tiles[f][g-1][h+1]))) bits |= 2;
                         if(f == fLimit || isHalfDryPath(tiles[f+1][g][h]) || (h > 0 && isHalfDryPath(tiles[f+1][g][h-1])) || (h < hLimit && isHalfDryPath(tiles[f+1][g][h+1]))) bits |= 4;
-                        if(f == gLimit || isHalfDryPath(tiles[f][g+1][h]) || (h > 0 && isHalfDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfDryPath(tiles[f][g+1][h+1]))) bits |= 8;
+                        if(g == gLimit || isHalfDryPath(tiles[f][g+1][h]) || (h > 0 && isHalfDryPath(tiles[f][g+1][h-1])) || (h < hLimit && isHalfDryPath(tiles[f][g+1][h+1]))) bits |= 8;
                         area.setTile(f, g, h, PATHS.get(bits, PATH_GRASS_GR) + 33);
                     }
 

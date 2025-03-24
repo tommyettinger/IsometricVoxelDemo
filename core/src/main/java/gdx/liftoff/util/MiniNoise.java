@@ -1369,17 +1369,17 @@ public class MiniNoise {
         }
 
         /**
-         * Sway smoothly using bicubic interpolation between 4 points (the two integers before t and the two after).
-         * This pretty much never produces steep changes between peaks and valleys; this may make it more useful for things
-         * like generating terrain that can be walked across in a side-scrolling game.
+         * Sway smoothly using bicubic interpolation between 4 points (the two integers before x and the two after).
+         * This pretty much never produces steep changes between peaks and valleys; this may make it more useful for
+         * things like generating terrain that can be walked across in a side-scrolling game.
          *
-         * @param t    a distance traveled; should change by less than 1 between calls, and should be less than about 10000
+         * @param x    a distance traveled; should change by less than 1 between calls, and should be less than about 10000
          * @param seed any long
          * @return a smoothly-interpolated swaying value between -1 and 1, both exclusive
          */
-        public float getNoiseWithSeed(float t, int seed)
+        public float getNoiseWithSeed(float x, int seed)
         {
-            final long floor = (long) Math.floor(t);
+            final long floor = (long) Math.floor(x);
             // what we add here ensures that at the very least, the upper half will have some non-zero bits.
             long s = ((seed & 0xFFFFFFFFL) ^ (seed >>> 16)) + 0x9E3779B97F4A7C15L;
             // fancy XOR-rotate-rotate is a way to mix bits both up and down without multiplication.
@@ -1397,13 +1397,13 @@ public class MiniNoise {
             final float c = (m + 0xA36A9465A325DA06L ^ n + 0x57930711F71F5806L ^ o + 0x1972574E5E7B1BAEL);
             final float d = (m + 0x751FDE9874B8C709L ^ n + 0x035C8A9AF2AF0409L ^ o + 0xA62B82F58DB8A985L);
 
-            // get the fractional part of t.
-            t -= floor;
+            // get the fractional part of x.
+            x -= floor;
             // this is bicubic interpolation, inlined
             final float p = (d - c) - (a - b);
             // 7.7.228014483236334E-20 , or 0x1.5555555555428p-64 , is just inside {@code -2f/3f/Long.MIN_VALUE} .
             // it gets us about as close as we can go to 1.0 .
-            return (t * (t * t * p + t * (a - b - p) + c - a) + b) * 7.228014E-20f;
+            return (x * (x * x * p + x * (a - b - p) + c - a) + b) * 7.228014E-20f;
         }
 
 

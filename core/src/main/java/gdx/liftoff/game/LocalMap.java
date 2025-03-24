@@ -1,6 +1,7 @@
 package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
@@ -117,6 +118,7 @@ public class LocalMap {
         return tiles[0][0].length;
     }
 
+    private static final GridPoint2[] DIRECTIONS = {new GridPoint2(1, 0), new GridPoint2(0, 1), new GridPoint2(-1, 0), new GridPoint2(0, -1)};
     /**
      * Generates a simple test map that assumes a specific tileset (using {@code isometric-trpg.atlas} as
      * {@code tileset}, {@code tileset.findRegions("tile")}). Allows setting a specific seed to get the same map every
@@ -177,15 +179,46 @@ public class LocalMap {
 //                }
 //            }
 //        }
-        // Sets the corners to 2-voxel-tall basalt pillars.
-        map.setTile(0, 0, 0, 2);
-        map.setTile(0, 0, 1, 2);
-        map.setTile(mapSize -1, 0, 0, 2);
-        map.setTile(mapSize -1, 0, 1, 2);
-        map.setTile(0, mapSize -1, 0, 2);
-        map.setTile(0, mapSize -1, 1, 2);
-        map.setTile(mapSize -1, mapSize -1, 0, 2);
-        map.setTile(mapSize -1, mapSize -1 ,1, 2);
+
+//        // Sets the corners to 2-voxel-tall basalt pillars.
+//        map.setTile(0, 0, 0, 2);
+//        map.setTile(0, 0, 1, 2);
+//        map.setTile(mapSize -1, 0, 0, 2);
+//        map.setTile(mapSize -1, 0, 1, 2);
+//        map.setTile(0, mapSize -1, 0, 2);
+//        map.setTile(0, mapSize -1, 1, 2);
+//        map.setTile(mapSize -1, mapSize -1, 0, 2);
+//        map.setTile(mapSize -1, mapSize -1 ,1, 2);
+
+        int pathF = mapSize / 2 + MathUtils.random(mapSize / -4, mapSize / 4);
+        int pathG = 0;
+        float angle = 1f;
+        if(MathUtils.randomBoolean()){
+            pathG = pathF;
+            pathF = 0;
+            angle = 0f;
+        }
+        if(MathUtils.randomBoolean()){
+            pathF = mapSize - 1 - pathF;
+            pathG = mapSize - 1 - pathG;
+            angle += 2f;
+        }
+
+        for (int i = 0, n = mapSize * 3 / 2; i < n; i++) {
+            if(map.isValid(pathF, pathG, 0)) {
+                for (int h = mapPeak - 1; h >= 0; h--) {
+                    if(map.getTile(pathF, pathG, h) != -1) {
+                        map.setTile(pathF, pathG, h, AssetData.PATH_GRASS_FGTR);
+                        break;
+                    }
+                }
+            }
+            angle = (angle + baseNoise.getNoise(i * 5f) * 0.5f + 4f) % 4f;
+            GridPoint2 dir = DIRECTIONS[(int) angle];
+            pathF += dir.x;
+            pathG += dir.y;
+        }
+
         AssetData.realignPaths(map);
         return map;
     }
