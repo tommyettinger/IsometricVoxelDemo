@@ -34,7 +34,7 @@ prettyPrint=false
 legacyOutput=false
 
 scaleFactors=[{suffix:"",factor:1,resampling:bicubic}]
-inputFiles=[{path:.,type:Input,dirFilePrefix:null,recursive:false,flattenPaths:false}]
+inputFiles=[{path:isometric-trpg,type:Input,dirFilePrefix:null,recursive:false,flattenPaths:false}]
 keepInputFileExtensions=false
 
 
