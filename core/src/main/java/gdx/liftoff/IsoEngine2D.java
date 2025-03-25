@@ -8,10 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.GridPoint3;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.AnimatedIsoSprite;
@@ -61,10 +58,10 @@ public class IsoEngine2D extends ApplicationAdapter {
      * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
      * trick, and it is probably unnecessary and gratuitous!
      */
-    public final Comparator<? super Vector3> comparator =
+    public final Comparator<? super Vector4> comparator =
         (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, mapCenter, mapCenter, rotationDegrees) -
-                IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) + 0.0f);
+            IsoSprite.viewDistance(a.x, a.y, a.z, mapCenter, mapCenter, rotationDegrees) + a.w -
+                IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) - b.w + 0.0f);
 
     // The above is equivalent to:
 //    public final Comparator<? super GridPoint3> comparator =
@@ -136,16 +133,17 @@ public class IsoEngine2D extends ApplicationAdapter {
         int prevRotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
 
         rotationDegrees = MathUtils.lerpAngleDeg(previousRotation, targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
-        final Array<Vector3> order = map.everything.orderedKeys();
+        final Array<Vector4> order = map.everything.orderedKeys();
         order.sort(comparator);
 
         int rotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
         if(prevRotationIndex != rotationIndex) {
             for (int i = 0, n = order.size; i < n; i++) {
-                Vector3 gp = order.get(i);
-                int[] rots = AssetData.ROTATIONS.get(map.getTile(gp));
+                Vector4 pt = order.get(i);
+                if(pt.w != 0f) continue;
+                int[] rots = AssetData.ROTATIONS.get(map.getTile(pt));
                 if(rots != null)
-                    map.everything.get(gp).sprite.setRegion(map.tileset.get(rots[rotationIndex]));
+                    map.everything.get(pt).sprite.setRegion(map.tileset.get(rots[rotationIndex]));
             }
         }
 
@@ -156,7 +154,10 @@ public class IsoEngine2D extends ApplicationAdapter {
         viewport.apply();
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
-            map.everything.get(order.get(i)).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
+            Vector4 pos = order.get(i);
+//            map.edge.setPosition(pos);
+//            map.edge.draw(batch, mapCenter, mapCenter, rotationDegrees);
+            map.everything.get(pos).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
         }
 
         // The old way I used here; still draws from back to front, but is more complicated.

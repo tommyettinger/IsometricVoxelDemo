@@ -1,8 +1,9 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
@@ -10,16 +11,16 @@ import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
     public int[][][] tiles;
-    public OrderedMap<Vector3, IsoSprite> everything;
+    public OrderedMap<Vector4, IsoSprite> everything;
     public Array<TextureAtlas.AtlasRegion> tileset;
-    public TextureAtlas.AtlasRegion edge;
+    public Sprite edge;
 
-    private static final Vector3 tempPointA = new Vector3();
-    private static final Vector3 tempPointB = new Vector3();
+    private static final Vector4 tempPointA = new Vector4();
+    private static final Vector4 tempPointB = new Vector4();
 
     public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
         this.tileset = atlas.findRegions("tile");
-        this.edge = atlas.findRegion("edge");
+        this.edge = atlas.createSprite("edge");
         tiles = new int[width][height][depth];
 
         for (int f = 0; f < width; f++) {
@@ -36,7 +37,7 @@ public class LocalMap {
         return f >= 0 && g >= 0 && h >= 0 && f < tiles.length && g < tiles[0].length && h < tiles[0][0].length;
     }
 
-    public boolean isValid(Vector3 point) {
+    public boolean isValid(Vector4 point) {
         return isValid((int)point.x, (int)point.y, (int)point.z);
     }
 
@@ -44,15 +45,15 @@ public class LocalMap {
         return isValid(f, g, h) ? tiles[f][g][h] : -1;
     }
 
-    public int getTile(Vector3 point) {
+    public int getTile(Vector4 point) {
         return isValid(point) ? tiles[(int)point.x][(int)point.y][(int)point.z] : -1;
     }
 
     public IsoSprite getIsoSprite(int f, int g, int h) {
-        return everything.get(tempPointA.set(f, g, h));
+        return everything.get(tempPointA.set(f, g, h, 0));
     }
 
-    public IsoSprite getIsoSprite(Vector3 point) {
+    public IsoSprite getIsoSprite(Vector4 point) {
         return everything.get(point);
     }
 
@@ -60,29 +61,34 @@ public class LocalMap {
         if (isValid(f, g, h)) {
             tiles[f][g][h] = tileId;
             if (tileId == -1) {
-                everything.remove(tempPointB.set(f, g, h));
+                everything.remove(tempPointB.set(f, g, h, 0));
+                everything.remove(tempPointB.set(f, g, h, -1.5f));
             } else {
                 IsoSprite iso;
-                if ((iso = everything.get(tempPointB.set(f, g, h))) != null) {
+                if ((iso = everything.get(tempPointB.set(f, g, h, 0))) != null) {
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
-                    everything.put(new Vector3(f, g, h), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
+                    everything.put(new Vector4(f, g, h, 0), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
+                    everything.put(new Vector4(f, g, h, -1.5f), new IsoSprite(edge, f, g, h));
                 }
             }
         }
     }
 
-    public void setTile(Vector3 point, int tileId) {
+    public void setTile(Vector4 point, int tileId) {
         if (isValid(point)) {
             tiles[(int)point.x][(int)point.y][(int)point.z] = tileId;
             if (tileId == -1) {
                 everything.remove(point);
+                everything.remove(point.add(0,0,0,-1.5f));
             } else {
                 IsoSprite iso;
                 if ((iso = everything.get(point)) != null) {
-                    iso.setPosition(point);
+                    iso.setPosition(point.x, point.y, point.z);
                 } else {
-                    everything.put(point, new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), point));
+                    everything.put(point, new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), point.x, point.y, point.z));
+                    everything.put(new Vector4(point.x, point.y, point.z, -1.5f), new IsoSprite(edge, point.x, point.y, point.z));
+
                 }
             }
         }
@@ -92,7 +98,7 @@ public class LocalMap {
         if (isValid(f, g, h)) {
             tiles[f][g][h] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new Vector3(f, g, h), sprite);
+            everything.put(new Vector4(f, g, h, 0), sprite);
         }
     }
 
