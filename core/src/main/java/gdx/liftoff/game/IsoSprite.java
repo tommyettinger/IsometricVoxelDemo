@@ -135,17 +135,17 @@ public class IsoSprite implements Comparable<IsoSprite> {
      * @return an estimate of how close this IsoSprite is to the viewer/camera, in no particular scale
      */
     public float getViewDistance() {
-        return (h + h - f - g) + (f - g) * (1f/2048);
+        return (h * 3 - f - g) + (f - g) * (1f/2048);
     }
     public static float viewDistance(float f, float g, float h) {
-        return (h + h - f - g) + (f - g) * (1f/2048);
+        return (h * 3 - f - g) + (f - g) * (1f/2048);
     }
     public static float viewDistance(float f, float g, float h, float originF, float originG, float rotationDegrees) {
         float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
         f -= originF;
         g -= originG;
         float rf = c * f - s * g + originF, rg = c * g + s * f + originG;
-        return (h + h - rf - rg) + (rf - rg) * (1f/2048);
+        return (h * 3 - rf - rg) + (rf - rg) * (1f/2048);
     }
 
     /**
@@ -154,7 +154,7 @@ public class IsoSprite implements Comparable<IsoSprite> {
      * @return an int code that will be greater for IsoSprites that are closer to the camera
      */
     public int getSortCode() {
-        int bits = NumberUtils.floatToIntBits((h + h - f - g) + (f - g) * (1f/2048) + 0f);
+        int bits = NumberUtils.floatToIntBits((h * 3 - f - g) + (f - g) * (1f/2048) + 0f);
         return bits ^ (bits >> 31 & 0x7FFFFFFF);
     }
 
