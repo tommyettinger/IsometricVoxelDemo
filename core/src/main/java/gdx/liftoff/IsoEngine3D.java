@@ -75,7 +75,7 @@ public class IsoEngine3D extends ApplicationAdapter {
             /* Used for the depth of the map, in elevation. */
             MAP_SIZE,
             /* All terrain tiles in the tileset. */
-            tileset.findRegions("tile"));
+            tileset);
         player = new Player(map, animations, MathUtils.random(0, 15));
 
         createCamera();

@@ -2,7 +2,7 @@ package gdx.liftoff.game;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.GridPoint3;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
@@ -10,14 +10,16 @@ import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
     public int[][][] tiles;
-    public OrderedMap<GridPoint3, IsoSprite> everything;
+    public OrderedMap<Vector3, IsoSprite> everything;
     public Array<TextureAtlas.AtlasRegion> tileset;
+    public TextureAtlas.AtlasRegion edge;
 
-    private static final GridPoint3 tempPointA = new GridPoint3();
-    private static final GridPoint3 tempPointB = new GridPoint3();
+    private static final Vector3 tempPointA = new Vector3();
+    private static final Vector3 tempPointB = new Vector3();
 
-    public LocalMap(int width, int height, int depth, Array<TextureAtlas.AtlasRegion> tileset) {
-        this.tileset = tileset;
+    public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
+        this.tileset = atlas.findRegions("tile");
+        this.edge = atlas.findRegion("edge");
         tiles = new int[width][height][depth];
 
         for (int f = 0; f < width; f++) {
@@ -34,23 +36,23 @@ public class LocalMap {
         return f >= 0 && g >= 0 && h >= 0 && f < tiles.length && g < tiles[0].length && h < tiles[0][0].length;
     }
 
-    public boolean isValid(GridPoint3 point) {
-        return isValid(point.x, point.y, point.z);
+    public boolean isValid(Vector3 point) {
+        return isValid((int)point.x, (int)point.y, (int)point.z);
     }
 
     public int getTile(int f, int g, int h) {
         return isValid(f, g, h) ? tiles[f][g][h] : -1;
     }
 
-    public int getTile(GridPoint3 point) {
-        return isValid(point) ? tiles[point.x][point.y][point.z] : -1;
+    public int getTile(Vector3 point) {
+        return isValid(point) ? tiles[(int)point.x][(int)point.y][(int)point.z] : -1;
     }
 
     public IsoSprite getIsoSprite(int f, int g, int h) {
         return everything.get(tempPointA.set(f, g, h));
     }
 
-    public IsoSprite getIsoSprite(GridPoint3 point) {
+    public IsoSprite getIsoSprite(Vector3 point) {
         return everything.get(point);
     }
 
@@ -64,15 +66,15 @@ public class LocalMap {
                 if ((iso = everything.get(tempPointB.set(f, g, h))) != null) {
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
-                    everything.put(new GridPoint3(f, g, h), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
+                    everything.put(new Vector3(f, g, h), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
                 }
             }
         }
     }
 
-    public void setTile(GridPoint3 point, int tileId) {
+    public void setTile(Vector3 point, int tileId) {
         if (isValid(point)) {
-            tiles[point.x][point.y][point.z] = tileId;
+            tiles[(int)point.x][(int)point.y][(int)point.z] = tileId;
             if (tileId == -1) {
                 everything.remove(point);
             } else {
@@ -90,7 +92,7 @@ public class LocalMap {
         if (isValid(f, g, h)) {
             tiles[f][g][h] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new GridPoint3(f, g, h), sprite);
+            everything.put(new Vector3(f, g, h), sprite);
         }
     }
 
@@ -126,10 +128,10 @@ public class LocalMap {
      * @param seed if this {@code long} is the same, the same map will be produced on each call
      * @param mapSize the width and height of the map, or the dimensions of the ground plane in tiles
      * @param mapPeak the depth or max elevation of the map
-     * @param tileset should probably be all regions called {@code "tile"} in {@code isometric-trpg.atlas}
+     * @param atlas should probably be the TextureAtlas loaded from {@code isometric-trpg.atlas}
      * @return a new LocalMap
      */
-    public static LocalMap generateTestMap(long seed, int mapSize, int mapPeak, Array<TextureAtlas.AtlasRegion> tileset) {
+    public static LocalMap generateTestMap(long seed, int mapSize, int mapPeak, TextureAtlas atlas) {
 
         // noise that gradually moves a little
         MiniNoise baseNoise = new MiniNoise((int) (seed), 0.06f, MiniNoise.FBM, 3);
@@ -140,7 +142,7 @@ public class LocalMap {
         mapSize = Math.max(11, mapSize);
         mapPeak = Math.max(mapPeak, 4);
 
-        LocalMap map = new LocalMap(mapSize, mapSize, mapPeak, tileset);
+        LocalMap map = new LocalMap(mapSize, mapSize, mapPeak, atlas);
         // Random voxels as a base, with height determined by noise. Either dirt 25% of the time, or grass the rest.
         for (int f = 0; f < mapSize; f++) {
             for (int g = 0; g < mapSize; g++) {

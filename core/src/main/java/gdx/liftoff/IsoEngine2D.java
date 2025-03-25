@@ -23,13 +23,13 @@ import java.util.Comparator;
 
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
-    private TextureAtlas tileset;
+    private TextureAtlas atlas;
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
 
-    public static final String TILESET_FILE_NAME = "isometric-trpg.atlas";
+    public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
@@ -61,7 +61,7 @@ public class IsoEngine2D extends ApplicationAdapter {
      * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
      * trick, and it is probably unnecessary and gratuitous!
      */
-    public final Comparator<? super GridPoint3> comparator =
+    public final Comparator<? super Vector3> comparator =
         (a, b) -> NumberUtils.floatToIntBits(
             IsoSprite.viewDistance(a.x, a.y, a.z, mapCenter, mapCenter, rotationDegrees) -
                 IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) + 0.0f);
@@ -78,9 +78,9 @@ public class IsoEngine2D extends ApplicationAdapter {
         Gdx.app.setLogLevel(Application.LOG_INFO);
 
         batch = new SpriteBatch();
-        tileset = new TextureAtlas(TILESET_FILE_NAME);
+        atlas = new TextureAtlas(ATLAS_FILE_NAME);
 
-        Array<TextureAtlas.AtlasRegion> entities = tileset.findRegions("entity");
+        Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations
         animations = Array.with(
             new Array<>(true, 16, Animation.class),
@@ -118,7 +118,7 @@ public class IsoEngine2D extends ApplicationAdapter {
             /* Used for the depth of the map, in elevation. */
             MAP_PEAK,
             /* All terrain tiles in the tileset. */
-            tileset.findRegions("tile"));
+            atlas);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
         for (int h = MAP_PEAK - 2; h >= 0; h--) {
             if(map.getTile(3, 3, h) != -1) {
@@ -136,13 +136,13 @@ public class IsoEngine2D extends ApplicationAdapter {
         int prevRotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
 
         rotationDegrees = MathUtils.lerpAngleDeg(previousRotation, targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
-        final Array<GridPoint3> order = map.everything.orderedKeys();
+        final Array<Vector3> order = map.everything.orderedKeys();
         order.sort(comparator);
 
         int rotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
         if(prevRotationIndex != rotationIndex) {
             for (int i = 0, n = order.size; i < n; i++) {
-                GridPoint3 gp = order.get(i);
+                Vector3 gp = order.get(i);
                 int[] rots = AssetData.ROTATIONS.get(map.getTile(gp));
                 if(rots != null)
                     map.everything.get(gp).sprite.setRegion(map.tileset.get(rots[rotationIndex]));
@@ -272,7 +272,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        tileset.dispose();
+        atlas.dispose();
     }
 
     @Override
