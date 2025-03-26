@@ -45,11 +45,16 @@ public class LocalMap {
         return isValid(f, g, h) ? tiles[f][g][h] : -1;
     }
 
-    public int getTile(Vector4 point) {
-        return isValid(point) ? tiles[(int)point.x][(int)point.y][(int)point.z] : -1;
+    public int getTile(float f, float g, float h) {
+        int rf = MathUtils.round(f), rg = MathUtils.round(g), rh = MathUtils.round(h);
+        return isValid(rf, rg, rh) ? tiles[rf][rg][rh] : -1;
     }
 
-    public IsoSprite getIsoSprite(int f, int g, int h) {
+    public int getTile(Vector4 point) {
+        return isValid(point) ? tiles[MathUtils.round(point.x)][MathUtils.round(point.y)][MathUtils.round(point.z)] : -1;
+    }
+
+    public IsoSprite getIsoSprite(float f, float g, float h) {
         return everything.get(tempPointA.set(f, g, h, 0));
     }
 

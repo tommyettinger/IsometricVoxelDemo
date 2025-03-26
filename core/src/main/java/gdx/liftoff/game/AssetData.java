@@ -3,7 +3,9 @@ package gdx.liftoff.game;
 import com.badlogic.gdx.utils.*;
 
 /**
- * Constants to provide names for the numbered tiles and entities in the {@code isometric-trpg.atlas}, a map
+ * Data specific to the art assets used here. If the art assets change, you may need to update this class.
+ * <br>
+ * This has constants to provide names for the numbered tiles and entities in the {@code isometric-trpg.atlas}, a map
  * {@link #TILES} that allows looking up tile constants with a String name, and a map {@link #ENTITIES} that allows
  * looking up entity constants (for use in the four Animation Arrays). Importantly, this also stores data for how to
  * render some tiles when they rotate, to prevent paths from becoming disconnected when the map rotates.
@@ -13,19 +15,21 @@ import com.badlogic.gdx.utils.*;
  * atlas according to your own rules.
  * <br>
  * There are several terms used in the tile names for grouping logically.
- * Tiles that are meant to be approximately half as tall as a unit voxel contain "HALF" in the constant name.
- * Tiles that are meant to just barely cover the top of a unit voxel contain "BASE" in their constant name.
- * Tiles that are meant to flow over the top of a surface of their height contain "COVER" in their constant name.
- * Cover tiles have a suffix containing "F", "G", and/or "H" depending on whether they cover the f or g vertical faces,
- * or the h face on top.
- * Tiles that have a path on them that changes depending on view angle have "PATH" in their constant name. Path tiles
+ * <ul>
+ * <li>Tiles that are meant to be approximately half as tall as a unit voxel contain "HALF" in the constant name.</li>
+ * <li>Tiles that are meant to just barely cover the top of a unit voxel contain "BASE" in their constant name.</li>
+ * <li>Tiles that are meant to flow over the top of a surface of their height contain "COVER" in their constant name.</li>
+ * <li>Cover tiles have a suffix containing "F", "G", and/or "H" depending on whether they cover the f or g vertical faces,
+ * or the h face on top.</li>
+ * <li>Tiles that have a path on them that changes depending on view angle have "PATH" in their constant name. Path tiles
  * have a suffix containing "F", "G", "T", and/or "R" depending on which faces are connected to the path, where fgtr are
  * the recommended keys on a QWERTY keyboard to move in those directions, or on a map of Europe, the locations of
- * France, Germany, Tallinn (in Estonia), and Reykjavík (in Iceland) relative to Amsterdam in the center.
- * Tiles that are not meant to be stackable have "DECO" in their constant name.
- * Bed tiles have "BED" in the name and a suffix indicating the faces that touch the footboard and headboard.
- * Some tiles have "CAP" in their name to indicate that only the top face is a given type, and the rest of the unit
- * voxel is simply dirt.
+ * France, Germany, Tallinn (in Estonia), and Reykjavík (in Iceland) relative to Amsterdam in the center.</li>
+ * <li>Tiles that are not meant to be stackable have "DECO" in their constant name.</li>
+ * <li>Bed tiles have "BED" in the name and a suffix indicating the faces that touch the footboard and headboard.</li>
+ * <li>Some tiles have "CAP" in their name to indicate that only the top face is a given type, and the rest of the unit
+ * voxel is simply dirt.</li>
+ * </ul>
  */
 @SuppressWarnings("PointlessArithmeticExpression")
 public final class AssetData {

@@ -16,17 +16,18 @@ public class Player {
     private boolean isGrounded;
     private LocalMap map;
 
-    private Decal playerDecal;
     private Array<Array<Animation<Sprite>>> animations;
     public final int playerId;
     private float stateTime;
     private int currentDirection;
 
-    private static final float GRAVITY = -0.008f;
+    private static final float GRAVITY = -0.5f; // multiplied by delta, which is expected to be about 1f/60f
     private static final float MAX_GRAVITY = -0.15f;
     private static final float JUMP_FORCE = 0.25f;
     private static final float MOVE_SPEED = 0.03f;
     private static final float PLAYER_SIZE = 1f;
+
+    private Decal playerDecal;
 
     public Player(LocalMap map, Array<Array<Animation<Sprite>>> animations, int playerId) {
         this.map = map;
@@ -45,7 +46,7 @@ public class Player {
     public void update(float deltaTime) {
         stateTime += deltaTime;
 
-        applyGravity();
+        applyGravity(deltaTime);
         position.add(velocity);
         handleCollision();
 
@@ -68,9 +69,9 @@ public class Player {
         batch.add(playerDecal);
     }
 
-    private void applyGravity() {
+    private void applyGravity(float delta) {
         if (!isGrounded) {
-            velocity.y = Math.max(velocity.y + GRAVITY, MAX_GRAVITY); // Apply gravity to Y (not Z)
+            velocity.y = Math.max(velocity.y + GRAVITY * delta, MAX_GRAVITY); // Apply gravity to Y (not Z)
         }
     }
 
@@ -123,12 +124,12 @@ public class Player {
         );
         BoundingBox blockBox = new BoundingBox();
 
-        for (int f = 0; f < map.getFSize(); f++) {
-            for (int g = 0; g < map.getGSize(); g++) {
-                for (int h = 0; h < map.getHSize(); h++) {
-                    if (map.getTile(f, g, h) != -1) {
-                        blockBox.min.set(f, g, h);
-                        blockBox.max.set(f + 1, g + 1, h + 1);
+        for (int f = -1; f <= 1; f++) {
+            for (int g = -1; g <= 1; g++) {
+                for (int h = -1; h <= 1; h++) {
+                    if (map.getTile(position.x + f, position.y + g, position.z + h) != -1) {
+                        blockBox.min.set(position.x + f, position.y + g, position.z + h);
+                        blockBox.max.set(position.x + f + 1, position.y + g + 1, position.z + h + 1);
                         if (playerBox.intersects(blockBox)) {
                             if (position.y > g) { // Check if falling onto a tile
                                 position.y = g + 1; // Snap player to tile height
