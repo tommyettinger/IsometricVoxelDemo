@@ -30,7 +30,7 @@ public class LocalMap {
                 }
             }
         }
-        everything = new OrderedMap<>(width * height * depth >>> 1, 0.625f);
+        everything = new OrderedMap<>(width * height * depth * 3 >>> 2, 0.625f);
     }
 
     public boolean isValid(int f, int g, int h) {
@@ -74,6 +74,11 @@ public class LocalMap {
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
                     everything.put(new Vector4(f, g, h, 0), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
+                    // Environment tiles have an outline that may render if there is empty space behind them.
+                    // The position has -1.5 for w, and w is added to the depth for the purpose of sorting.
+                    // Adjacent environment tiles should have a depth that is +1 or -1 from this tile.
+                    // Because the outline is -1.5 behind this tile, adjacent environment tiles will render over it,
+                    // but if there is empty space behind a tile, the outline will be in front of the further tiles.
                     everything.put(new Vector4(f, g, h, -1.5f), new IsoSprite(edge, f, g, h));
                 }
             }
@@ -92,6 +97,11 @@ public class LocalMap {
                     iso.setPosition(point.x, point.y, point.z);
                 } else {
                     everything.put(point, new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), point.x, point.y, point.z));
+                    // Environment tiles have an outline that may render if there is empty space behind them.
+                    // The position has -1.5 for w, and w is added to the depth for the purpose of sorting.
+                    // Adjacent environment tiles should have a depth that is +1 or -1 from this tile.
+                    // Because the outline is -1.5 behind this tile, adjacent environment tiles will render over it,
+                    // but if there is empty space behind a tile, the outline will be in front of the further tiles.
                     everything.put(new Vector4(point.x, point.y, point.z, -1.5f), new IsoSprite(edge, point.x, point.y, point.z));
 
                 }

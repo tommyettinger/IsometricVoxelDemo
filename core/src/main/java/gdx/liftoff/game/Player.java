@@ -5,20 +5,22 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.IsoEngine3D;
 
 public class Player {
-    public Vector3 position;
-    private Vector3 velocity;
+    public final Vector3 position = new Vector3();
+    public final Vector3 velocity = new Vector3(0, 0, 0);
     private boolean isGrounded;
-    private LocalMap map;
+
+    private transient LocalMap map;
 
     private Array<Array<Animation<Sprite>>> animations;
     public final int playerId;
-    private float stateTime;
+    public transient float stateTime;
     private int currentDirection;
 
     private static final float GRAVITY = -0.5f; // multiplied by delta, which is expected to be about 1f/60f
@@ -27,12 +29,15 @@ public class Player {
     private static final float MOVE_SPEED = 0.03f;
     private static final float PLAYER_SIZE = 1f;
 
+    private transient final BoundingBox playerBox = new BoundingBox();
+    private transient final BoundingBox tempBox = new BoundingBox();
+
+
     private Decal playerDecal;
 
     public Player(LocalMap map, Array<Array<Animation<Sprite>>> animations, int playerId) {
         this.map = map;
-        this.position = new Vector3(0f, 5f, 2f);
-        this.velocity = new Vector3(0, 0, 0);
+        this.position.set(0, 0, map.getHSize() - 1);
         this.stateTime = 0;
         this.currentDirection = 0; // Default: facing down
         this.playerId = playerId;
@@ -52,11 +57,12 @@ public class Player {
 
         // Update animation frame
         TextureRegion currentFrame;
-        if (velocity.x != 0 || velocity.z != 0) {
-            currentFrame = animations.get(currentDirection).get(playerId).getKeyFrame(stateTime, true);
-        } else {
+        // while jumping, show attack animation; while standing, show idle animation.
+        if (velocity.z != 0) {
             /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
             currentFrame = animations.get(currentDirection + 2).get(playerId).getKeyFrame(stateTime, true);
+        } else {
+            currentFrame = animations.get(currentDirection).get(playerId).getKeyFrame(stateTime, true);
         }
 
         // Update decal
@@ -71,39 +77,34 @@ public class Player {
 
     private void applyGravity(float delta) {
         if (!isGrounded) {
-            velocity.y = Math.max(velocity.y + GRAVITY * delta, MAX_GRAVITY); // Apply gravity to Y (not Z)
+            velocity.z = Math.max(velocity.z + GRAVITY * delta, MAX_GRAVITY); // Apply gravity to H axis (z in a Vector)
         }
     }
 
     public void jump() {
         if (isGrounded) {
-            velocity.y = JUMP_FORCE; // Jump should affect Y (height)
-//            position.y += .1f;
+            velocity.z = JUMP_FORCE; // Jump should affect H axis (heel to head, stored as z in a Vector)
             isGrounded = false;
         }
     }
 
-    public void move(float dx, float dz) {
-        boolean movingDiagonally = (dx != 0 && dz != 0);
+    public void move(float df, float dg) {
+        boolean movingDiagonally = (df != 0 && dg != 0);
 
         if (movingDiagonally) {
-            // Scale movement based on tile proportions
-            dx *= IsoEngine3D.TILE_RATIO;  // Scale x-movement to match tile proportions
-            dz *= 1f;          // Keep z-movement unchanged (height already accounts for it)
-
             // Normalize to maintain consistent movement speed
-            float length = (float) Math.sqrt(dx * dx + dz * dz);
-            dx /= length;
-            dz /= length;
+            float length = 1f / (float) Math.sqrt(df * df + dg * dg);
+            df *= length;
+            dg *= length;
         }
 
-        velocity.x = dx * MOVE_SPEED;
-        velocity.z = dz * MOVE_SPEED;
+        velocity.x = df * MOVE_SPEED;
+        velocity.y = dg * MOVE_SPEED;
 
-        if (dx == 0 && dz == 0) return;
+        if (df == 0 && dg == 0) return;
 
         // Determine direction based on movement
-        if (dz > 0) currentDirection = 1; // Up
+        if (dg > 0 || df > 0) currentDirection = 1; // Up
         else currentDirection = 0; // Down
     }
 
@@ -111,29 +112,26 @@ public class Player {
         isGrounded = false;
 
         // bottom of map
-        float groundLevel = 1f;
-        if (position.y < groundLevel) {
-            position.y = groundLevel;
-            velocity.y = 0;
+        final float groundLevel = 1f;
+        if (position.z < groundLevel) {
+            position.z = groundLevel;
+            velocity.z = 0;
             isGrounded = true;
         }
 
-        BoundingBox playerBox = new BoundingBox(
-            new Vector3(position.x - PLAYER_SIZE / 2, position.y, position.z - PLAYER_SIZE / 2),
-            new Vector3(position.x + PLAYER_SIZE / 2, position.y + PLAYER_SIZE, position.z + PLAYER_SIZE / 2)
-        );
-        BoundingBox blockBox = new BoundingBox();
+        playerBox.min.set(position.x - PLAYER_SIZE * 0.5f, position.y - PLAYER_SIZE * 0.5f, position.z);
+        playerBox.max.set(position.x + PLAYER_SIZE * 0.5f, position.y + PLAYER_SIZE * 0.5f, position.z + PLAYER_SIZE);
 
         for (int f = -1; f <= 1; f++) {
             for (int g = -1; g <= 1; g++) {
-                for (int h = -1; h <= 1; h++) {
+                for (int h = -1; h <= 0; h++) {
                     if (map.getTile(position.x + f, position.y + g, position.z + h) != -1) {
-                        blockBox.min.set(position.x + f, position.y + g, position.z + h);
-                        blockBox.max.set(position.x + f + 1, position.y + g + 1, position.z + h + 1);
-                        if (playerBox.intersects(blockBox)) {
-                            if (position.y > g) { // Check if falling onto a tile
-                                position.y = g + 1; // Snap player to tile height
-                                velocity.y = 0;
+                        tempBox.min.set(position.x + f - 0.5f, position.y + g - 0.5f, position.z + h);
+                        tempBox.max.set(position.x + f + 0.5f, position.y + g + 0.5f, position.z + h + 1f);
+                        if (playerBox.intersects(tempBox)) {
+                            if (h == -1) { // Check if falling onto a tile
+                                position.z = tempBox.max.z; // Snap player to be standing on colliding tile
+                                velocity.z = 0;
                                 isGrounded = true;
                             } else { // tile collision from the side
                                 velocity.x = 0;
