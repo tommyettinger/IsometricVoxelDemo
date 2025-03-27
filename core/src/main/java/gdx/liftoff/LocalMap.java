@@ -1,4 +1,4 @@
-package gdx.liftoff.game;
+package gdx.liftoff;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
+import gdx.liftoff.game.AssetData;
 import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
@@ -109,9 +110,10 @@ public class LocalMap {
         }
     }
 
-    public void setEntity(int f, int g, int h, IsoSprite sprite) {
-        if (isValid(f, g, h)) {
-            tiles[f][g][h] = -1;
+    public void setEntity(float f, float g, float h, IsoSprite sprite) {
+        int rf = MathUtils.round(f), rg = MathUtils.round(g), rh = MathUtils.round(h);
+        if (isValid(rf, rg, rh)) {
+            tiles[rf][rg][rh] = -1;
             sprite.setPosition(f, g, h);
             everything.put(new Vector4(f, g, h, 0), sprite);
         }

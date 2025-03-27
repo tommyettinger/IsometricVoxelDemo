@@ -11,10 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import gdx.liftoff.game.AnimatedIsoSprite;
-import gdx.liftoff.game.AssetData;
-import gdx.liftoff.game.IsoSprite;
-import gdx.liftoff.game.LocalMap;
+import gdx.liftoff.game.*;
 
 import java.util.Comparator;
 
@@ -25,6 +22,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
+    private Player player;
 
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -117,9 +115,12 @@ public class IsoEngine2D extends ApplicationAdapter {
             /* All terrain tiles in the tileset. */
             atlas);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
+        int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
         for (int h = MAP_PEAK - 2; h >= 0; h--) {
-            if(map.getTile(3, 3, h) != -1) {
-                map.setEntity(3, 3, h + 1, new AnimatedIsoSprite(animations.get(0).get(MathUtils.random(15)), 3, 3, 1));
+            if(map.getTile(rf, rg, h) != -1) {
+                int id = MathUtils.random(15);
+                player = new Player(map, animations, id, rg, rg, h + 1);
+                player.place();
                 break;
             }
         }
@@ -129,6 +130,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     @Override
     public void render() {
         handleInput();
+        player.update(Gdx.graphics.getDeltaTime());
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         int prevRotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
 
@@ -183,15 +185,31 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch.end();
     }
 
+    private void handleInputPlayer() {
+        float df = 0, dg = 0;
+        if (Gdx.input.isKeyPressed(Input.Keys.F)) df = -1;
+        if (Gdx.input.isKeyPressed(Input.Keys.G)) dg = -1;
+        if (Gdx.input.isKeyPressed(Input.Keys.T)) df = 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.R)) dg = 1;
+
+        player.move(df, dg);
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            player.jump();
+        }
+    }
+
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
             return;
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+        // zero state
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             reset();
             return;
         }
+        handleInputPlayer();
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) camera.translate(0, 5);
         if (Gdx.input.isKeyPressed(Input.Keys.S)) camera.translate(0, -5);

@@ -1,24 +1,25 @@
 package gdx.liftoff.game;
 
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g3d.decals.Decal;
-import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
-import gdx.liftoff.IsoEngine3D;
+import gdx.liftoff.AnimatedIsoSprite;
+import gdx.liftoff.LocalMap;
 
 public class Player {
     public final Vector3 position = new Vector3();
     public final Vector3 velocity = new Vector3(0, 0, 0);
+    public final Vector4 tempVectorA = new Vector4();
+    public final Vector4 tempVectorB = new Vector4();
     private boolean isGrounded;
 
     private transient LocalMap map;
 
-    private Array<Array<Animation<Sprite>>> animations;
+    private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     public final int playerId;
     public transient float stateTime;
     private int currentDirection;
@@ -33,46 +34,40 @@ public class Player {
     private transient final BoundingBox tempBox = new BoundingBox();
 
 
-    private Decal playerDecal;
+    public AnimatedIsoSprite visual;
 
-    public Player(LocalMap map, Array<Array<Animation<Sprite>>> animations, int playerId) {
+    public Player(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int playerId,
+                  float fPos, float gPos, float hPos) {
         this.map = map;
-        this.position.set(0, 0, map.getHSize() - 1);
+        this.position.set(fPos, gPos, hPos);
         this.stateTime = 0;
         this.currentDirection = 0; // Default: facing down
         this.playerId = playerId;
 
         this.animations = animations;
 
-        // Initialize the decal
-        playerDecal = Decal.newDecal(1f, 1f, animations.get(currentDirection).get(playerId).getKeyFrame(stateTime), true);
+        visual = new AnimatedIsoSprite(animations.get(currentDirection).get(playerId), fPos, gPos, hPos);
     }
 
     public void update(float deltaTime) {
         stateTime += deltaTime;
+        tempVectorA.set(position, 0);
 
         applyGravity(deltaTime);
         position.add(velocity);
         handleCollision();
 
-        // Update animation frame
-        TextureRegion currentFrame;
         // while jumping, show attack animation; while standing, show idle animation.
         if (velocity.z != 0) {
             /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
-            currentFrame = animations.get(currentDirection + 2).get(playerId).getKeyFrame(stateTime, true);
+            visual.animation = animations.get(currentDirection+2).get(playerId);
         } else {
-            currentFrame = animations.get(currentDirection).get(playerId).getKeyFrame(stateTime, true);
+            visual.animation = animations.get(currentDirection).get(playerId);
         }
 
-        // Update decal
-        playerDecal.setTextureRegion(currentFrame);
-        playerDecal.setPosition(position);
-        playerDecal.setRotation(IsoEngine3D.getInstance().camera.direction, IsoEngine3D.getInstance().camera.up); // Billboard effect
-    }
-
-    public void render(DecalBatch batch) {
-        batch.add(playerDecal);
+        visual.setPosition(position);
+        map.everything.remove(tempVectorA);
+        map.everything.put(tempVectorA.set(position, 0f), visual);
     }
 
     private void applyGravity(float delta) {
@@ -135,7 +130,6 @@ public class Player {
                                 isGrounded = true;
                             } else { // tile collision from the side
                                 int tileF = MathUtils.round(position.x + f);
-                                int tileG = MathUtils.round(position.y + g);
                                 if(position.x + 1 >= tileF) {
                                     position.x = tileF - 1;
                                     velocity.x = 0;
@@ -144,6 +138,7 @@ public class Player {
                                     velocity.x = 0;
                                 }
 
+                                int tileG = MathUtils.round(position.y + g);
                                 if(position.y + 1 >= tileG) {
                                     position.y = tileG - 1;
                                     velocity.y = 0;
@@ -173,5 +168,10 @@ public class Player {
 
     public void setCurrentDirection(int currentDirection) {
         this.currentDirection = currentDirection;
+    }
+
+    public Player place() {
+        map.setEntity(position.x, position.y, position.z, visual);
+        return this;
     }
 }

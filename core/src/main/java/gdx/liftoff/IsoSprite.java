@@ -1,4 +1,4 @@
-package gdx.liftoff.game;
+package gdx.liftoff;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
-import gdx.liftoff.IsoEngine2D;
 
 /**
  * Wraps a {@link Sprite} so its position can be set using isometric coordinates.

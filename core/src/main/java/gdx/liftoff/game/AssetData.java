@@ -1,6 +1,7 @@
 package gdx.liftoff.game;
 
 import com.badlogic.gdx.utils.*;
+import gdx.liftoff.LocalMap;
 
 /**
  * Data specific to the art assets used here. If the art assets change, you may need to update this class.

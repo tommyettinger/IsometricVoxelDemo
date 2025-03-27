@@ -1,4 +1,4 @@
-package gdx.liftoff.game;
+package gdx.liftoff;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
