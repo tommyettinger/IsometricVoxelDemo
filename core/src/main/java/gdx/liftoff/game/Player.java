@@ -134,13 +134,44 @@ public class Player {
                                 velocity.z = 0;
                                 isGrounded = true;
                             } else { // tile collision from the side
-                                velocity.x = 0;
-                                velocity.z = 0;
+                                int tileF = MathUtils.round(position.x + f);
+                                int tileG = MathUtils.round(position.y + g);
+                                if(position.x + 1 >= tileF) {
+                                    position.x = tileF - 1;
+                                    velocity.x = 0;
+                                } else if(position.x - 1 <= tileF) {
+                                    position.x = tileF + 1;
+                                    velocity.x = 0;
+                                }
+
+                                if(position.y + 1 >= tileG) {
+                                    position.y = tileG - 1;
+                                    velocity.y = 0;
+                                } else if(position.y - 1 <= tileG) {
+                                    position.y = tileG + 1;
+                                    velocity.y = 0;
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    public LocalMap getMap() {
+        return map;
+    }
+
+    public void setMap(LocalMap map) {
+        this.map = map;
+    }
+
+    public int getCurrentDirection() {
+        return currentDirection;
+    }
+
+    public void setCurrentDirection(int currentDirection) {
+        this.currentDirection = currentDirection;
     }
 }
