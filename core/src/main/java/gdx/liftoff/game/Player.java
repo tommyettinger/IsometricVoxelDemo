@@ -120,6 +120,8 @@ public class Player {
         tempBox.min.set(-2E9f, -2E9f, -2E9f);
         tempBox.max.set(-1E9f, -1E9f, -1E9f);
         tempBox.update();
+        // Here, we look for any lower-elevation tile in the four possible tiles below the player.
+        // If any are solid, tempBox is set to a 2x2x1 tile area below the player.
         LATERAL:
         for (int f = 0; f <= 1; f++) {
             for (int g = 0; g <= 1; g++) {
@@ -127,65 +129,61 @@ public class Player {
                     tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
                     tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z));
                     tempBox.update();
+                    // If tempBox was set to a 2x2x1 area below the player, then we check if the player intersects
+                    // (or even just touched) that floor area. If they do touch or intersect, the player snaps to stand
+                    // on the area, h-movement (velocity.z) is stopped, isGrounded is true (enabling jumping) and the
+                    // player's position for future collisions is updated.
+                    if (playerBox.intersects(tempBox)) {
+                        position.z = tempBox.max.z; // Snap player to be standing on colliding tile
+                        velocity.z = 0;
+                        isGrounded = true;
+                        playerBox.min.set(position.x, position.y, position.z);
+                        playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
+                        playerBox.update();
+                    }
+                    // We only want to do this step once, if any lower tile can be stood on.
                     break LATERAL;
                 }
             }
         }
-        if (playerBox.intersects(tempBox)) {
-            position.z = tempBox.max.z; // Snap player to be standing on colliding tile
-            velocity.z = 0;
-            isGrounded = true;
-            playerBox.min.set(position.x, position.y, position.z);
-            playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
-            playerBox.update();
-
-        }
 
         // tile collision from the side
         if (map.getTile(position.x + 1, position.y, position.z) != -1) {
-            tempBox.min.set(MathUtils.round(position.x + 1), MathUtils.round(position.y), MathUtils.round(position.z));
-            tempBox.max.set(MathUtils.round(position.x + 2), MathUtils.round(position.y + 1), MathUtils.round(position.z + 1));
-            tempBox.update();
+            int lo = MathUtils.round(position.x + 1);
+            int hi = MathUtils.round(position.x + 2);
 
-            if (playerBox.max.x > tempBox.min.x && playerBox.max.x < tempBox.max.x) {
-                position.x = tempBox.min.x - 1;
+            if (playerBox.max.x > lo && playerBox.max.x < hi) {
+                position.x = lo - 1;
                 velocity.x *= -0.25f;
-                return;
             }
         }
         if (map.getTile(position.x, position.y + 1, position.z) != -1) {
-            tempBox.min.set(MathUtils.round(position.x), MathUtils.round(position.y + 1), MathUtils.round(position.z));
-            tempBox.max.set(MathUtils.round(position.x + 1), MathUtils.round(position.y + 2), MathUtils.round(position.z + 1));
-            tempBox.update();
+            int lo = MathUtils.round(position.y + 1);
+            int hi = MathUtils.round(position.y + 2);
 
-            if (playerBox.max.y > tempBox.min.y && playerBox.max.y < tempBox.max.y) {
-                position.y = tempBox.min.y - 1;
+            if (playerBox.max.y > lo && playerBox.max.y < hi) {
+                position.y = lo - 1;
                 velocity.y *= -0.25f;
-                return;
             }
         }
 
         if (map.getTile(position.x - 1, position.y, position.z) != -1) {
-            tempBox.min.set(MathUtils.round(position.x - 1), MathUtils.round(position.y), MathUtils.round(position.z));
-            tempBox.max.set(MathUtils.round(position.x), MathUtils.round(position.y + 1), MathUtils.round(position.z + 1));
-            tempBox.update();
+            int lo = MathUtils.round(position.x - 1);
+            int hi = MathUtils.round(position.x    );
 
-            if (playerBox.min.x > tempBox.min.x && playerBox.min.x < tempBox.max.x) {
-                position.x = tempBox.max.x;
+            if (playerBox.min.x > lo && playerBox.min.x < hi) {
+                position.x = hi;
                 velocity.x *= -0.25f;
-                return;
             }
         }
 
         if (map.getTile(position.x, position.y - 1, position.z) != -1) {
-            tempBox.min.set(MathUtils.round(position.x), MathUtils.round(position.y - 1), MathUtils.round(position.z));
-            tempBox.max.set(MathUtils.round(position.x + 1), MathUtils.round(position.y), MathUtils.round(position.z + 1));
-            tempBox.update();
+            int lo = MathUtils.round(position.y - 1);
+            int hi = MathUtils.round(position.y    );
 
-            if (playerBox.min.y > tempBox.min.y && playerBox.min.y < tempBox.max.y) {
-                position.y = tempBox.max.y;
+            if (playerBox.min.y > lo && playerBox.min.y < hi) {
+                position.y = hi;
                 velocity.y *= -0.25f;
-                return;
             }
         }
     }
