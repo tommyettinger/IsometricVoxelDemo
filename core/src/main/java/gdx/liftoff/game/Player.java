@@ -14,7 +14,6 @@ public class Player {
     public final Vector3 position = new Vector3();
     public final Vector3 velocity = new Vector3(0, 0, 0);
     public final Vector4 tempVectorA = new Vector4();
-    public final Vector4 tempVectorB = new Vector4();
     private boolean isGrounded;
 
     private transient LocalMap map;
@@ -26,8 +25,8 @@ public class Player {
 
     private static final float GRAVITY = -0.5f; // multiplied by delta, which is expected to be about 1f/60f
     private static final float MAX_GRAVITY = -0.15f;
-    private static final float JUMP_FORCE = 0.25f;
-    private static final float MOVE_SPEED = 0.03f;
+    private static final float JUMP_FORCE = 0.2f;
+    private static final float MOVE_SPEED = 0.1f;
     private static final float PLAYER_SIZE = 1f;
 
     private transient final BoundingBox playerBox = new BoundingBox();
@@ -60,7 +59,7 @@ public class Player {
         // while jumping, show attack animation; while standing, show idle animation.
         if (velocity.z != 0) {
             /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
-            visual.animation = animations.get(currentDirection+2).get(playerId);
+            visual.animation = animations.get(currentDirection + 2).get(playerId);
         } else {
             visual.animation = animations.get(currentDirection).get(playerId);
         }
@@ -114,44 +113,63 @@ public class Player {
             isGrounded = true;
         }
 
-        playerBox.min.set(position.x - PLAYER_SIZE * 0.5f, position.y - PLAYER_SIZE * 0.5f, position.z);
-        playerBox.max.set(position.x + PLAYER_SIZE * 0.5f, position.y + PLAYER_SIZE * 0.5f, position.z + PLAYER_SIZE);
-
-        for (int f = -1; f <= 1; f++) {
-            for (int g = -1; g <= 1; g++) {
-                for (int h = -1; h <= 0; h++) {
-                    if (map.getTile(position.x + f, position.y + g, position.z + h) != -1) {
-                        tempBox.min.set(position.x + f - 0.5f, position.y + g - 0.5f, position.z + h);
-                        tempBox.max.set(position.x + f + 0.5f, position.y + g + 0.5f, position.z + h + 1f);
-                        if (playerBox.intersects(tempBox)) {
-                            if (h == -1) { // Check if falling onto a tile
-                                position.z = tempBox.max.z; // Snap player to be standing on colliding tile
-                                velocity.z = 0;
-                                isGrounded = true;
-                            } else { // tile collision from the side
-                                int tileF = MathUtils.round(position.x + f);
-                                if(position.x + 1 >= tileF) {
-                                    position.x = tileF - 1;
-                                    velocity.x = 0;
-                                } else if(position.x - 1 <= tileF) {
-                                    position.x = tileF + 1;
-                                    velocity.x = 0;
-                                }
-
-                                int tileG = MathUtils.round(position.y + g);
-                                if(position.y + 1 >= tileG) {
-                                    position.y = tileG - 1;
-                                    velocity.y = 0;
-                                } else if(position.y - 1 <= tileG) {
-                                    position.y = tileG + 1;
-                                    velocity.y = 0;
-                                }
-                            }
-                        }
-                    }
+        playerBox.min.set(position.x, position.y, position.z);
+        playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
+        // make tempBox invalid (all coordinates -1000000000) if we don't encounter a lower tile.
+        tempBox.min.set(-1E9f, -1E9f, -1E9f);
+        tempBox.max.set(-1E9f, -1E9f, -1E9f);
+        LATERAL:
+        for (int f = 0; f <= 1; f++) {
+            for (int g = 0; g <= 1; g++) {
+                if (map.getTile(position.x + f, position.y + g, position.z - 1) != -1) {
+                    tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
+                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z));
+                    break LATERAL;
                 }
             }
         }
+        if (playerBox.intersects(tempBox)) {
+            position.z = tempBox.max.z; // Snap player to be standing on colliding tile
+            velocity.z = 0;
+            isGrounded = true;
+            playerBox.min.set(position.x, position.y, position.z);
+            playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
+
+        }
+
+//        // tile collision from the side
+//        tempBox.min.set(position.x + 1, position.y    , position.z);
+//        tempBox.max.set(position.x + 2, position.y + 1, position.z + 1);
+//
+//        if (playerBox.intersects(tempBox)) {
+//            position.x = MathUtils.round(position.x + 1) - 1;
+//            velocity.x *= -0.25f;
+//        }
+//
+//        tempBox.min.set(position.x    , position.y + 1, position.z);
+//        tempBox.max.set(position.x + 1, position.y + 2, position.z + 1);
+//
+//        if (playerBox.intersects(tempBox)) {
+//            position.y = MathUtils.round(position.y + 1) - 1;
+//            velocity.y *= -0.25f;
+//        }
+//
+//        tempBox.min.set(position.x - 1, position.y    , position.z);
+//        tempBox.max.set(position.x    , position.y + 1, position.z + 1);
+//
+//        if (playerBox.intersects(tempBox)) {
+//            position.x = MathUtils.round(position.x - 1) + 1;
+//            velocity.x *= -0.25f;
+//        }
+//
+//        tempBox.min.set(position.x    , position.y - 1, position.z);
+//        tempBox.max.set(position.x + 1, position.y    , position.z + 1);
+//
+//        if (playerBox.intersects(tempBox)) {
+//            position.y = MathUtils.round(position.y - 1) + 1;
+//            velocity.y *= -0.25f;
+//        }
+
     }
 
     public LocalMap getMap() {
