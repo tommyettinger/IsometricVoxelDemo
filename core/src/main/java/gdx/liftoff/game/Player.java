@@ -115,25 +115,30 @@ public class Player {
 
         playerBox.min.set(position.x, position.y, position.z);
         playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
-        // make tempBox invalid (all coordinates -1000000000) if we don't encounter a lower tile.
-        tempBox.min.set(-1E9f, -1E9f, -1E9f);
+        playerBox.update();
+        // make tempBox invalid (all coordinates about -1000000000) if we don't encounter a lower tile.
+        tempBox.min.set(-2E9f, -2E9f, -2E9f);
         tempBox.max.set(-1E9f, -1E9f, -1E9f);
+        tempBox.update();
         LATERAL:
         for (int f = 0; f <= 1; f++) {
             for (int g = 0; g <= 1; g++) {
                 if (map.getTile(position.x + f, position.y + g, position.z - 1) != -1) {
                     tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
                     tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z));
+                    tempBox.update();
                     break LATERAL;
                 }
             }
         }
         if (playerBox.intersects(tempBox)) {
+            System.out.println("playerBox " + playerBox + " intersects with tempBox " + tempBox);
             position.z = tempBox.max.z; // Snap player to be standing on colliding tile
             velocity.z = 0;
             isGrounded = true;
             playerBox.min.set(position.x, position.y, position.z);
             playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
+            playerBox.update();
 
         }
 
