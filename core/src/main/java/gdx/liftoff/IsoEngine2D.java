@@ -192,7 +192,12 @@ public class IsoEngine2D extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.T)) df = 1;
         if (Gdx.input.isKeyPressed(Input.Keys.R)) dg = 1;
 
-        player.move(df, dg);
+        float c = MathUtils.cosDeg(rotationDegrees);
+        float s = MathUtils.sinDeg(rotationDegrees);
+        float rf = c * df + s * dg;
+        float rg = c * dg - s * df;
+
+        player.move(rf, rg);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             player.jump();
@@ -211,12 +216,12 @@ public class IsoEngine2D extends ApplicationAdapter {
         }
         handleInputPlayer();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) camera.translate(0, 5);
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) camera.translate(0, -5);
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) camera.translate(-5, 0);
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) camera.translate(5, 0);
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) camera.zoom += .25f;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) camera.zoom -= .25f;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) camera.translate(0, 5);
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -5);
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) camera.translate(-5, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) camera.translate(5, 0);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) camera.zoom += .25f; // In
+        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom -= .25f; // Out
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
             previousRotation = rotationDegrees;
