@@ -132,7 +132,6 @@ public class Player {
             }
         }
         if (playerBox.intersects(tempBox)) {
-            System.out.println("playerBox " + playerBox + " intersects with tempBox " + tempBox);
             position.z = tempBox.max.z; // Snap player to be standing on colliding tile
             velocity.z = 0;
             isGrounded = true;
@@ -142,39 +141,53 @@ public class Player {
 
         }
 
-//        // tile collision from the side
-//        tempBox.min.set(position.x + 1, position.y    , position.z);
-//        tempBox.max.set(position.x + 2, position.y + 1, position.z + 1);
-//
-//        if (playerBox.intersects(tempBox)) {
-//            position.x = MathUtils.round(position.x + 1) - 1;
-//            velocity.x *= -0.25f;
-//        }
-//
-//        tempBox.min.set(position.x    , position.y + 1, position.z);
-//        tempBox.max.set(position.x + 1, position.y + 2, position.z + 1);
-//
-//        if (playerBox.intersects(tempBox)) {
-//            position.y = MathUtils.round(position.y + 1) - 1;
-//            velocity.y *= -0.25f;
-//        }
-//
-//        tempBox.min.set(position.x - 1, position.y    , position.z);
-//        tempBox.max.set(position.x    , position.y + 1, position.z + 1);
-//
-//        if (playerBox.intersects(tempBox)) {
-//            position.x = MathUtils.round(position.x - 1) + 1;
-//            velocity.x *= -0.25f;
-//        }
-//
-//        tempBox.min.set(position.x    , position.y - 1, position.z);
-//        tempBox.max.set(position.x + 1, position.y    , position.z + 1);
-//
-//        if (playerBox.intersects(tempBox)) {
-//            position.y = MathUtils.round(position.y - 1) + 1;
-//            velocity.y *= -0.25f;
-//        }
+        // tile collision from the side
+        if (map.getTile(position.x + 1, position.y, position.z) != -1) {
+            tempBox.min.set(MathUtils.round(position.x + 1), MathUtils.round(position.y), MathUtils.round(position.z));
+            tempBox.max.set(MathUtils.round(position.x + 2), MathUtils.round(position.y + 1), MathUtils.round(position.z + 1));
+            tempBox.update();
 
+            if (playerBox.max.x > tempBox.min.x && playerBox.max.x < tempBox.max.x) {
+                position.x = tempBox.min.x - 1;
+                velocity.x *= -0.25f;
+                return;
+            }
+        }
+        if (map.getTile(position.x, position.y + 1, position.z) != -1) {
+            tempBox.min.set(MathUtils.round(position.x), MathUtils.round(position.y + 1), MathUtils.round(position.z));
+            tempBox.max.set(MathUtils.round(position.x + 1), MathUtils.round(position.y + 2), MathUtils.round(position.z + 1));
+            tempBox.update();
+
+            if (playerBox.max.y > tempBox.min.y && playerBox.max.y < tempBox.max.y) {
+                position.y = tempBox.min.y - 1;
+                velocity.y *= -0.25f;
+                return;
+            }
+        }
+
+        if (map.getTile(position.x - 1, position.y, position.z) != -1) {
+            tempBox.min.set(MathUtils.round(position.x - 1), MathUtils.round(position.y), MathUtils.round(position.z));
+            tempBox.max.set(MathUtils.round(position.x), MathUtils.round(position.y + 1), MathUtils.round(position.z + 1));
+            tempBox.update();
+
+            if (playerBox.min.x > tempBox.min.x && playerBox.min.x < tempBox.max.x) {
+                position.x = tempBox.max.x;
+                velocity.x *= -0.25f;
+                return;
+            }
+        }
+
+        if (map.getTile(position.x, position.y - 1, position.z) != -1) {
+            tempBox.min.set(MathUtils.round(position.x), MathUtils.round(position.y - 1), MathUtils.round(position.z));
+            tempBox.max.set(MathUtils.round(position.x + 1), MathUtils.round(position.y), MathUtils.round(position.z + 1));
+            tempBox.update();
+
+            if (playerBox.min.y > tempBox.min.y && playerBox.min.y < tempBox.max.y) {
+                position.y = tempBox.max.y;
+                velocity.y *= -0.25f;
+                return;
+            }
+        }
     }
 
     public LocalMap getMap() {
