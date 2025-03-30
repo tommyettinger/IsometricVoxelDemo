@@ -15,6 +15,8 @@ import gdx.liftoff.game.*;
 
 import java.util.Comparator;
 
+import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
+
 public class IsoEngine2D extends ApplicationAdapter {
     private SpriteBatch batch;
     private TextureAtlas atlas;
@@ -48,7 +50,11 @@ public class IsoEngine2D extends ApplicationAdapter {
     /**
      * Used to depth-sort isometric points, including if the map is mid-rotation. This requires {@link #mapCenter}
      * to be set to the center point on the floor of a map that is assumed square, and permits {@link #rotationDegrees}
-     * to be any finite value in degrees.
+     * to be any finite value in degrees. The isometric points here are Vector4, but for the most part, only the x, y,
+     * and z components are used. The fourth component, w, is only used to create another point at the same x, y, z
+     * location but with a different depth. The depth change is currently used to draw outlines behind terrain tiles,
+     * but have them be overdrawn by other terrain tiles if nearby. The outlines only appear if there is empty space
+     * behind a terrain tile.
      * <br>
      * Internally, this uses {@link NumberUtils#floatToIntBits(float)} instead of {@link Float#compare(float, float)}
      * because it still returns a completely valid comparison value (it only distinguishes between an int that is
@@ -62,10 +68,10 @@ public class IsoEngine2D extends ApplicationAdapter {
                 IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) - b.w + 0.0f);
 
     // The above is equivalent to:
-//    public final Comparator<? super GridPoint3> comparator =
+//    public final Comparator<? super Vector4> comparator =
 //        (a, b) -> Float.compare(
-//            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees),
-//            IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees));
+//            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + a.w,
+//            IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + b.w);
 
     @Override
     public void create() {
@@ -157,8 +163,6 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
-//            map.edge.setPosition(pos);
-//            map.edge.draw(batch, mapCenter, mapCenter, rotationDegrees);
             map.everything.get(pos).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
         }
 
@@ -187,10 +191,14 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     private void handleInputPlayer() {
         float df = 0, dg = 0;
-        if (Gdx.input.isKeyPressed(Input.Keys.F)) df = -1;
-        if (Gdx.input.isKeyPressed(Input.Keys.G)) dg = -1;
-        if (Gdx.input.isKeyPressed(Input.Keys.T)) df = 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.R)) dg = 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.F) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_1)) df = -1;
+        else if (Gdx.input.isKeyPressed(Input.Keys.G) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_3)) dg = -1;
+        else if (Gdx.input.isKeyPressed(Input.Keys.T) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_9)) df = 1;
+        else if (Gdx.input.isKeyPressed(Input.Keys.R) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_7)) dg = 1;
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_2)) { df = -INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_4)) { df = -INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_6)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_8)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
 
         float c = MathUtils.cosDeg(rotationDegrees);
         float s = MathUtils.sinDeg(rotationDegrees);
@@ -199,7 +207,9 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         player.move(rf, rg);
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+         || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_0)
+         || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_5)) {
             player.jump();
         }
     }
@@ -220,8 +230,8 @@ public class IsoEngine2D extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -5);
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) camera.translate(-5, 0);
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) camera.translate(5, 0);
-        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) camera.zoom += .25f; // In
-        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom -= .25f; // Out
+        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) camera.zoom *= .5f; // In
+        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom *= 2f; // Out
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
             previousRotation = rotationDegrees;

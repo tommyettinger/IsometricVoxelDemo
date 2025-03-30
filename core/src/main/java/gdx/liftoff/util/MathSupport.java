@@ -3,6 +3,17 @@ package gdx.liftoff.util;
 public final class MathSupport {
 
     private MathSupport(){}
+
+    /**
+     * The square root of 2, as a float. Useful as the length of a diagonal on a square with length-1 sides.
+     */
+    public static final float ROOT_2 = (float) Math.sqrt(2f);
+    /**
+     * 1 divided by the square root of 2, as a float. Scaling by this is useful to take a vector such as
+     * {@code [1, 1]} and make it the same length as the vector {@code [1,0]} or {@code [0,-1]}.
+     */
+    public static final float INVERSE_ROOT_2 = 1f / ROOT_2;
+
     /**
      * Reads in a CharSequence containing only decimal digits (only 0-9) with an optional sign at the start
      * and returns the long they represent, reading at most 19 characters (20 if there is a sign) and returning the
