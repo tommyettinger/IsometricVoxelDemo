@@ -114,27 +114,35 @@ public class Player {
         }
 
         playerBox.min.set(position.x, position.y, position.z);
-        playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
+        playerBox.max.set(position.x, position.y, position.z + 1);
         playerBox.update();
         // make tempBox invalid (all coordinates about -1000000000) if we don't encounter a lower tile.
         tempBox.min.set(-2E9f, -2E9f, -2E9f);
         tempBox.max.set(-1E9f, -1E9f, -1E9f);
         tempBox.update();
         // Here, we look for any lower-elevation tile in the four possible tiles below the player.
-        // If any are solid, tempBox is set to a 2x2x1 tile area below the player.
+        // If any are solid, tempBox is set to a 1x1x1 or 2x2x1 tile area below the player.
         LATERAL:
-        for (int f = 0; f <= 1; f++) {
-            for (int g = 0; g <= 1; g++) {
+        for (int f = -1; f <= 1; f++) {
+            for (int g = -1; g <= 1; g++) {
                 if (map.getTile(position.x + f, position.y + g, position.z - 1) != -1) {
+//                    tempBox.min.set(MathUtils.floor(position.x)  , MathUtils.floor(position.y)  , MathUtils.round(position.z - 1));
+//                    tempBox.max.set(MathUtils.ceil (position.x)+1, MathUtils.ceil (position.y)+1, MathUtils.round(position.z));
+
                     tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
-                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z));
+                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z    ));
                     tempBox.update();
                     // If tempBox was set to a 2x2x1 area below the player, then we check if the player intersects
                     // (or even just touched) that floor area. If they do touch or intersect, the player snaps to stand
                     // on the area, h-movement (velocity.z) is stopped, isGrounded is true (enabling jumping) and the
                     // player's position for future collisions is updated.
-                    if (playerBox.intersects(tempBox)) {
-                        position.z = tempBox.max.z; // Snap player to be standing on colliding tile
+//                    if (playerBox.intersects(tempBox)) {
+                    if (intersectsExclusiveLateral(playerBox, tempBox)) {
+//                        System.out.println("tempBox " + tempBox + " collided with playerBox " + playerBox);
+                        position.z = tempBox.max.z;
+                        while (map.getTile(position.x + f, position.y + g, position.z) != -1) {
+                            position.z++;
+                        }
                         velocity.z = 0;
                         isGrounded = true;
                         playerBox.min.set(position.x, position.y, position.z);
@@ -208,4 +216,22 @@ public class Player {
         map.setEntity(position.x, position.y, position.z, visual);
         return this;
     }
+
+    public static boolean intersectsExclusiveLateral (BoundingBox a, BoundingBox b) {
+        if (!a.isValid() || !b.isValid()) return false;
+
+        // test using SAT (separating axis theorem)
+
+        float lx = Math.abs(a.getCenterX() - b.getCenterX());
+        float sumX = (a.getWidth() / 2.0f) + (b.getWidth() / 2.0f);
+
+        float ly = Math.abs(a.getCenterY() - b.getCenterY());
+        float sumY = (a.getHeight() / 2.0f) + (b.getHeight() / 2.0f);
+
+        float lz = Math.abs(a.getCenterZ() - b.getCenterZ());
+        float sumZ = (a.getDepth() / 2.0f) + (b.getDepth() / 2.0f);
+
+        return (lx < sumX && ly < sumY && lz <= sumZ);
+    }
+
 }
