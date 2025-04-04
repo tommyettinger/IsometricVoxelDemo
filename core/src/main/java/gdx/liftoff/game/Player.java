@@ -29,10 +29,6 @@ public class Player {
     private static final float MOVE_SPEED = 0.1f;
     private static final float PLAYER_SIZE = 1f;
 
-    private transient final BoundingBox playerBox = new BoundingBox();
-    private transient final BoundingBox tempBox = new BoundingBox();
-
-
     public AnimatedIsoSprite visual;
 
     public Player(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int playerId,
@@ -53,8 +49,8 @@ public class Player {
         tempVectorA.set(position, LocalMap.ENTITY_W);
 
         applyGravity(deltaTime);
-        position.add(velocity);
         handleCollision();
+        position.add(velocity);
 
         // while jumping, show attack animation; while standing, show idle animation.
         if (velocity.z != 0) {
@@ -113,85 +109,85 @@ public class Player {
             isGrounded = true;
         }
 
-        playerBox.min.set(position.x, position.y, position.z);
-        playerBox.max.set(position.x, position.y, position.z + 1);
-        playerBox.update();
-        // make tempBox invalid (all coordinates about -1000000000) if we don't encounter a lower tile.
-        tempBox.min.set(-2E9f, -2E9f, -2E9f);
-        tempBox.max.set(-1E9f, -1E9f, -1E9f);
-        tempBox.update();
-        // Here, we look for any lower-elevation tile in the four possible tiles below the player.
-        // If any are solid, tempBox is set to a 1x1x1 or 2x2x1 tile area below the player.
-        LATERAL:
-        for (int f = -1; f <= 1; f++) {
-            for (int g = -1; g <= 1; g++) {
-                if (map.getTile(position.x + f, position.y + g, position.z - 1) != -1) {
-//                    tempBox.min.set(MathUtils.floor(position.x)  , MathUtils.floor(position.y)  , MathUtils.round(position.z - 1));
-//                    tempBox.max.set(MathUtils.ceil (position.x)+1, MathUtils.ceil (position.y)+1, MathUtils.round(position.z));
-
-                    tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
-                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z    ));
-                    tempBox.update();
-                    // If tempBox was set to a 2x2x1 area below the player, then we check if the player intersects
-                    // (or even just touched) that floor area. If they do touch or intersect, the player snaps to stand
-                    // on the area, h-movement (velocity.z) is stopped, isGrounded is true (enabling jumping) and the
-                    // player's position for future collisions is updated.
-//                    if (playerBox.intersects(tempBox)) {
-                    if (intersectsExclusiveLateral(playerBox, tempBox)) {
-//                        System.out.println("tempBox " + tempBox + " collided with playerBox " + playerBox);
-                        position.z = tempBox.max.z;
-                        while (map.getTile(position.x + f, position.y + g, position.z) != -1) {
-                            position.z++;
-                        }
-                        velocity.z = 0;
-                        isGrounded = true;
-                        playerBox.min.set(position.x, position.y, position.z);
-                        playerBox.max.set(position.x + 1, position.y + 1, position.z + 1);
-                        playerBox.update();
-                    }
-                    // We only want to do this step once, if any lower tile can be stood on.
-                    break LATERAL;
-                }
-            }
-        }
-
+        boolean lateralCollision = false;
         // tile collision from the side
-        if (map.getTile(position.x + 1, position.y, position.z) != -1) {
-            int lo = MathUtils.round(position.x + 1);
-            int hi = MathUtils.round(position.x + 2);
+        if (velocity.x >= 0 && map.getTile(position.x + 1, position.y, position.z) != -1) {
+            int lo = MathUtils.round(position.x    );
+            int hi = MathUtils.round(position.x + 1);
 
-            if (playerBox.max.x > lo && playerBox.max.x < hi) {
-                position.x = lo - 1;
-                velocity.x *= -0.25f;
+            if (position.x >= lo && position.x <= hi) {
+                position.x = lo;
+                velocity.x = 0;
+                lateralCollision = true;
             }
         }
-        if (map.getTile(position.x, position.y + 1, position.z) != -1) {
-            int lo = MathUtils.round(position.y + 1);
-            int hi = MathUtils.round(position.y + 2);
+        if (velocity.y >= 0 && map.getTile(position.x, position.y + 1, position.z) != -1) {
+            int lo = MathUtils.round(position.y    );
+            int hi = MathUtils.round(position.y + 1);
 
-            if (playerBox.max.y > lo && playerBox.max.y < hi) {
-                position.y = lo - 1;
-                velocity.y *= -0.25f;
+            if (position.y >= lo && position.y <= hi) {
+                position.y = lo;
+                velocity.y = 0;
+                lateralCollision = true;
             }
         }
 
-        if (map.getTile(position.x - 1, position.y, position.z) != -1) {
+        if (velocity.x <= 0 && map.getTile(position.x - 1, position.y, position.z) != -1) {
             int lo = MathUtils.round(position.x - 1);
             int hi = MathUtils.round(position.x    );
 
-            if (playerBox.min.x > lo && playerBox.min.x < hi) {
+            if (position.x >= lo && position.x <= hi) {
                 position.x = hi;
-                velocity.x *= -0.25f;
+                velocity.x = 0;
+                lateralCollision = true;
             }
         }
 
-        if (map.getTile(position.x, position.y - 1, position.z) != -1) {
+        if (velocity.y <= 0 && map.getTile(position.x, position.y - 1, position.z) != -1) {
             int lo = MathUtils.round(position.y - 1);
             int hi = MathUtils.round(position.y    );
 
-            if (playerBox.min.y > lo && playerBox.min.y < hi) {
+            if (position.y >= lo && position.y <= hi) {
                 position.y = hi;
-                velocity.y *= -0.25f;
+                velocity.y = 0;
+                lateralCollision = true;
+            }
+        }
+
+
+        // Here, we look for any lower-elevation tile in the four possible tiles below the player.
+        // If any are solid, tempBox is set to a 1x1x1 or 2x2x1 tile area below the player.
+        if (   map.getTile(position.x - 0.5f, position.y - 0.5f, position.z - 1) != -1
+            || map.getTile(position.x - 0.5f, position.y + 0.5f, position.z - 1) != -1
+            || map.getTile(position.x + 0.5f, position.y - 0.5f, position.z - 1) != -1
+            || map.getTile(position.x + 0.5f, position.y + 0.5f, position.z - 1) != -1
+        ) {
+//                    tempBox.min.set(MathUtils.floor(position.x)  , MathUtils.floor(position.y)  , MathUtils.round(position.z - 1));
+//                    tempBox.max.set(MathUtils.ceil (position.x)+1, MathUtils.ceil (position.y)+1, MathUtils.round(position.z));
+            if (velocity.z < 0) {
+
+//                    tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
+//                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z    ));
+//                    tempBox.update();
+                // If tempBox was set to a 2x2x1 area below the player, then we check if the player intersects
+                // (or even just touched) that floor area. If they do touch or intersect, the player snaps to stand
+                // on the area, h-movement (velocity.z) is stopped, isGrounded is true (enabling jumping) and the
+                // player's position for future collisions is updated.
+//                    if (playerBox.intersects(tempBox)) {
+//                        System.out.println("tempBox " + tempBox + " collided with playerBox " + playerBox);
+//                    if (position.z != (int) position.z) {
+                position.z = MathUtils.round(position.z);
+//                    }
+                if(!lateralCollision) {
+                    while  (map.getTile(position.x - 0.5f, position.y - 0.5f, position.z) != -1 ||
+                            map.getTile(position.x - 0.5f, position.y + 0.5f, position.z) != -1 ||
+                            map.getTile(position.x + 0.5f, position.y - 0.5f, position.z) != -1 ||
+                            map.getTile(position.x + 0.5f, position.y + 0.5f, position.z) != -1) {
+                        position.z++;
+                    }
+                }
+                isGrounded = true;
+                velocity.z = 0;
             }
         }
     }
