@@ -16,6 +16,10 @@ public class LocalMap {
     public Array<TextureAtlas.AtlasRegion> tileset;
     public Sprite edge;
 
+    public float rotationDegrees = 0f;
+    public float previousRotation = 0f;
+    public float targetRotation = 0f;
+
     private static final Vector4 tempPointA = new Vector4();
     private static final Vector4 tempPointB = new Vector4();
 
@@ -55,7 +59,7 @@ public class LocalMap {
         return isValid(point) ? tiles[MathUtils.round(point.x)][MathUtils.round(point.y)][MathUtils.round(point.z)] : -1;
     }
 
-    public IsoSprite getIsoSprite(float f, float g, float h) {
+    public IsoSprite getIsoSpriteTerrain(float f, float g, float h) {
         return everything.get(tempPointA.set(f, g, h, 0));
     }
 

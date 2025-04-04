@@ -37,7 +37,6 @@ public class IsoEngine2D extends ApplicationAdapter {
     public float mapCenter = (MAP_SIZE - 1f) * 0.5f;
 
     public float CAMERA_ZOOM = 1f;
-    public float rotationDegrees = 0f, previousRotation = 0f, targetRotation = 0f;
     public long startTime, animationStart = -1000000L;
 
     private static final Vector3 projectionTempVector = new Vector3();
@@ -48,8 +47,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     private static final GridPoint3 tempPointC = new GridPoint3();
 
     /**
-     * Used to depth-sort isometric points, including if the map is mid-rotation. This requires {@link #mapCenter}
-     * to be set to the center point on the floor of a map that is assumed square, and permits {@link #rotationDegrees}
+     * Used to depth-sort isometric points, including if the map is mid-rotation. This gets the center of the LocalMap
+     * directly from its size, and permits {@link LocalMap#rotationDegrees}
      * to be any finite value in degrees. The isometric points here are Vector4, but for the most part, only the x, y,
      * and z components are used. The fourth component, w, is only used to create another point at the same x, y, z
      * location but with a different depth. The depth change is currently used to draw outlines behind terrain tiles,
@@ -64,14 +63,14 @@ public class IsoEngine2D extends ApplicationAdapter {
      */
     public final Comparator<? super Vector4> comparator =
         (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, mapCenter, mapCenter, rotationDegrees) + a.w -
-                IsoSprite.viewDistance(b.x, b.y, b.z, mapCenter, mapCenter, rotationDegrees) - b.w + 0.0f);
+            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w -
+                IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) - b.w + 0.0f);
 
     // The above is equivalent to:
 //    public final Comparator<? super Vector4> comparator =
 //        (a, b) -> Float.compare(
-//            IsoSprite.viewDistance(a.x, a.y, a.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + a.w,
-//            IsoSprite.viewDistance(b.x, b.y, b.z, MAP_CENTER, MAP_CENTER, rotationDegrees) + b.w);
+//            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w,
+//            IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + b.w);
 
     @Override
     public void create() {
@@ -138,13 +137,13 @@ public class IsoEngine2D extends ApplicationAdapter {
         handleInput();
         player.update(Gdx.graphics.getDeltaTime());
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
-        int prevRotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
+        int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
 
-        rotationDegrees = MathUtils.lerpAngleDeg(previousRotation, targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
+        map.rotationDegrees = MathUtils.lerpAngleDeg(map.previousRotation, map.targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
         final Array<Vector4> order = map.everything.orderedKeys();
         order.sort(comparator);
 
-        int rotationIndex = (int)((rotationDegrees + 45f) * (1f / 90f)) & 3;
+        int rotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
         if(prevRotationIndex != rotationIndex) {
             for (int i = 0, n = order.size; i < n; i++) {
                 Vector4 pt = order.get(i);
@@ -155,15 +154,15 @@ public class IsoEngine2D extends ApplicationAdapter {
             }
         }
 
-        if(MathUtils.isEqual(rotationDegrees, targetRotation))
-            previousRotation = targetRotation;
+        if(MathUtils.isEqual(map.rotationDegrees, map.targetRotation))
+            map.previousRotation = map.targetRotation;
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         batch.setProjectionMatrix(camera.combined);
         viewport.apply();
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
-            map.everything.get(pos).update(time).draw(batch, mapCenter, mapCenter, rotationDegrees);
+            map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees);
         }
 
         // The old way I used here; still draws from back to front, but is more complicated.
@@ -200,8 +199,8 @@ public class IsoEngine2D extends ApplicationAdapter {
         else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_6)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
         else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_8)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
 
-        float c = MathUtils.cosDeg(rotationDegrees);
-        float s = MathUtils.sinDeg(rotationDegrees);
+        float c = MathUtils.cosDeg(map.rotationDegrees);
+        float s = MathUtils.sinDeg(map.rotationDegrees);
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 
@@ -234,13 +233,13 @@ public class IsoEngine2D extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom *= 2f; // Out
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
-            previousRotation = rotationDegrees;
-            targetRotation = (MathUtils.round(rotationDegrees * (1f/90f)) + 1 & 3) * 90;
+            map.previousRotation = map.rotationDegrees;
+            map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) + 1 & 3) * 90;
             animationStart = TimeUtils.millis();
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT_BRACKET)) {
-            previousRotation = rotationDegrees;
-            targetRotation = (MathUtils.round(rotationDegrees * (1f/90f)) - 1 & 3) * 90;
+            map.previousRotation = map.rotationDegrees;
+            map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) - 1 & 3) * 90;
             animationStart = TimeUtils.millis();
         }
 
