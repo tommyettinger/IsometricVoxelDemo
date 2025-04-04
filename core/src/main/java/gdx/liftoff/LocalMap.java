@@ -11,6 +11,9 @@ import gdx.liftoff.game.AssetData;
 import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
+
+    public static final float ENTITY_W = 0.125f;
+
     public int[][][] tiles;
     public OrderedMap<Vector4, IsoSprite> everything;
     public Array<TextureAtlas.AtlasRegion> tileset;
@@ -63,6 +66,15 @@ public class LocalMap {
         return everything.get(tempPointA.set(f, g, h, 0));
     }
 
+    public IsoSprite getIsoSpriteEntity(float f, float g, float h) {
+        return everything.get(tempPointA.set(f, g, h, ENTITY_W));
+    }
+
+    /**
+     * When point.w is 0, this selects terrain; when it is ENTITY_W, it selects an entity.
+     * @param point
+     * @return
+     */
     public IsoSprite getIsoSprite(Vector4 point) {
         return everything.get(point);
     }
@@ -119,7 +131,7 @@ public class LocalMap {
         if (isValid(rf, rg, rh)) {
             tiles[rf][rg][rh] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new Vector4(f, g, h, 0), sprite);
+            everything.put(new Vector4(f, g, h, ENTITY_W), sprite);
         }
     }
 

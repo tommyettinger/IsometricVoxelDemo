@@ -50,7 +50,7 @@ public class Player {
 
     public void update(float deltaTime) {
         stateTime += deltaTime;
-        tempVectorA.set(position, 0);
+        tempVectorA.set(position, LocalMap.ENTITY_W);
 
         applyGravity(deltaTime);
         position.add(velocity);
@@ -66,7 +66,7 @@ public class Player {
 
         visual.setPosition(position);
         map.everything.remove(tempVectorA);
-        map.everything.put(tempVectorA.set(position, 0f), visual);
+        map.everything.put(tempVectorA.set(position, LocalMap.ENTITY_W), visual);
     }
 
     private void applyGravity(float delta) {
