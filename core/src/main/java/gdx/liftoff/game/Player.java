@@ -110,12 +110,8 @@ public class Player {
         }
 
         boolean lateralCollision = false;
-        // tile collision from the side
-        if (velocity.x >= 0 && (
-            map.getTile(position.x + 1, position.y, position.z) != -1 ||
-                map.getTile(position.x + 1, position.y + 1, position.z) != -1 ||
-                map.getTile(position.x + 1, position.y - 1, position.z) != -1
-        )) {
+        // tile collision from the side, one axis
+        if (velocity.x >= 0 && map.getTile(position.x + 1, position.y, position.z) != -1) {
             int lo = MathUtils.round(position.x    );
             int hi = MathUtils.round(position.x + 1);
 
@@ -125,11 +121,7 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.y >= 0 && (
-            map.getTile(position.x, position.y + 1, position.z) != -1 ||
-                map.getTile(position.x + 1, position.y + 1, position.z) != -1 ||
-                map.getTile(position.x - 1, position.y + 1, position.z) != -1
-        )) {
+        if (velocity.y >= 0 && map.getTile(position.x, position.y + 1, position.z) != -1) {
             int lo = MathUtils.round(position.y    );
             int hi = MathUtils.round(position.y + 1);
 
@@ -139,12 +131,7 @@ public class Player {
                 lateralCollision = true;
             }
         }
-
-        if (velocity.x <= 0 && (
-            map.getTile(position.x - 1, position.y, position.z) != -1 ||
-            map.getTile(position.x - 1, position.y + 1, position.z) != -1 ||
-            map.getTile(position.x - 1, position.y - 1, position.z) != -1
-        )) {
+        if (velocity.x <= 0 && map.getTile(position.x - 1, position.y, position.z) != -1) {
             int lo = MathUtils.round(position.x - 1);
             int hi = MathUtils.round(position.x    );
 
@@ -154,17 +141,70 @@ public class Player {
                 lateralCollision = true;
             }
         }
-
-        if (velocity.y <= 0 && (
-            map.getTile(position.x, position.y - 1, position.z) != -1 ||
-            map.getTile(position.x + 1, position.y - 1, position.z) != -1 ||
-            map.getTile(position.x - 1, position.y - 1, position.z) != -1
-            )) {
+        if (velocity.y <= 0 && map.getTile(position.x, position.y - 1, position.z) != -1) {
             int lo = MathUtils.round(position.y - 1);
             int hi = MathUtils.round(position.y    );
 
             if (position.y >= lo && position.y <= hi) {
                 position.y = hi;
+                velocity.y = 0;
+                lateralCollision = true;
+            }
+        }
+
+        // tile collision from the side, two axes
+        if (velocity.x > 0 && velocity.y > 0 && map.getTile(position.x + 1, position.y + 1, position.z) != -1) {
+            int loX = MathUtils.round(position.x    );
+            int hiX = MathUtils.round(position.x + 1);
+            int loY = MathUtils.round(position.y    );
+            int hiY = MathUtils.round(position.y + 1);
+
+            if (position.x >= loX && position.x <= hiX && position.y >= loY && position.y <= hiY) {
+                position.x = loX;
+                position.y = loY;
+                velocity.x = 0;
+                velocity.y = 0;
+                lateralCollision = true;
+            }
+        }
+        if (velocity.x > 0 && velocity.y < 0 && map.getTile(position.x + 1, position.y - 1, position.z) != -1) {
+            int loX = MathUtils.round(position.x    );
+            int hiX = MathUtils.round(position.x + 1);
+            int loY = MathUtils.round(position.y - 1);
+            int hiY = MathUtils.round(position.y    );
+
+            if (position.x >= loX && position.x <= hiX && position.y >= loY && position.y <= hiY) {
+                position.x = loX;
+                position.y = hiY;
+                velocity.x = 0;
+                velocity.y = 0;
+                lateralCollision = true;
+            }
+        }
+        if (velocity.x < 0 && velocity.y > 0 && map.getTile(position.x - 1, position.y + 1, position.z) != -1) {
+            int loX = MathUtils.round(position.x - 1);
+            int hiX = MathUtils.round(position.x    );
+            int loY = MathUtils.round(position.y    );
+            int hiY = MathUtils.round(position.y + 1);
+
+            if (position.x >= loX && position.x <= hiX && position.y >= loY && position.y <= hiY) {
+                position.x = hiX;
+                position.y = loY;
+                velocity.x = 0;
+                velocity.y = 0;
+                lateralCollision = true;
+            }
+        }
+        if (velocity.x < 0 && velocity.y < 0 && map.getTile(position.x - 1, position.y - 1, position.z) != -1) {
+            int loX = MathUtils.round(position.x - 1);
+            int hiX = MathUtils.round(position.x    );
+            int loY = MathUtils.round(position.y - 1);
+            int hiY = MathUtils.round(position.y    );
+
+            if (position.x >= loX && position.x <= hiX && position.y >= loY && position.y <= hiY) {
+                position.x = hiX;
+                position.y = hiY;
+                velocity.x = 0;
                 velocity.y = 0;
                 lateralCollision = true;
             }
@@ -194,16 +234,16 @@ public class Player {
 //                    if (position.z != (int) position.z) {
                 position.z = MathUtils.round(position.z);
 //                    }
+                isGrounded = true;
+                velocity.z = 0;
                 if(!lateralCollision) {
-                    while  (map.getTile(position.x - 0.5f, position.y - 0.5f, position.z) != -1 ||
+                    if     (map.getTile(position.x - 0.5f, position.y - 0.5f, position.z) != -1 ||
                             map.getTile(position.x - 0.5f, position.y + 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y - 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y + 0.5f, position.z) != -1) {
-                        position.z++;
+                        jump();
                     }
                 }
-                isGrounded = true;
-                velocity.z = 0;
             }
         }
     }
