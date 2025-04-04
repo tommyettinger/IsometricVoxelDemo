@@ -98,7 +98,7 @@ public class Player {
         if (df == 0 && dg == 0) return;
 
         // Determine direction based on movement
-        if (dg > 0 || df > 0) currentDirection = 1; // Up
+        if (MathUtils.cosDeg(-45f - map.rotationDegrees) * dg - MathUtils.sinDeg(-45f - map.rotationDegrees) * df > 0.1f) currentDirection = 1; // Up
         else currentDirection = 0; // Down
     }
 
