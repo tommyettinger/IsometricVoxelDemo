@@ -1,6 +1,6 @@
 name=isometric
 filename=
-output=../../../../d/GitHub/VoxelDecalExample/assets/isometric
+output=../../assets/isometric
 
 alias=true
 alphaThreshold=0

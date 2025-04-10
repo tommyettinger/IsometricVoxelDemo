@@ -70,7 +70,7 @@
 		581773AD1E37A7EF004E28A9 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		5863B87B1DA682C800E46B6A /* ios-moe-Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ios-moe-Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5863B88E1DA682C800E46B6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		58C6F5241DA66CB600309CB6 /* VoxelDecalExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VoxelDecalExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		58C6F5241DA66CB600309CB6 /* IsometricVoxelDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IsometricVoxelDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58C6F5381DA66CB600309CB6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8084D1F0A307440EC73CBFCA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AE849253332D33EDDC76AB2C /* moe-main-interfaces.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "moe-main-interfaces.m"; path = "../build/moe/main/ui-headers/moe-main-interfaces.m"; sourceTree = "<group>"; };
@@ -165,7 +165,7 @@
 		58C6F5251DA66CB600309CB6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				58C6F5241DA66CB600309CB6 /* VoxelDecalExample.app */,
+				58C6F5241DA66CB600309CB6 /* IsometricVoxelDemo.app */,
 				5863B87B1DA682C800E46B6A /* ios-moe-Test.app */,
 			);
 			name = Products;
@@ -235,7 +235,7 @@
 			);
 			name = "ios-moe";
 			productName = "ios-moe";
-			productReference = 58C6F5241DA66CB600309CB6 /* VoxelDecalExample.app */;
+			productReference = 58C6F5241DA66CB600309CB6 /* IsometricVoxelDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -559,7 +559,7 @@
 					"$(LIBGDX_NATIVES)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = gdx.liftoff;
-				PRODUCT_NAME = VoxelDecalExample;
+				PRODUCT_NAME = IsometricVoxelDemo;
 				STRIP_STYLE = "non-global";
 			};
 			name = Debug;
@@ -600,7 +600,7 @@
 					"$(LIBGDX_NATIVES)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = gdx.liftoff;
-				PRODUCT_NAME = VoxelDecalExample;
+				PRODUCT_NAME = IsometricVoxelDemo;
 				STRIP_STYLE = "non-global";
 			};
 			name = Release;

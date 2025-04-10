@@ -58,7 +58,7 @@ configure(subprojects - project(':android')) {
 
 subprojects {
   version = "$projectVersion"
-  ext.appName = 'VoxelDecalExample'
+  ext.appName = 'IsometricVoxelDemo'
   repositories {
     mavenCentral()
     maven { url 'https://s01.oss.sonatype.org' }
@@ -71,4 +71,4 @@ subprojects {
   }
 }
 
-eclipse.project.name = 'VoxelDecalExample' + '-parent'
+eclipse.project.name = 'IsometricVoxelDemo' + '-parent'
