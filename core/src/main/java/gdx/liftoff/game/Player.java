@@ -111,7 +111,9 @@ public class Player {
 
         boolean lateralCollision = false;
         // tile collision from the side, one axis
-        if (velocity.x >= 0 && map.getTile(position.x + 1, position.y, position.z) != -1) {
+        if (velocity.x >= 0 &&
+            (!map.isValid(position.x + 1, position.y, position.z) ||
+                map.getTile(position.x + 1, position.y, position.z) != -1)) {
             int lo = MathUtils.round(position.x    );
             int hi = MathUtils.round(position.x + 1);
 
@@ -121,7 +123,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.y >= 0 && map.getTile(position.x, position.y + 1, position.z) != -1) {
+        if (velocity.y >= 0 &&
+            (!map.isValid(position.x, position.y + 1, position.z) ||
+                map.getTile(position.x, position.y + 1, position.z) != -1)) {
             int lo = MathUtils.round(position.y    );
             int hi = MathUtils.round(position.y + 1);
 
@@ -131,7 +135,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.x <= 0 && map.getTile(position.x - 1, position.y, position.z) != -1) {
+        if (velocity.x <= 0 &&
+            (!map.isValid(position.x - 1, position.y, position.z) ||
+            map.getTile(position.x - 1, position.y, position.z) != -1)) {
             int lo = MathUtils.round(position.x - 1);
             int hi = MathUtils.round(position.x    );
 
@@ -141,7 +147,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.y <= 0 && map.getTile(position.x, position.y - 1, position.z) != -1) {
+        if (velocity.y <= 0 &&
+            (!map.isValid(position.x, position.y - 1, position.z) ||
+                map.getTile(position.x, position.y - 1, position.z) != -1)) {
             int lo = MathUtils.round(position.y - 1);
             int hi = MathUtils.round(position.y    );
 
@@ -153,7 +161,9 @@ public class Player {
         }
 
         // tile collision from the side, two axes
-        if (velocity.x > 0 && velocity.y > 0 && map.getTile(position.x + 1, position.y + 1, position.z) != -1) {
+        if (velocity.x > 0 && velocity.y > 0 &&
+            (!map.isValid(position.x + 1, position.y + 1, position.z) ||
+                map.getTile(position.x + 1, position.y + 1, position.z) != -1)) {
             int loX = MathUtils.round(position.x    );
             int hiX = MathUtils.round(position.x + 1);
             int loY = MathUtils.round(position.y    );
@@ -167,7 +177,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.x > 0 && velocity.y < 0 && map.getTile(position.x + 1, position.y - 1, position.z) != -1) {
+        if (velocity.x > 0 && velocity.y < 0 &&
+            (!map.isValid(position.x + 1, position.y - 1, position.z) ||
+                map.getTile(position.x + 1, position.y - 1, position.z) != -1)) {
             int loX = MathUtils.round(position.x    );
             int hiX = MathUtils.round(position.x + 1);
             int loY = MathUtils.round(position.y - 1);
@@ -181,7 +193,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.x < 0 && velocity.y > 0 && map.getTile(position.x - 1, position.y + 1, position.z) != -1) {
+        if (velocity.x < 0 && velocity.y > 0 &&
+            (!map.isValid(position.x - 1, position.y + 1, position.z) ||
+                map.getTile(position.x - 1, position.y + 1, position.z) != -1)) {
             int loX = MathUtils.round(position.x - 1);
             int hiX = MathUtils.round(position.x    );
             int loY = MathUtils.round(position.y    );
@@ -195,7 +209,9 @@ public class Player {
                 lateralCollision = true;
             }
         }
-        if (velocity.x < 0 && velocity.y < 0 && map.getTile(position.x - 1, position.y - 1, position.z) != -1) {
+        if (velocity.x < 0 && velocity.y < 0 &&
+            (!map.isValid(position.x - 1, position.y - 1, position.z) ||
+                map.getTile(position.x - 1, position.y - 1, position.z) != -1)) {
             int loX = MathUtils.round(position.x - 1);
             int hiX = MathUtils.round(position.x    );
             int loY = MathUtils.round(position.y - 1);

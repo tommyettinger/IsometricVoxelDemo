@@ -45,6 +45,10 @@ public class LocalMap {
         return f >= 0 && g >= 0 && h >= 0 && f < tiles.length && g < tiles[0].length && h < tiles[0][0].length;
     }
 
+    public boolean isValid(float f, float g, float h) {
+        return isValid(MathUtils.round(f), MathUtils.round(g), MathUtils.round(h));
+    }
+
     public boolean isValid(Vector4 point) {
         return isValid((int)point.x, (int)point.y, (int)point.z);
     }
@@ -190,7 +194,7 @@ public class LocalMap {
                 // The result is scaled and moved into the -1.99 to -0.01 range, then fed into
                 // Math.pow with a base of 7, which is pretty much a complete guess that was refined over a few tries.
                 // Then that pow call (which can produce values from close to 0 to almost 1) is scaled by mapPeak.
-                int height = (int)(mapPeak * Math.pow(7.0, baseNoise.getNoise(f, g) * 0.76 + ridgeNoise.getNoise(f, g) * 0.23 - 1.0));
+                int height = (int)(mapPeak * Math.pow(7.0, baseNoise.getNoise(f, g) * 0.56 + ridgeNoise.getNoise(f, g) * 0.43 - 1.0));
                 // Some tiles are dirt, but most are grass; the 1.1f + 0.6f * baseNoise... is usually 1, but sometimes 0.
                 map.setTile(f, g, height, (int)(1.1f + 0.6f * baseNoise.getNoiseWithSeed(f * 2.3f, g * 2.3f, ~baseNoise.getSeed())));
                 // Anything below one of these tiles must be dirt.

@@ -81,7 +81,8 @@ public class IsoEngine2D extends ApplicationAdapter {
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
 
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
-        // Extract animations
+        // Extract animations from the atlas.
+        // This step will be different for every game's assets.
         animations = Array.with(
             new Array<>(true, 16, Animation.class),
             new Array<>(true, 16, Animation.class),
@@ -98,11 +99,16 @@ public class IsoEngine2D extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
+        // Initialize a Camera with the width and height of the area to be shown.
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
+        // Center the camera in the middle of the map.
         camera.position.set(TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0);
+        // Updating the camera allows the changes we made to actually take effect.
         camera.update();
+        // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
         viewport = new ScreenViewport(camera);
 
+        // Calling regenerate() does the procedural map generation, and chooses a random player character.
         regenerate(
             /* The seed will change after just over one hour, and will stay the same for over an hour. */
             TimeUtils.millis() >>> 22);
@@ -121,14 +127,14 @@ public class IsoEngine2D extends ApplicationAdapter {
             atlas);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
         int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
-        for (int h = MAP_PEAK - 2; h >= 0; h--) {
-            if(map.getTile(rf, rg, h) != -1) {
+//        for (int h = MAP_PEAK - 2; h >= 0; h--) {
+//            if(map.getTile(rf, rg, h) != -1) {
                 int id = MathUtils.random(15);
-                player = new Player(map, animations, id, rg, rg, h + 1);
+                player = new Player(map, animations, id, rg, rg, MAP_PEAK - 1);
                 player.place();
-                break;
-            }
-        }
+//                break;
+//            }
+//        }
 
     }
 
