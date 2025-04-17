@@ -23,10 +23,10 @@ public class Player {
     public transient float stateTime;
     private int currentDirection;
 
-    private static final float GRAVITY = -0.5f; // multiplied by delta, which is expected to be about 1f/60f
-    private static final float MAX_GRAVITY = -0.15f;
-    private static final float JUMP_FORCE = 0.2f;
-    private static final float MOVE_SPEED = 0.1f;
+    private static final float GRAVITY = -0.6f * 60f;
+    private static final float MAX_GRAVITY = -0.15f * 60;
+    private static final float JUMP_FORCE = 0.15f * 60;
+    private static final float MOVE_SPEED = 0.15f * 60;
     private static final float PLAYER_SIZE = 1f;
 
     public AnimatedIsoSprite visual;
@@ -50,7 +50,7 @@ public class Player {
 
         applyGravity(deltaTime);
         handleCollision();
-        position.add(velocity);
+        position.mulAdd(velocity, deltaTime);
 
         // while jumping, show attack animation; while standing, show idle animation.
         if (velocity.z != 0) {
@@ -67,7 +67,7 @@ public class Player {
 
     private void applyGravity(float delta) {
         if (!isGrounded) {
-            velocity.z = Math.max(velocity.z + GRAVITY * delta, MAX_GRAVITY); // Apply gravity to H axis (z in a Vector)
+            velocity.z = Math.max(velocity.z + GRAVITY, MAX_GRAVITY); // Apply gravity to H axis (z in a Vector)
         }
     }
 

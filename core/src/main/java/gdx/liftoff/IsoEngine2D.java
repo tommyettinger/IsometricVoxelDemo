@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.*;
@@ -25,7 +27,8 @@ public class IsoEngine2D extends ApplicationAdapter {
     private OrthographicCamera camera;
     private ScreenViewport viewport;
     private Player player;
-
+    private Skin skin;
+    private Label fpsLabel;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
@@ -61,16 +64,16 @@ public class IsoEngine2D extends ApplicationAdapter {
      * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
      * trick, and it is probably unnecessary and gratuitous!
      */
-    public final Comparator<? super Vector4> comparator =
-        (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w -
-                IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) - b.w + 0.0f);
+//    public final Comparator<? super Vector4> comparator =
+//        (a, b) -> NumberUtils.floatToIntBits(
+//            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w -
+//                IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) - b.w + 0.0f);
 
     // The above is equivalent to:
-//    public final Comparator<? super Vector4> comparator =
-//        (a, b) -> Float.compare(
-//            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w,
-//            IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + b.w);
+    public final Comparator<? super Vector4> comparator =
+        (a, b) -> Float.compare(
+            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w,
+            IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + b.w);
 
     @Override
     public void create() {
@@ -79,6 +82,9 @@ public class IsoEngine2D extends ApplicationAdapter {
 
         batch = new SpriteBatch();
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
+        skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        fpsLabel = new Label("0 FPS", skin);
+        fpsLabel.setPosition(20, SCREEN_VERTICAL - 30);
 
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
@@ -191,6 +197,10 @@ public class IsoEngine2D extends ApplicationAdapter {
 //                f++;
 //            }
 //        }
+        fpsLabel.getText().clear();
+        fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
+        fpsLabel.invalidate();
+        fpsLabel.draw(batch, 1f);
         batch.end();
     }
 
