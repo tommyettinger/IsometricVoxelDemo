@@ -66,16 +66,16 @@ public class IsoEngine2D extends ApplicationAdapter {
      * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
      * trick, and it is probably unnecessary and gratuitous!
      */
-//    public final Comparator<? super Vector4> comparator =
-//        (a, b) -> NumberUtils.floatToIntBits(
-//            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w -
-//                IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) - b.w + 0.0f);
-
-    // The above is equivalent to:
     public final Comparator<? super Vector4> comparator =
-        (a, b) -> Float.compare(
-            IsoSprite.viewDistance(a.x, a.y, a.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + a.w,
-            IsoSprite.viewDistance(b.x, b.y, b.z, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees) + b.w);
+        (a, b) -> NumberUtils.floatToIntBits(
+            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w -
+                IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) - b.w + 0.0f);
+//
+//    // The above is equivalent to:
+//    public final Comparator<? super Vector4> comparator =
+//        (a, b) -> Float.compare(
+//            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w,
+//            IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + b.w);
 
     @Override
     public void create() {
@@ -154,7 +154,8 @@ public class IsoEngine2D extends ApplicationAdapter {
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
 
-        map.rotationDegrees = MathUtils.lerpAngleDeg(map.previousRotation, map.targetRotation, Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f));
+        map.setRotationDegrees(MathUtils.lerpAngleDeg(map.previousRotation, map.targetRotation,
+            Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f)));
         final Array<Vector4> order = map.everything.orderedKeys();
         order.sort(comparator);
 
@@ -177,29 +178,9 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
-            map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.rotationDegrees);
+            map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
         }
 
-        // The old way I used here; still draws from back to front, but is more complicated.
-//        for (int line = 0, maxLines = MAP_SIZE * 2 - 1; line <= maxLines; line++) {
-//            int span = Math.min(line + 1, maxLines - line);
-//            int offset = line + 1 - span >> 1;
-//            int f = Math.max(MAP_SIZE - 1 - line, 0);
-//            int g = MAP_SIZE - 1 - offset;
-//            for (int across = 0; across < span; across++) {
-//                for (int h = 0; h < MAP_PEAK; h++) {
-//                    int blockId = map.getTile(f, g, h);
-//                    if (blockId != -1) {
-//                        Vector2 pos = isoToScreen(f, g, h);
-//                        Sprite spr = tiles.get(blockId % tiles.size);
-//                        spr.setPosition(pos.x, pos.y);
-//                        spr.draw(batch);
-//                    }
-//                }
-//                g--;
-//                f++;
-//            }
-//        }
         fpsLabel.getText().clear();
         fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
         fpsLabel.invalidate();
@@ -218,8 +199,8 @@ public class IsoEngine2D extends ApplicationAdapter {
         else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_6)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
         else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_8)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
 
-        float c = MathUtils.cosDeg(map.rotationDegrees);
-        float s = MathUtils.sinDeg(map.rotationDegrees);
+        float c = map.cosRotation;
+        float s = map.sinRotation;
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 

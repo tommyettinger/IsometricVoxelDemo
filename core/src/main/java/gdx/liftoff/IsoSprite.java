@@ -139,11 +139,10 @@ public class IsoSprite implements Comparable<IsoSprite> {
     public static float viewDistance(float f, float g, float h) {
         return (h * 3 - f - g) + (f - g) * (1f/2048);
     }
-    public static float viewDistance(float f, float g, float h, float originF, float originG, float rotationDegrees) {
-        float c = MathUtils.cosDeg(rotationDegrees), s = MathUtils.sinDeg(rotationDegrees);
+    public static float viewDistance(float f, float g, float h, float originF, float originG, float cosRotation, float sinRotation) {
         f -= originF;
         g -= originG;
-        float rf = c * f - s * g + originF, rg = c * g + s * f + originG;
+        float rf = cosRotation * f - sinRotation * g + originF, rg = cosRotation * g + sinRotation * f + originG;
         return (h * 3 - rf - rg) + (rf - rg) * (1f/2048);
     }
 
@@ -165,26 +164,22 @@ public class IsoSprite implements Comparable<IsoSprite> {
         sprite.draw(batch, alphaModulation);
     }
 
-    public void draw(Batch batch, float originF, float originG, float rotationDegrees) {
-        float c = MathUtils.cosDeg(rotationDegrees);
-        float s = MathUtils.sinDeg(rotationDegrees);
+    public void draw(Batch batch, float originF, float originG, float cosRotation, float sinRotation) {
         float af = f - originF;
         float ag = g - originG;
-        float rf = c * af - s * ag + originF;
-        float rg = c * ag + s * af + originG;
+        float rf = cosRotation * af - sinRotation * ag + originF;
+        float rg = cosRotation * ag + sinRotation * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
         float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
         sprite.setPosition(worldX, worldY);
         sprite.draw(batch);
     }
 
-    public void draw(Batch batch, float alphaModulation, float originF, float originG, float rotationDegrees) {
-        float c = MathUtils.cosDeg(rotationDegrees);
-        float s = MathUtils.sinDeg(rotationDegrees);
+    public void draw(Batch batch, float alphaModulation, float originF, float originG, float cosRotation, float sinRotation) {
         float af = f - originF;
         float ag = g - originG;
-        float rf = c * af - s * ag + originF;
-        float rg = c * ag + s * af + originG;
+        float rf = cosRotation * af - sinRotation * ag + originF;
+        float rg = cosRotation * ag + sinRotation * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
         float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
         sprite.setPosition(worldX, worldY);

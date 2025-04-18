@@ -16,8 +16,22 @@ public class LocalMap {
     public OrderedMap<Vector4, IsoSprite> everything;
     public Array<TextureAtlas.AtlasRegion> tileset;
     public Sprite edge;
+    public float fCenter;
+    public float gCenter;
+
+    public float getRotationDegrees() {
+        return rotationDegrees;
+    }
+
+    public void setRotationDegrees(float rotationDegrees) {
+        this.rotationDegrees = rotationDegrees;
+        cosRotation = MathUtils.cosDeg(rotationDegrees);
+        sinRotation = MathUtils.sinDeg(rotationDegrees);
+    }
 
     public float rotationDegrees = 0f;
+    public float cosRotation = 0f;
+    public float sinRotation = 0f;
     public float previousRotation = 0f;
     public float targetRotation = 0f;
 
@@ -28,7 +42,8 @@ public class LocalMap {
         this.tileset = atlas.findRegions("tile");
         this.edge = atlas.createSprite("edge");
         tiles = new int[width][height][depth];
-
+        fCenter = (width - 1) * 0.5f;
+        gCenter = (height - 1) * 0.5f;
         for (int f = 0; f < width; f++) {
             for (int g = 0; g < height; g++) {
                 for (int h = 0; h < depth; h++) {
