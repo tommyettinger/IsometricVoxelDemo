@@ -29,6 +29,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private Player player;
     private Skin skin;
     private Label fpsLabel;
+    private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
@@ -146,8 +147,9 @@ public class IsoEngine2D extends ApplicationAdapter {
 
     @Override
     public void render() {
-        handleInput();
-        player.update(Gdx.graphics.getDeltaTime());
+        float delta = Gdx.graphics.getDeltaTime();
+        handleInput(delta);
+        player.update(delta);
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
 
@@ -204,7 +206,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch.end();
     }
 
-    private void handleInputPlayer() {
+    private void handleInputPlayer(float delta) {
         float df = 0, dg = 0;
         if (Gdx.input.isKeyPressed(Input.Keys.F) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_1)) df = -1;
         else if (Gdx.input.isKeyPressed(Input.Keys.G) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_3)) dg = -1;
@@ -220,16 +222,16 @@ public class IsoEngine2D extends ApplicationAdapter {
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 
-        player.move(rf, rg);
+        player.move(rf, rg, delta);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_0)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_5)) {
-            player.jump();
+            player.jump(delta);
         }
     }
 
-    private void handleInput() {
+    private void handleInput(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
             return;
@@ -239,12 +241,18 @@ public class IsoEngine2D extends ApplicationAdapter {
             reset();
             return;
         }
-        handleInputPlayer();
+        // cap for frame rate
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            cap ^= 60;
+            Gdx.graphics.setForegroundFPS(cap);
+            return;
+        }
+        handleInputPlayer(delta);
 
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) camera.translate(0, 5);
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -5);
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) camera.translate(-5, 0);
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) camera.translate(5, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) camera.translate(0, 200 * delta);
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -200 * delta);
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) camera.translate(-200 * delta, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) camera.translate(200 * delta, 0);
         if (Gdx.input.isKeyJustPressed(Input.Keys.I)) camera.zoom *= .5f; // In
         if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom *= 2f; // Out
 

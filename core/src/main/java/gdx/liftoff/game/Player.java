@@ -23,9 +23,9 @@ public class Player {
     public transient float stateTime;
     private int currentDirection;
 
-    private static final float GRAVITY = -0.6f * 60f;
-    private static final float MAX_GRAVITY = -0.15f * 60;
-    private static final float JUMP_FORCE = 0.15f * 60;
+    private static final float GRAVITY = -0.04f * 60;
+    private static final float MAX_GRAVITY = -0.3f * 60;
+    private static final float JUMP_FORCE = 0.6f * 60;
     private static final float MOVE_SPEED = 0.15f * 60;
     private static final float PLAYER_SIZE = 1f;
 
@@ -49,7 +49,8 @@ public class Player {
         tempVectorA.set(position, LocalMap.ENTITY_W);
 
         applyGravity(deltaTime);
-        handleCollision();
+        handleCollision(deltaTime);
+//        position.add(velocity);
         position.mulAdd(velocity, deltaTime);
 
         // while jumping, show attack animation; while standing, show idle animation.
@@ -71,14 +72,14 @@ public class Player {
         }
     }
 
-    public void jump() {
+    public void jump(float delta) {
         if (isGrounded) {
             velocity.z = JUMP_FORCE; // Jump should affect H axis (heel to head, stored as z in a Vector)
             isGrounded = false;
         }
     }
 
-    public void move(float df, float dg) {
+    public void move(float df, float dg, float delta) {
         boolean movingDiagonally = (df != 0 && dg != 0);
 
         if (movingDiagonally) {
@@ -98,7 +99,7 @@ public class Player {
         else currentDirection = 0; // Down
     }
 
-    private void handleCollision() {
+    private void handleCollision(float delta) {
         isGrounded = false;
 
         // bottom of map
@@ -257,7 +258,7 @@ public class Player {
                             map.getTile(position.x - 0.5f, position.y + 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y - 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y + 0.5f, position.z) != -1) {
-                        jump();
+                        jump(delta);
                     }
                 }
             }
