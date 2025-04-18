@@ -196,7 +196,8 @@ public class LocalMap {
                 // Then that pow call (which can produce values from close to 0 to almost 1) is scaled by mapPeak.
                 int height = (int)(mapPeak * Math.pow(7.0, baseNoise.getNoise(f, g) * 0.56 + ridgeNoise.getNoise(f, g) * 0.43 - 1.0));
                 // Some tiles are dirt, but most are grass; the 1.1f + 0.6f * baseNoise... is usually 1, but sometimes 0.
-                map.setTile(f, g, height, (int)(1.1f + 0.6f * baseNoise.getNoiseWithSeed(f * 2.3f, g * 2.3f, ~baseNoise.getSeed())));
+                int tile = (int)(1.1f + 0.6f * baseNoise.getNoiseWithSeed(f * 2.3f, g * 2.3f, ~baseNoise.getSeed()));
+                map.setTile(f, g, height, tile);
                 // Anything below one of these tiles must be dirt.
                 for (int h = height - 1; h >= 0; h--) {
                     map.setTile(f, g, h, AssetData.DIRT);

@@ -204,4 +204,13 @@ public class IsoSprite implements Comparable<IsoSprite> {
     public int compareTo(IsoSprite other) {
         return NumberUtils.floatToIntBits(getViewDistance() - other.getViewDistance() + 0f);
     }
+
+    @Override
+    public String toString() {
+        return "IsoSprite{" +
+            "f=" + f +
+            ", g=" + g +
+            ", h=" + h +
+            '}';
+    }
 }

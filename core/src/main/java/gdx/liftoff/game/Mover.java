@@ -7,26 +7,31 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.LocalMap;
 
 public class Mover {
     public final Vector3 position = new Vector3();
     public final Vector3 velocity = new Vector3(0, 0, 0);
-    public final Vector4 tempVectorA = new Vector4();
-    private boolean isGrounded;
+    private final Vector4 tempVectorA = new Vector4();
+    public boolean isGrounded;
+    public final int id;
+    public final float uniqueDepth;
 
     private transient LocalMap map;
 
     private final Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     public final int animationID;
-    public transient float accumulator;
+    private transient float accumulator;
     private int currentDirection;
 
     private static final float GRAVITY = -0.04f;
     private static final float MAX_GRAVITY = -0.3f;
     private static final float JUMP_FORCE = 0.6f;
     private static final float MOVE_SPEED = 0.15f;
+
+    private static int ID_COUNTER = 0x01000000;
 
     public AnimatedIsoSprite visual;
 
@@ -41,30 +46,33 @@ public class Mover {
         this.animations = animations;
 
         visual = new AnimatedIsoSprite(animations.get(currentDirection).get(playerId), fPos, gPos, hPos);
+        id = ID_COUNTER++;
+        uniqueDepth = NumberUtils.intBitsToFloat(id);
     }
 
     public void update(float deltaTime) {
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
-            accumulator -= (1f/60f);
-            tempVectorA.set(position, LocalMap.ENTITY_W);
+            accumulator -= (1f / 60f);
+            tempVectorA.set(position, uniqueDepth);
 
             applyGravity();
             handleCollision();
 //        position.add(velocity);
             position.add(velocity);
-        }
-        // while jumping, show attack animation; while standing, show idle animation.
-        if (velocity.z != 0) {
-            /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
-            visual.animation = animations.get(currentDirection + 2).get(animationID);
-        } else {
-            visual.animation = animations.get(currentDirection).get(animationID);
-        }
 
-        visual.setPosition(position);
-        map.everything.remove(tempVectorA);
-        map.everything.put(tempVectorA.set(position, LocalMap.ENTITY_W), visual);
+            // while jumping, show attack animation; while standing, show idle animation.
+            if (velocity.z != 0) {
+                /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
+                visual.animation = animations.get(currentDirection + 2).get(animationID);
+            } else {
+                visual.animation = animations.get(currentDirection).get(animationID);
+            }
+
+            visual.setPosition(position);
+            map.everything.remove(tempVectorA);
+            map.everything.put(tempVectorA.set(position, uniqueDepth), visual);
+        }
     }
 
     private void applyGravity() {
