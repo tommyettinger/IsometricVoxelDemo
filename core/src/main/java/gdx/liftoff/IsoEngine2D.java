@@ -20,6 +20,7 @@ import java.util.Comparator;
 import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
 public class IsoEngine2D extends ApplicationAdapter {
+    public static final float ENTITY_W = 0.125f;
     private SpriteBatch batch;
     private TextureAtlas atlas;
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;

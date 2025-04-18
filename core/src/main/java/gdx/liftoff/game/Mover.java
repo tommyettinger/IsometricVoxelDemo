@@ -7,8 +7,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.AnimatedIsoSprite;
+import gdx.liftoff.IsoEngine2D;
 import gdx.liftoff.LocalMap;
 
 public class Mover {
@@ -17,7 +17,6 @@ public class Mover {
     private final Vector4 tempVectorA = new Vector4();
     public boolean isGrounded;
     public final int id;
-    public final float uniqueDepth;
 
     private transient LocalMap map;
 
@@ -31,7 +30,7 @@ public class Mover {
     private static final float JUMP_FORCE = 0.6f;
     private static final float MOVE_SPEED = 0.15f;
 
-    private static int ID_COUNTER = 0x01000000;
+    private static int ID_COUNTER = 1;
 
     public AnimatedIsoSprite visual;
 
@@ -47,14 +46,13 @@ public class Mover {
 
         visual = new AnimatedIsoSprite(animations.get(currentDirection).get(playerId), fPos, gPos, hPos);
         id = ID_COUNTER++;
-        uniqueDepth = NumberUtils.intBitsToFloat(id);
     }
 
     public void update(float deltaTime) {
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
             accumulator -= (1f / 60f);
-            tempVectorA.set(position, uniqueDepth);
+            tempVectorA.set(position, IsoEngine2D.ENTITY_W);
 
             applyGravity();
             handleCollision();
@@ -71,7 +69,7 @@ public class Mover {
 
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
-            map.everything.put(tempVectorA.set(position, uniqueDepth), visual);
+            map.everything.put(tempVectorA.set(position, IsoEngine2D.ENTITY_W), visual);
         }
     }
 

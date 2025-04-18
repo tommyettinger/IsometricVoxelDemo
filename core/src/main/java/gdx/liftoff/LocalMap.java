@@ -12,8 +12,6 @@ import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
 
-    public static final float ENTITY_W = 0.125f;
-
     public int[][][] tiles;
     public OrderedMap<Vector4, IsoSprite> everything;
     public Array<TextureAtlas.AtlasRegion> tileset;
@@ -71,7 +69,7 @@ public class LocalMap {
     }
 
     public IsoSprite getIsoSpriteEntity(float f, float g, float h) {
-        return everything.get(tempPointA.set(f, g, h, ENTITY_W));
+        return everything.get(tempPointA.set(f, g, h, IsoEngine2D.ENTITY_W));
     }
 
     /**
@@ -135,7 +133,7 @@ public class LocalMap {
         if (isValid(rf, rg, rh)) {
             tiles[rf][rg][rh] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new Vector4(f, g, h, ENTITY_W), sprite);
+            everything.put(new Vector4(f, g, h, IsoEngine2D.ENTITY_W), sprite);
         }
     }
 
