@@ -101,7 +101,7 @@ public class Mover {
     }
 
     private void handleCollision() {
-        isGrounded = false;
+//        isGrounded = false;
 
         // bottom of map
         final float groundLevel = 1f;
@@ -263,6 +263,8 @@ public class Mover {
                     }
                 }
             }
+        } else {
+            isGrounded = false;
         }
     }
 
