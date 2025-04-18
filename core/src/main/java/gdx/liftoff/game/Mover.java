@@ -10,7 +10,7 @@ import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.LocalMap;
 
-public class Player {
+public class Mover {
     public final Vector3 position = new Vector3();
     public final Vector3 velocity = new Vector3(0, 0, 0);
     public final Vector4 tempVectorA = new Vector4();
@@ -18,26 +18,25 @@ public class Player {
 
     private transient LocalMap map;
 
-    private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
-    public final int playerId;
-    public transient float stateTime;
+    private final Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
+    public final int animationID;
+    public transient float accumulator;
     private int currentDirection;
 
-    private static final float GRAVITY = -0.04f * 60;
-    private static final float MAX_GRAVITY = -0.3f * 60;
-    private static final float JUMP_FORCE = 0.6f * 60;
-    private static final float MOVE_SPEED = 0.15f * 60;
-    private static final float PLAYER_SIZE = 1f;
+    private static final float GRAVITY = -0.04f;
+    private static final float MAX_GRAVITY = -0.3f;
+    private static final float JUMP_FORCE = 0.6f;
+    private static final float MOVE_SPEED = 0.15f;
 
     public AnimatedIsoSprite visual;
 
-    public Player(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int playerId,
-                  float fPos, float gPos, float hPos) {
+    public Mover(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int playerId,
+                 float fPos, float gPos, float hPos) {
         this.map = map;
         this.position.set(fPos, gPos, hPos);
-        this.stateTime = 0;
+        this.accumulator = 0;
         this.currentDirection = 0; // Default: facing down
-        this.playerId = playerId;
+        this.animationID = playerId;
 
         this.animations = animations;
 
@@ -45,20 +44,22 @@ public class Player {
     }
 
     public void update(float deltaTime) {
-        stateTime += deltaTime;
-        tempVectorA.set(position, LocalMap.ENTITY_W);
+        accumulator += deltaTime;
+        while (accumulator > (1f/60f)) {
+            accumulator -= (1f/60f);
+            tempVectorA.set(position, LocalMap.ENTITY_W);
 
-        applyGravity(deltaTime);
-        handleCollision(deltaTime);
+            applyGravity();
+            handleCollision();
 //        position.add(velocity);
-        position.mulAdd(velocity, deltaTime);
-
+            position.add(velocity);
+        }
         // while jumping, show attack animation; while standing, show idle animation.
         if (velocity.z != 0) {
             /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
-            visual.animation = animations.get(currentDirection + 2).get(playerId);
+            visual.animation = animations.get(currentDirection + 2).get(animationID);
         } else {
-            visual.animation = animations.get(currentDirection).get(playerId);
+            visual.animation = animations.get(currentDirection).get(animationID);
         }
 
         visual.setPosition(position);
@@ -66,20 +67,20 @@ public class Player {
         map.everything.put(tempVectorA.set(position, LocalMap.ENTITY_W), visual);
     }
 
-    private void applyGravity(float delta) {
+    private void applyGravity() {
         if (!isGrounded) {
             velocity.z = Math.max(velocity.z + GRAVITY, MAX_GRAVITY); // Apply gravity to H axis (z in a Vector)
         }
     }
 
-    public void jump(float delta) {
+    public void jump() {
         if (isGrounded) {
             velocity.z = JUMP_FORCE; // Jump should affect H axis (heel to head, stored as z in a Vector)
             isGrounded = false;
         }
     }
 
-    public void move(float df, float dg, float delta) {
+    public void move(float df, float dg) {
         boolean movingDiagonally = (df != 0 && dg != 0);
 
         if (movingDiagonally) {
@@ -99,7 +100,7 @@ public class Player {
         else currentDirection = 0; // Down
     }
 
-    private void handleCollision(float delta) {
+    private void handleCollision() {
         isGrounded = false;
 
         // bottom of map
@@ -258,7 +259,7 @@ public class Player {
                             map.getTile(position.x - 0.5f, position.y + 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y - 0.5f, position.z) != -1 ||
                             map.getTile(position.x + 0.5f, position.y + 0.5f, position.z) != -1) {
-                        jump(delta);
+                        jump();
                     }
                 }
             }
@@ -281,7 +282,7 @@ public class Player {
         this.currentDirection = currentDirection;
     }
 
-    public Player place() {
+    public Mover place() {
         map.setEntity(position.x, position.y, position.z, visual);
         return this;
     }

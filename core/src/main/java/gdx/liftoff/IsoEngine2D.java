@@ -26,7 +26,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private LocalMap map;
     private OrthographicCamera camera;
     private ScreenViewport viewport;
-    private Player player;
+    private Mover player;
     private Skin skin;
     private Label fpsLabel;
     private int cap = 60;
@@ -137,7 +137,7 @@ public class IsoEngine2D extends ApplicationAdapter {
 //        for (int h = MAP_PEAK - 2; h >= 0; h--) {
 //            if(map.getTile(rf, rg, h) != -1) {
                 int id = MathUtils.random(15);
-                player = new Player(map, animations, id, rg, rg, MAP_PEAK - 1);
+                player = new Mover(map, animations, id, rg, rg, MAP_PEAK - 1);
                 player.place();
 //                break;
 //            }
@@ -206,7 +206,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch.end();
     }
 
-    private void handleInputPlayer(float delta) {
+    private void handleInputPlayer() {
         float df = 0, dg = 0;
         if (Gdx.input.isKeyPressed(Input.Keys.F) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_1)) df = -1;
         else if (Gdx.input.isKeyPressed(Input.Keys.G) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_3)) dg = -1;
@@ -222,12 +222,12 @@ public class IsoEngine2D extends ApplicationAdapter {
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 
-        player.move(rf, rg, delta);
+        player.move(rf, rg);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_0)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_5)) {
-            player.jump(delta);
+            player.jump();
         }
     }
 
@@ -247,7 +247,7 @@ public class IsoEngine2D extends ApplicationAdapter {
             Gdx.graphics.setForegroundFPS(cap);
             return;
         }
-        handleInputPlayer(delta);
+        handleInputPlayer();
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) camera.translate(0, 200 * delta);
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -200 * delta);
