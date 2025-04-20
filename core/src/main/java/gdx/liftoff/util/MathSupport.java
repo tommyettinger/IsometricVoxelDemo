@@ -1,5 +1,8 @@
 package gdx.liftoff.util;
 
+import com.badlogic.gdx.math.GridPoint2;
+import com.badlogic.gdx.math.Vector2;
+
 public final class MathSupport {
 
     private MathSupport(){}
@@ -14,6 +17,14 @@ public final class MathSupport {
      */
     public static final float INVERSE_ROOT_2 = 1f / ROOT_2;
 
+    public static GridPoint2 fillR2(GridPoint2 changing, long index, int width, int height) {
+        long ix = index * 0xC13FA9A902A6328FL;
+        long iy = index * 0x91E10DA5C79E7B1DL;
+        double x = (ix >>> 1) * (1.0842021724855043E-19 * width); //1.0842021724855043E-19 is just under pow(2, -63)
+        double y = (iy >>> 1) * (1.0842021724855043E-19 * height); //1.0842021724855043E-19 is just under pow(2, -63)
+        changing.set((int)x, (int)y);
+        return changing;
+    }
     /**
      * Reads in a CharSequence containing only decimal digits (only 0-9) with an optional sign at the start
      * and returns the long they represent, reading at most 19 characters (20 if there is a sign) and returning the

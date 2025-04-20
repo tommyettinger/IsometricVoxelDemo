@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
 import gdx.liftoff.game.AssetData;
+import gdx.liftoff.util.MathSupport;
 import gdx.liftoff.util.MiniNoise;
 
 public class LocalMap {
@@ -299,5 +300,29 @@ public class LocalMap {
 
         AssetData.realignPaths(map);
         return map;
+    }
+
+    public LocalMap placeBushes(long seed, int bushCount) {
+        GridPoint2 point = new GridPoint2();
+        int fs = getFSize(), gs = getGSize(), hs = getHSize();
+        seed = (seed ^ 0x9E3779B97F4A7C15L) * 0xD1B54A32D192ED03L;
+        PER_BUSH:
+        for (int i = 0; i < bushCount; i++) {
+            MathSupport.fillR2(point, seed + i, fs, gs);
+            for (int h = hs - 2; h >= 0 ; h--) {
+                int below = getTile(point.x, point.y, h);
+                if(below == AssetData.DECO_HEDGE){
+                    bushCount++;
+                    continue PER_BUSH; // labeled break; we want to try to place a bush in another location.
+                }
+                if(below != -1) {
+                    tiles[point.x][point.y][h+1] = AssetData.DECO_HEDGE;
+                    everything.put(new Vector4(point.x, point.y, h+1, IsoEngine2D.ENTITY_W * 0.5f),
+                        new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h+1));
+                    break;
+                }
+            }
+        }
+        return this;
     }
 }
