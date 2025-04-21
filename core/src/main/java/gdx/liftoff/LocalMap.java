@@ -309,16 +309,21 @@ public class LocalMap {
         PER_BUSH:
         for (int i = 0; i < bushCount; i++) {
             MathSupport.fillR2(point, seed + i, fs, gs);
-            for (int h = hs - 2; h >= 0 ; h--) {
+            for (int h = hs - 2; h >= 0; h--) {
                 int below = getTile(point.x, point.y, h);
-                if(below == AssetData.DECO_HEDGE){
+                if (below == AssetData.DECO_HEDGE) {
                     bushCount++;
                     continue PER_BUSH; // labeled break; we want to try to place a bush in another location.
                 }
-                if(below != -1) {
-                    tiles[point.x][point.y][h+1] = AssetData.DECO_HEDGE;
-                    everything.put(new Vector4(point.x, point.y, h+1, IsoEngine2D.ENTITY_W * 0.5f),
-                        new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h+1));
+                if (below != -1) {
+                    tiles[point.x][point.y][h + 1] = AssetData.DECO_HEDGE;
+                    everything.put(new Vector4(point.x, point.y, h + 1, IsoEngine2D.ENTITY_W * 0.5f),
+                        new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h + 1));
+                    setTile(point.x, point.y, h, AssetData.DIRT);
+                    setTile(point.x + 1, point.y, h, AssetData.DIRT);
+                    setTile(point.x - 1, point.y, h, AssetData.DIRT);
+                    setTile(point.x, point.y + 1, h, AssetData.DIRT);
+                    setTile(point.x, point.y - 1, h, AssetData.DIRT);
                     break;
                 }
             }
