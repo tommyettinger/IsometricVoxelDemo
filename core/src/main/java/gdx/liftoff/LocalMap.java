@@ -1,5 +1,6 @@
 package gdx.liftoff;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.GridPoint2;
@@ -324,6 +325,23 @@ public class LocalMap {
                     setTile(point.x - 1, point.y, h, AssetData.DIRT);
                     setTile(point.x, point.y + 1, h, AssetData.DIRT);
                     setTile(point.x, point.y - 1, h, AssetData.DIRT);
+                    break;
+                }
+            }
+        }
+        return this;
+    }
+
+    public LocalMap placeFish(long seed, int fishCount, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations) {
+        GridPoint2 point = new GridPoint2();
+        int fs = getFSize(), gs = getGSize(), hs = getHSize();
+        seed = (seed ^ 0x9E3779B97F4A7C15L) * 0xD1B54A32D192ED03L;
+        for (int i = 0; i < fishCount; i++) {
+            MathSupport.fillR2(point, seed + i, fs, gs);
+            for (int h = hs - 2; h >= 0; h--) {
+                int below = getTile(point.x, point.y, h);
+                if (below != -1) {
+                    setEntity(point.x, point.y, h + 1, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
                     break;
                 }
             }

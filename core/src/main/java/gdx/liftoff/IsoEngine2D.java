@@ -133,7 +133,7 @@ public class IsoEngine2D extends ApplicationAdapter {
             MAP_PEAK,
             /* All terrain tiles in the tileset. */
             atlas);
-        map.placeBushes(seed, 10);
+        map.placeFish(seed, 10, animations);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
         int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
 //        for (int h = MAP_PEAK - 2; h >= 0; h--) {
