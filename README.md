@@ -4,6 +4,10 @@ A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3
 
 Based on [voxelia by bergice](https://gitlab.com/bergice/voxelia/-/tree/master).
 
+Uses [art by Gustavo Vituri](https://gvituri.itch.io/isometric-trpg).
+
+Contains a [scene2d.ui skin by Raymond Buckley](https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/).
+
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.
