@@ -30,7 +30,7 @@ public class Main extends ApplicationAdapter {
     private Mover player;
     private Skin skin;
     private Label fpsLabel;
-    private Label goalLabel;
+    public Label goalLabel;
     private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -48,9 +48,7 @@ public class Main extends ApplicationAdapter {
     private static final Vector3 projectionTempVector = new Vector3();
     private static final Vector3 isoTempVector = new Vector3();
     private static final Vector2 screenTempVector = new Vector2();
-    private static final GridPoint3 tempPointA = new GridPoint3();
-    private static final GridPoint3 tempPointB = new GridPoint3();
-    private static final GridPoint3 tempPointC = new GridPoint3();
+    private static final Vector4 tempVector4 = new Vector4();
 
     /**
      * Used to depth-sort isometric points, including if the map is mid-rotation. This gets the center of the LocalMap
@@ -85,11 +83,6 @@ public class Main extends ApplicationAdapter {
 
         batch = new SpriteBatch();
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
-        skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
-        goalLabel = new Label("SAVE THE GOLDFISH!!!", skin);
-        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
-        fpsLabel = new Label("0 FPS", skin);
-        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
@@ -123,6 +116,12 @@ public class Main extends ApplicationAdapter {
         regenerate(
             /* The seed will change after just over one hour, and will stay the same for over an hour. */
             TimeUtils.millis() >>> 22);
+        skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        goalLabel = new Label("", skin);
+        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
+        updateFish();
+        fpsLabel = new Label("0 FPS", skin);
+        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
     }
 
     public void regenerate(long seed) {
@@ -136,13 +135,15 @@ public class Main extends ApplicationAdapter {
             MAP_PEAK,
             /* All terrain tiles in the tileset. */
             atlas);
-        map.placeFish(seed, 10, animations);
+        map.totalFish = 10;
+        map.fishSaved = 0;
+        map.placeFish(seed, map.totalFish, animations);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
         int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
 //        for (int h = MAP_PEAK - 2; h >= 0; h--) {
 //            if(map.getTile(rf, rg, h) != -1) {
-                int id = MathUtils.random(15);
-                player = new Mover(map, animations, id, rg, rg, MAP_PEAK - 1);
+                int id = MathUtils.random(3);
+                player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
                 player.place();
 //                break;
 //            }
@@ -183,6 +184,15 @@ public class Main extends ApplicationAdapter {
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
             map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
+        }
+
+        Vector3 pos = player.position;
+        tempVector4.set(MathUtils.round(pos.x), MathUtils.round(pos.y), MathUtils.round(pos.z), Main.ENTITY_W + 0.125f);
+        IsoSprite fish = map.everything.get(tempVector4);
+        if(fish instanceof AnimatedIsoSprite && fish != player.visual){
+            ++map.fishSaved;
+            map.everything.remove(tempVector4);
+            ((Main)Gdx.app.getApplicationListener()).updateFish();
         }
 
         fpsLabel.getText().clear();
@@ -311,6 +321,7 @@ public class Main extends ApplicationAdapter {
 
     private void reset() {
         regenerate(MathUtils.random.nextLong());
+        updateFish();
     }
 
     @Override
@@ -329,6 +340,16 @@ public class Main extends ApplicationAdapter {
             width  / ((MAP_SIZE+1f) * (TILE_WIDTH * 2f)),
             height / ((MAP_SIZE+1f) * (TILE_HEIGHT * 2f) + TILE_DEPTH * MAP_PEAK))));
         viewport.update(width, height);
+    }
+
+    public void updateFish() {
+        if(map.totalFish == map.fishSaved)
+            goalLabel.setText("YOU SAVED THEM ALL! Great job!");
+        else
+            goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
+            ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
+        goalLabel.setAlignment(Align.center);
+        goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
     }
 }
 

@@ -56,7 +56,6 @@ public class Mover {
 
             applyGravity();
             handleCollision();
-//        position.add(velocity);
             position.add(velocity);
 
             // while jumping, show attack animation; while standing, show idle animation.

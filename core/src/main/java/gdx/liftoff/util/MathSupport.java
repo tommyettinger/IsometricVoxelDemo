@@ -1,7 +1,6 @@
 package gdx.liftoff.util;
 
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Vector2;
 
 public final class MathSupport {
 

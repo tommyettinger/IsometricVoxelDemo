@@ -21,6 +21,9 @@ public class LocalMap {
     public float fCenter;
     public float gCenter;
 
+    public int totalFish = 10;
+    public int fishSaved = 0;
+
     public float getRotationDegrees() {
         return rotationDegrees;
     }
