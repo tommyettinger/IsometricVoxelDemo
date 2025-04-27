@@ -3,7 +3,6 @@ package gdx.liftoff;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.GridPoint3;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
 
@@ -22,7 +21,7 @@ import com.badlogic.gdx.utils.NumberUtils;
  * </ul>
  */
 public class IsoSprite implements Comparable<IsoSprite> {
-    public static float UNIT = IsoEngine2D.TILE_HEIGHT;
+    public static float UNIT = Main.TILE_HEIGHT;
     public Sprite sprite;
     public float f, g, h;
 

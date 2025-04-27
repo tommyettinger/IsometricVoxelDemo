@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.AnimatedIsoSprite;
-import gdx.liftoff.IsoEngine2D;
+import gdx.liftoff.Main;
 import gdx.liftoff.LocalMap;
 
 public class Mover {
@@ -52,7 +52,7 @@ public class Mover {
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
             accumulator -= (1f / 60f);
-            tempVectorA.set(position, IsoEngine2D.ENTITY_W);
+            tempVectorA.set(position, Main.ENTITY_W);
 
             applyGravity();
             handleCollision();
@@ -69,7 +69,7 @@ public class Mover {
 
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
-            map.everything.put(tempVectorA.set(position, IsoEngine2D.ENTITY_W), visual);
+            map.everything.put(tempVectorA.set(position, Main.ENTITY_W), visual);
         }
     }
 
@@ -291,7 +291,7 @@ public class Mover {
     }
 
     public Mover place() {
-        map.setEntity(position.x, position.y, position.z, visual);
+        map.setEntity(position.x, position.y, position.z, 0f, visual);
         return this;
     }
 

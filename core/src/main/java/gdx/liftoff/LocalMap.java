@@ -86,7 +86,7 @@ public class LocalMap {
     }
 
     public IsoSprite getIsoSpriteEntity(float f, float g, float h) {
-        return everything.get(tempPointA.set(f, g, h, IsoEngine2D.ENTITY_W));
+        return everything.get(tempPointA.set(f, g, h, Main.ENTITY_W));
     }
 
     /**
@@ -145,12 +145,12 @@ public class LocalMap {
         }
     }
 
-    public void setEntity(float f, float g, float h, IsoSprite sprite) {
+    public void setEntity(float f, float g, float h, float depthModifier, IsoSprite sprite) {
         int rf = MathUtils.round(f), rg = MathUtils.round(g), rh = MathUtils.round(h);
         if (isValid(rf, rg, rh)) {
             tiles[rf][rg][rh] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new Vector4(f, g, h, IsoEngine2D.ENTITY_W), sprite);
+            everything.put(new Vector4(f, g, h, Main.ENTITY_W + depthModifier), sprite);
         }
     }
 
@@ -318,7 +318,7 @@ public class LocalMap {
                 }
                 if (below != -1) {
                     tiles[point.x][point.y][h + 1] = AssetData.DECO_HEDGE;
-                    everything.put(new Vector4(point.x, point.y, h + 1, IsoEngine2D.ENTITY_W * 0.5f),
+                    everything.put(new Vector4(point.x, point.y, h + 1, Main.ENTITY_W * 0.5f),
                         new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h + 1));
                     setTile(point.x, point.y, h, AssetData.DIRT);
                     setTile(point.x + 1, point.y, h, AssetData.DIRT);
@@ -341,7 +341,7 @@ public class LocalMap {
             for (int h = hs - 2; h >= 0; h--) {
                 int below = getTile(point.x, point.y, h);
                 if (below != -1) {
-                    setEntity(point.x, point.y, h + 1, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
+                    setEntity(point.x, point.y, h + 1, 0.125f, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
                     break;
                 }
             }

@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import gdx.liftoff.IsoEngine2D;
+import gdx.liftoff.Main;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
@@ -13,6 +13,6 @@ public class AndroidLauncher extends AndroidApplication {
         super.onCreate(savedInstanceState);
         AndroidApplicationConfiguration configuration = new AndroidApplicationConfiguration();
         configuration.useImmersiveMode = true; // Recommended, but not required.
-        initialize(new IsoEngine2D(), configuration);
+        initialize(new Main(), configuration);
     }
 }

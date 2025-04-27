@@ -2,7 +2,7 @@ package gdx.liftoff.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import gdx.liftoff.IsoEngine2D;
+import gdx.liftoff.Main;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
@@ -12,7 +12,7 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new IsoEngine2D(), getDefaultConfiguration());
+        return new Lwjgl3Application(new Main(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
@@ -29,7 +29,7 @@ public class Lwjgl3Launcher {
         //// If you remove the above line and set Vsync to false, you can get unlimited FPS, which can be
         //// useful for testing performance, but can also be very stressful to some hardware.
         //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
-        configuration.setWindowedMode(IsoEngine2D.SCREEN_HORIZONTAL, IsoEngine2D.SCREEN_VERTICAL);
+        configuration.setWindowedMode(Main.SCREEN_HORIZONTAL, Main.SCREEN_VERTICAL);
 //        configuration.setMaximized(true);
 //        configuration.setMaximizedMonitor(Lwjgl3ApplicationConfiguration.getPrimaryMonitor());
         //// You can change these files; they are in lwjgl3/src/main/resources/ .

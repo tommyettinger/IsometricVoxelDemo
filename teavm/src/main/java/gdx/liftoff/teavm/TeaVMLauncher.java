@@ -2,7 +2,7 @@ package gdx.liftoff.teavm;
 
 import com.github.xpenatan.gdx.backends.teavm.TeaApplicationConfiguration;
 import com.github.xpenatan.gdx.backends.teavm.TeaApplication;
-import gdx.liftoff.IsoEngine2D;
+import gdx.liftoff.Main;
 
 /**
  * Launches the TeaVM/HTML application.
@@ -19,6 +19,6 @@ public class TeaVMLauncher {
         //// If width and height are both -1, then the app will fill the canvas size.
         config.width = -1;
         config.height = -1;
-        new TeaApplication(new IsoEngine2D(), config);
+        new TeaApplication(new Main(), config);
     }
 }

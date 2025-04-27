@@ -19,7 +19,7 @@ import java.util.Comparator;
 
 import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
-public class IsoEngine2D extends ApplicationAdapter {
+public class Main extends ApplicationAdapter {
     public static final float ENTITY_W = 0.125f;
     private SpriteBatch batch;
     private TextureAtlas atlas;
@@ -30,6 +30,7 @@ public class IsoEngine2D extends ApplicationAdapter {
     private Mover player;
     private Skin skin;
     private Label fpsLabel;
+    private Label goalLabel;
     private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -85,8 +86,10 @@ public class IsoEngine2D extends ApplicationAdapter {
         batch = new SpriteBatch();
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
         skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        goalLabel = new Label("SAVE THE GOLDFISH!!!", skin);
+        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         fpsLabel = new Label("0 FPS", skin);
-        fpsLabel.setPosition(20, SCREEN_VERTICAL - 30);
+        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
@@ -185,6 +188,7 @@ public class IsoEngine2D extends ApplicationAdapter {
         fpsLabel.getText().clear();
         fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
         fpsLabel.invalidate();
+        goalLabel.draw(batch, 1f);
         fpsLabel.draw(batch, 1f);
         batch.end();
     }
