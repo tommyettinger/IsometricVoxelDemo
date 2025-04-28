@@ -12,6 +12,8 @@ import gdx.liftoff.game.AssetData;
 import gdx.liftoff.util.MathSupport;
 import gdx.liftoff.util.MiniNoise;
 
+import static com.badlogic.gdx.math.MathUtils.round;
+
 public class LocalMap {
 
     public int[][][] tiles;
@@ -64,7 +66,7 @@ public class LocalMap {
     }
 
     public boolean isValid(float f, float g, float h) {
-        return isValid(MathUtils.round(f), MathUtils.round(g), MathUtils.round(h));
+        return isValid(round(f), round(g), round(h));
     }
 
     public boolean isValid(Vector4 point) {
@@ -76,20 +78,31 @@ public class LocalMap {
     }
 
     public int getTile(float f, float g, float h) {
-        int rf = MathUtils.round(f), rg = MathUtils.round(g), rh = MathUtils.round(h);
+        int rf = round(f), rg = round(g), rh = round(h);
         return isValid(rf, rg, rh) ? tiles[rf][rg][rh] : -1;
     }
 
     public int getTile(Vector4 point) {
-        return isValid(point) ? tiles[MathUtils.round(point.x)][MathUtils.round(point.y)][MathUtils.round(point.z)] : -1;
+        return isValid(point) ? tiles[round(point.x)][round(point.y)][round(point.z)] : -1;
     }
 
     public IsoSprite getIsoSpriteTerrain(float f, float g, float h) {
         return everything.get(tempPointA.set(f, g, h, 0));
     }
 
-    public IsoSprite getIsoSpriteEntity(float f, float g, float h) {
-        return everything.get(tempPointA.set(f, g, h, Main.ENTITY_W));
+    /**
+     * Modifies the given Vector4 so it holds the given [f,g,h] position with the depth a fish can have.
+     * This rounds f, g, and h because a fish is always at an all-integer position. If {@link #everything} does not
+     * have anything present at the Vector4 this produces, there is no fish present at that position, but if it does
+     * have any IsoSprite present, it will be a fish.
+     *
+     * @param changing a Vector4 that will be modified in-place
+     * @param f the "France to Finland" isometric coordinate; will be rounded and assigned to changing
+     * @param g the "Germany to Greenland" isometric coordinate; will be rounded and assigned to changing
+     * @param h the "heel to head" isometric coordinate; will be rounded and assigned to changing
+     */
+    public void setToFishPosition(Vector4 changing, float f, float g, float h) {
+        changing.set(round(f), round(g), round(h), Main.FISH_W);
     }
 
     /**
@@ -148,12 +161,12 @@ public class LocalMap {
         }
     }
 
-    public void setEntity(float f, float g, float h, float depthModifier, IsoSprite sprite) {
-        int rf = MathUtils.round(f), rg = MathUtils.round(g), rh = MathUtils.round(h);
+    public void setEntity(float f, float g, float h, float depth, IsoSprite sprite) {
+        int rf = round(f), rg = round(g), rh = round(h);
         if (isValid(rf, rg, rh)) {
             tiles[rf][rg][rh] = -1;
             sprite.setPosition(f, g, h);
-            everything.put(new Vector4(f, g, h, Main.ENTITY_W + depthModifier), sprite);
+            everything.put(new Vector4(f, g, h, depth), sprite);
         }
     }
 
@@ -321,7 +334,7 @@ public class LocalMap {
                 }
                 if (below != -1) {
                     tiles[point.x][point.y][h + 1] = AssetData.DECO_HEDGE;
-                    everything.put(new Vector4(point.x, point.y, h + 1, Main.ENTITY_W * 0.5f),
+                    everything.put(new Vector4(point.x, point.y, h + 1, Main.FISH_W),
                         new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h + 1));
                     setTile(point.x, point.y, h, AssetData.DIRT);
                     setTile(point.x + 1, point.y, h, AssetData.DIRT);
@@ -344,7 +357,7 @@ public class LocalMap {
             for (int h = hs - 2; h >= 0; h--) {
                 int below = getTile(point.x, point.y, h);
                 if (below != -1) {
-                    setEntity(point.x, point.y, h + 1, 0.125f, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
+                    setEntity(point.x, point.y, h + 1, Main.FISH_W, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
                     break;
                 }
             }

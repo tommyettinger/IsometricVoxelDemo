@@ -52,7 +52,7 @@ public class Mover {
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
             accumulator -= (1f / 60f);
-            tempVectorA.set(position, Main.ENTITY_W);
+            tempVectorA.set(position, Main.PLAYER_W);
 
             applyGravity();
             handleCollision();
@@ -68,7 +68,7 @@ public class Mover {
 
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
-            map.everything.put(tempVectorA.set(position, Main.ENTITY_W), visual);
+            map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
         }
     }
 
@@ -290,7 +290,7 @@ public class Mover {
     }
 
     public Mover place() {
-        map.setEntity(position.x, position.y, position.z, 0f, visual);
+        map.setEntity(position.x, position.y, position.z, animationID <= 4 ? Main.PLAYER_W : Main.NPC_W, visual);
         return this;
     }
 

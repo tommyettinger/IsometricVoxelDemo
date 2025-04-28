@@ -20,7 +20,9 @@ import java.util.Comparator;
 import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
 public class Main extends ApplicationAdapter {
-    public static final float ENTITY_W = 0.125f;
+    public static final float PLAYER_W = 0.125f;
+    public static final float FISH_W = 0.25f;
+    public static final float NPC_W = 0.375f;
     private SpriteBatch batch;
     private TextureAtlas atlas;
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
@@ -187,7 +189,7 @@ public class Main extends ApplicationAdapter {
         }
 
         Vector3 pos = player.position;
-        tempVector4.set(MathUtils.round(pos.x), MathUtils.round(pos.y), MathUtils.round(pos.z), Main.ENTITY_W + 0.125f);
+        map.setToFishPosition(tempVector4, pos.x, pos.y, pos.z);
         IsoSprite fish = map.everything.get(tempVector4);
         if(fish instanceof AnimatedIsoSprite && fish != player.visual){
             ++map.fishSaved;
