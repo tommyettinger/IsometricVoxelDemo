@@ -3,12 +3,14 @@ package gdx.liftoff;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Vector4;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedMap;
 import gdx.liftoff.game.AssetData;
+import gdx.liftoff.game.Mover;
 import gdx.liftoff.util.MathSupport;
 import gdx.liftoff.util.MiniNoise;
 
@@ -25,6 +27,8 @@ public class LocalMap {
 
     public int totalFish = 10;
     public int fishSaved = 0;
+
+    public Octree<Mover> movers;
 
     public float getRotationDegrees() {
         return rotationDegrees;
@@ -45,6 +49,9 @@ public class LocalMap {
     private static final Vector4 tempPointA = new Vector4();
     private static final Vector4 tempPointB = new Vector4();
 
+    private static final BoundingBox tempBounds = new BoundingBox();
+    private static final ObjectSet<Mover> results = new ObjectSet<>(8);
+
     public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
         this.tileset = atlas.findRegions("tile");
         this.edge = atlas.createSprite("edge");
@@ -59,6 +66,42 @@ public class LocalMap {
             }
         }
         everything = new OrderedMap<>(width * height * depth * 3 >>> 2, 0.625f);
+        movers = new Octree<>(
+            /* Min and max points for the map's Octree. */
+            new Vector3(0f, 0f, 0f), new Vector3(width, height, depth),
+            /* Similar to the ceiling of log2(larger width/height dimension). */
+            33 - Integer.numberOfLeadingZeros(Math.max(width, height)),
+            /* Change this to the number of enemies expected to be on the map. */
+            10,
+            /* Honestly, I don't know if this all works. Octree is barely documented. */
+            new Octree.Collider<>() {
+            private final BoundingBox tempBB = new BoundingBox();
+            private final Vector3 tempDist = new Vector3();
+                @Override
+                public boolean intersects(BoundingBox nodeBounds, Mover geometry) {
+                    tempBB.min.set(geometry.position);
+                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+                    tempBB.update();
+                    return nodeBounds.intersects(tempBB);
+                }
+
+                @Override
+                public boolean intersects(Frustum frustum, Mover geometry) {
+                    tempBB.min.set(geometry.position);
+                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+                    tempBB.update();
+                    return frustum.boundsInFrustum(tempBB);
+                }
+
+                @Override
+                public float intersects(Ray ray, Mover geometry) {
+                    tempBB.min.set(geometry.position);
+                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+                    tempBB.update();
+                    Intersector.intersectRayBounds(ray, tempBB, tempDist);
+                    return tempDist.len();
+                }
+            });
     }
 
     public boolean isValid(int f, int g, int h) {
@@ -103,6 +146,26 @@ public class LocalMap {
      */
     public void setToFishPosition(Vector4 changing, float f, float g, float h) {
         changing.set(round(f), round(g), round(h), Main.FISH_W);
+    }
+
+    public Vector4 addMover(Mover mover, float depth) {
+        mover.position.z = getDepth() - 1;
+        Vector4 pos = new Vector4(mover.position, depth);
+        tempBounds.min.set(mover.position);
+        tempBounds.max.set(mover.position).add(1, 1, 1);
+        tempBounds.update();
+        results.clear();
+        while (getTile(pos) != -1 || movers.query(tempBounds, results).notEmpty()) {
+            pos.x = MathUtils.random(getWidth() - 1);
+            pos.y = MathUtils.random(getHeight() - 1);
+            tempBounds.min.set(pos.x, pos.y, pos.z);
+            tempBounds.max.set(tempBounds.min).add(1, 1, 1);
+            tempBounds.update();
+            results.clear();
+        }
+        mover.place(depth);
+        movers.add(mover);
+        return pos;
     }
 
     /**

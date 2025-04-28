@@ -289,8 +289,8 @@ public class Mover {
         this.currentDirection = currentDirection;
     }
 
-    public Mover place() {
-        map.setEntity(position.x, position.y, position.z, animationID <= 4 ? Main.PLAYER_W : Main.NPC_W, visual);
+    public Mover place(float depth) {
+        map.setEntity(position.x, position.y, position.z, depth, visual);
         return this;
     }
 

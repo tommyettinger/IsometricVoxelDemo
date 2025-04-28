@@ -146,7 +146,7 @@ public class Main extends ApplicationAdapter {
 //            if(map.getTile(rf, rg, h) != -1) {
                 int id = MathUtils.random(3);
                 player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
-                player.place();
+                map.addMover(player, PLAYER_W);
 //                break;
 //            }
 //        }
