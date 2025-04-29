@@ -51,6 +51,7 @@ public class LocalMap {
 
     private static final BoundingBox tempBounds = new BoundingBox();
     private static final ObjectSet<Mover> results = new ObjectSet<>(8);
+    private static final BoundingBox tempBox = new BoundingBox();
 
     public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
         this.tileset = atlas.findRegions("tile");
@@ -426,5 +427,14 @@ public class LocalMap {
             }
         }
         return this;
+    }
+
+    public ObjectSet<Mover> checkCollision(Mover mover) {
+        tempBox.min.set(mover.position);
+        tempBox.max.set(tempBox.min).add(1);
+        tempBox.update();
+        results.clear();
+        movers.query(tempBox, results);
+        return results;
     }
 }

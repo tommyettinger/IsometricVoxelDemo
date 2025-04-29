@@ -69,6 +69,7 @@ public class Mover {
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
+            map.movers.update(this);
         }
     }
 
@@ -120,8 +121,9 @@ public class Mover {
         // tile collision from the side, one axis
         if (velocity.x >= 0 &&
             (!map.isValid(position.x + 1, position.y, position.z) ||
-                map.getTile(position.x + 1, position.y, position.z) != -1)) {
-            int lo = MathUtils.round(position.x    );
+                map.getTile(position.x + 1, position.y, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
+            int lo = MathUtils.round(position.x);
             int hi = MathUtils.round(position.x + 1);
 
             if (position.x >= lo && position.x <= hi) {
@@ -132,7 +134,8 @@ public class Mover {
         }
         if (velocity.y >= 0 &&
             (!map.isValid(position.x, position.y + 1, position.z) ||
-                map.getTile(position.x, position.y + 1, position.z) != -1)) {
+                map.getTile(position.x, position.y + 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int lo = MathUtils.round(position.y    );
             int hi = MathUtils.round(position.y + 1);
 
@@ -144,7 +147,8 @@ public class Mover {
         }
         if (velocity.x <= 0 &&
             (!map.isValid(position.x - 1, position.y, position.z) ||
-            map.getTile(position.x - 1, position.y, position.z) != -1)) {
+            map.getTile(position.x - 1, position.y, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int lo = MathUtils.round(position.x - 1);
             int hi = MathUtils.round(position.x    );
 
@@ -156,7 +160,8 @@ public class Mover {
         }
         if (velocity.y <= 0 &&
             (!map.isValid(position.x, position.y - 1, position.z) ||
-                map.getTile(position.x, position.y - 1, position.z) != -1)) {
+                map.getTile(position.x, position.y - 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int lo = MathUtils.round(position.y - 1);
             int hi = MathUtils.round(position.y    );
 
@@ -170,7 +175,8 @@ public class Mover {
         // tile collision from the side, two axes
         if (velocity.x > 0 && velocity.y > 0 &&
             (!map.isValid(position.x + 1, position.y + 1, position.z) ||
-                map.getTile(position.x + 1, position.y + 1, position.z) != -1)) {
+                map.getTile(position.x + 1, position.y + 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int loX = MathUtils.round(position.x    );
             int hiX = MathUtils.round(position.x + 1);
             int loY = MathUtils.round(position.y    );
@@ -186,7 +192,8 @@ public class Mover {
         }
         if (velocity.x > 0 && velocity.y < 0 &&
             (!map.isValid(position.x + 1, position.y - 1, position.z) ||
-                map.getTile(position.x + 1, position.y - 1, position.z) != -1)) {
+                map.getTile(position.x + 1, position.y - 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int loX = MathUtils.round(position.x    );
             int hiX = MathUtils.round(position.x + 1);
             int loY = MathUtils.round(position.y - 1);
@@ -202,7 +209,8 @@ public class Mover {
         }
         if (velocity.x < 0 && velocity.y > 0 &&
             (!map.isValid(position.x - 1, position.y + 1, position.z) ||
-                map.getTile(position.x - 1, position.y + 1, position.z) != -1)) {
+                map.getTile(position.x - 1, position.y + 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int loX = MathUtils.round(position.x - 1);
             int hiX = MathUtils.round(position.x    );
             int loY = MathUtils.round(position.y    );
@@ -218,7 +226,8 @@ public class Mover {
         }
         if (velocity.x < 0 && velocity.y < 0 &&
             (!map.isValid(position.x - 1, position.y - 1, position.z) ||
-                map.getTile(position.x - 1, position.y - 1, position.z) != -1)) {
+                map.getTile(position.x - 1, position.y - 1, position.z) != -1 ||
+                map.checkCollision(this).notEmpty())) {
             int loX = MathUtils.round(position.x - 1);
             int hiX = MathUtils.round(position.x    );
             int loY = MathUtils.round(position.y - 1);
