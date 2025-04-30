@@ -23,6 +23,7 @@ public class Main extends ApplicationAdapter {
     public static final float PLAYER_W = 0.125f;
     public static final float FISH_W = 0.25f;
     public static final float NPC_W = 0.375f;
+    public static final int ENEMY_COUNT = 1;
     private SpriteBatch batch;
     private TextureAtlas atlas;
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
@@ -30,6 +31,7 @@ public class Main extends ApplicationAdapter {
     private OrthographicCamera camera;
     private ScreenViewport viewport;
     private Mover player;
+    private Array<Mover> enemies;
     private Skin skin;
     private Label fpsLabel;
     public Label goalLabel;
@@ -142,15 +144,18 @@ public class Main extends ApplicationAdapter {
         map.placeFish(seed, map.totalFish, animations);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
         int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
-//        for (int h = MAP_PEAK - 2; h >= 0; h--) {
-//            if(map.getTile(rf, rg, h) != -1) {
-                int id = MathUtils.random(3);
-                player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
-                map.addMover(player, PLAYER_W);
-//                break;
-//            }
-//        }
-
+        int id = MathUtils.random(3);
+        player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
+        map.addMover(player, PLAYER_W);
+        enemies = new Array<>(ENEMY_COUNT);
+        for (int i = 0; i < ENEMY_COUNT; i++) {
+            rf = MathUtils.random(1, MAP_SIZE - 2);
+            rg = MathUtils.random(1, MAP_SIZE - 2);
+            id = MathUtils.random(4, 7);
+            Mover enemy = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1.6f);
+            enemies.add(enemy);
+            map.addMover(enemy, NPC_W);
+        }
     }
 
     @Override
