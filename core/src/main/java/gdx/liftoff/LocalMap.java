@@ -434,7 +434,9 @@ public class LocalMap {
         tempBox.max.set(tempBox.min).add(1);
         tempBox.update();
         results.clear();
+        movers.remove(mover);
         movers.query(tempBox, results);
+        movers.add(mover);
         return results;
     }
 }
