@@ -27,8 +27,8 @@ public class LocalMap {
 
     public int totalFish = 10;
     public int fishSaved = 0;
-
-    public Octree<Mover> movers;
+    // TODO: replace movers
+//    public Octree<Mover> movers;
 
     public float getRotationDegrees() {
         return rotationDegrees;
@@ -67,42 +67,43 @@ public class LocalMap {
             }
         }
         everything = new OrderedMap<>(width * height * depth * 3 >>> 2, 0.625f);
-        movers = new Octree<>(
-            /* Min and max points for the map's Octree. */
-            new Vector3(0f, 0f, 0f), new Vector3(width, height, depth),
-            /* Similar to the ceiling of log2(larger width/height dimension). */
-            33 - Integer.numberOfLeadingZeros(Math.max(width, height)),
-            /* Change this to the number of enemies expected to be on the map. */
-            10,
-            /* Honestly, I don't know if this all works. Octree is barely documented. */
-            new Octree.Collider<>() {
-            private final BoundingBox tempBB = new BoundingBox();
-            private final Vector3 tempDist = new Vector3();
-                @Override
-                public boolean intersects(BoundingBox nodeBounds, Mover geometry) {
-                    tempBB.min.set(geometry.position);
-                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-                    tempBB.update();
-                    return nodeBounds.intersects(tempBB);
-                }
-
-                @Override
-                public boolean intersects(Frustum frustum, Mover geometry) {
-                    tempBB.min.set(geometry.position);
-                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-                    tempBB.update();
-                    return frustum.boundsInFrustum(tempBB);
-                }
-
-                @Override
-                public float intersects(Ray ray, Mover geometry) {
-                    tempBB.min.set(geometry.position);
-                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-                    tempBB.update();
-                    Intersector.intersectRayBounds(ray, tempBB, tempDist);
-                    return tempDist.len();
-                }
-            });
+        // TODO: replace movers
+//        movers = new Octree<>(
+//            /* Min and max points for the map's Octree. */
+//            new Vector3(0f, 0f, 0f), new Vector3(width, height, depth),
+//            /* Similar to the ceiling of log2(larger width/height dimension). */
+//            33 - Integer.numberOfLeadingZeros(Math.max(width, height)),
+//            /* Change this to the number of enemies expected to be on the map. */
+//            10,
+//            /* Honestly, I don't know if this all works. Octree is barely documented. */
+//            new Octree.Collider<>() {
+//            private final BoundingBox tempBB = new BoundingBox();
+//            private final Vector3 tempDist = new Vector3();
+//                @Override
+//                public boolean intersects(BoundingBox nodeBounds, Mover geometry) {
+//                    tempBB.min.set(geometry.position);
+//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+//                    tempBB.update();
+//                    return nodeBounds.intersects(tempBB);
+//                }
+//
+//                @Override
+//                public boolean intersects(Frustum frustum, Mover geometry) {
+//                    tempBB.min.set(geometry.position);
+//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+//                    tempBB.update();
+//                    return frustum.boundsInFrustum(tempBB);
+//                }
+//
+//                @Override
+//                public float intersects(Ray ray, Mover geometry) {
+//                    tempBB.min.set(geometry.position);
+//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
+//                    tempBB.update();
+//                    Intersector.intersectRayBounds(ray, tempBB, tempDist);
+//                    return tempDist.len();
+//                }
+//            });
     }
 
     public boolean isValid(int f, int g, int h) {
@@ -156,7 +157,9 @@ public class LocalMap {
         tempBounds.max.set(mover.position).add(1, 1, 1);
         tempBounds.update();
         results.clear();
-        while (getTile(pos) != -1 || movers.query(tempBounds, results).notEmpty()) {
+        while (getTile(pos) != -1) {
+            // TODO: replace movers
+//        while (getTile(pos) != -1 || movers.query(tempBounds, results).notEmpty()) {
             pos.x = MathUtils.random(getWidth() - 1);
             pos.y = MathUtils.random(getHeight() - 1);
             tempBounds.min.set(pos.x, pos.y, pos.z);
@@ -165,7 +168,8 @@ public class LocalMap {
             results.clear();
         }
         mover.place(depth);
-        movers.add(mover);
+        // TODO: replace movers
+//        movers.add(mover);
         return pos;
     }
 
@@ -430,13 +434,14 @@ public class LocalMap {
     }
 
     public ObjectSet<Mover> checkCollision(Mover mover) {
-        tempBox.min.set(mover.position);
-        tempBox.max.set(tempBox.min).add(1);
-        tempBox.update();
+//        tempBox.min.set(mover.position);
+//        tempBox.max.set(tempBox.min).add(1);
+//        tempBox.update();
         results.clear();
-        movers.remove(mover);
-        movers.query(tempBox, results);
-        movers.add(mover);
+        // TODO: replace movers
+//        movers.remove(mover);
+//        movers.query(tempBox, results);
+//        movers.add(mover);
         return results;
     }
 }

@@ -69,7 +69,8 @@ public class Mover {
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
-            map.movers.update(this);
+            // TODO: replace movers
+//            map.movers.update(this);
         }
     }
 

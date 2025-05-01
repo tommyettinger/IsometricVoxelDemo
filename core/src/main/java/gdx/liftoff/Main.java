@@ -23,7 +23,7 @@ public class Main extends ApplicationAdapter {
     public static final float PLAYER_W = 0.125f;
     public static final float FISH_W = 0.25f;
     public static final float NPC_W = 0.375f;
-    public static final int ENEMY_COUNT = 1;
+    public static final int ENEMY_COUNT = 10;
     private SpriteBatch batch;
     private TextureAtlas atlas;
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
