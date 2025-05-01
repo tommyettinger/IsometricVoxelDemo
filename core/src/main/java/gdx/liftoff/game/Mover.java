@@ -70,8 +70,6 @@ public class Mover implements HasPosition3D {
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
-            // TODO: replace movers
-//            map.movers.update(this);
         }
     }
 

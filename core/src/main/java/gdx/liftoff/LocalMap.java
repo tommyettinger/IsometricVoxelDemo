@@ -12,6 +12,7 @@ import gdx.liftoff.game.AssetData;
 import gdx.liftoff.game.Mover;
 import gdx.liftoff.util.MathSupport;
 import gdx.liftoff.util.MiniNoise;
+import gdx.liftoff.util.VoxelCollider;
 
 import static com.badlogic.gdx.math.MathUtils.round;
 
@@ -26,8 +27,7 @@ public class LocalMap {
 
     public int totalFish = 10;
     public int fishSaved = 0;
-    // TODO: replace movers
-//    public Octree<Mover> movers;
+    public VoxelCollider<Mover> movers;
 
     public float getRotationDegrees() {
         return rotationDegrees;
@@ -48,9 +48,7 @@ public class LocalMap {
     private static final Vector4 tempPointA = new Vector4();
     private static final Vector4 tempPointB = new Vector4();
 
-    private static final BoundingBox tempBounds = new BoundingBox();
     private static final ObjectSet<Mover> results = new ObjectSet<>(8);
-    private static final BoundingBox tempBox = new BoundingBox();
 
     public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
         this.tileset = atlas.findRegions("tile");
@@ -66,43 +64,8 @@ public class LocalMap {
             }
         }
         everything = new OrderedMap<>(width * height * depth * 3 >>> 2, 0.625f);
-        // TODO: replace movers
-//        movers = new Octree<>(
-//            /* Min and max points for the map's Octree. */
-//            new Vector3(0f, 0f, 0f), new Vector3(width, height, depth),
-//            /* Similar to the ceiling of log2(larger width/height dimension). */
-//            33 - Integer.numberOfLeadingZeros(Math.max(width, height)),
-//            /* Change this to the number of enemies expected to be on the map. */
-//            10,
-//            /* Honestly, I don't know if this all works. Octree is barely documented. */
-//            new Octree.Collider<>() {
-//            private final BoundingBox tempBB = new BoundingBox();
-//            private final Vector3 tempDist = new Vector3();
-//                @Override
-//                public boolean intersects(BoundingBox nodeBounds, Mover geometry) {
-//                    tempBB.min.set(geometry.position);
-//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-//                    tempBB.update();
-//                    return nodeBounds.intersects(tempBB);
-//                }
-//
-//                @Override
-//                public boolean intersects(Frustum frustum, Mover geometry) {
-//                    tempBB.min.set(geometry.position);
-//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-//                    tempBB.update();
-//                    return frustum.boundsInFrustum(tempBB);
-//                }
-//
-//                @Override
-//                public float intersects(Ray ray, Mover geometry) {
-//                    tempBB.min.set(geometry.position);
-//                    tempBB.max.set(geometry.position).add(1f, 1f, 1f);
-//                    tempBB.update();
-//                    Intersector.intersectRayBounds(ray, tempBB, tempDist);
-//                    return tempDist.len();
-//                }
-//            });
+
+        movers = new VoxelCollider<>();
     }
 
     public boolean isValid(int f, int g, int h) {
@@ -152,23 +115,13 @@ public class LocalMap {
     public Vector4 addMover(Mover mover, float depth) {
         mover.getPosition().z = getDepth() - 1;
         Vector4 pos = new Vector4(mover.getPosition(), depth);
-        tempBounds.min.set(mover.getPosition());
-        tempBounds.max.set(mover.getPosition()).add(1, 1, 1);
-        tempBounds.update();
-        results.clear();
-        while (getTile(pos) != -1) {
-            // TODO: replace movers
-//        while (getTile(pos) != -1 || movers.query(tempBounds, results).notEmpty()) {
+        while (getTile(pos) != -1 || movers.collisionsWith(mover).notEmpty()) {
             pos.x = MathUtils.random(getWidth() - 1);
             pos.y = MathUtils.random(getHeight() - 1);
-            tempBounds.min.set(pos.x, pos.y, pos.z);
-            tempBounds.max.set(tempBounds.min).add(1, 1, 1);
-            tempBounds.update();
-            results.clear();
+            mover.getPosition().set(pos.x, pos.y, pos.z);
         }
         mover.place(depth);
-        // TODO: replace movers
-//        movers.add(mover);
+        movers.entities.add(mover);
         return pos;
     }
 
@@ -432,15 +385,7 @@ public class LocalMap {
         return this;
     }
 
-    public ObjectSet<Mover> checkCollision(Mover mover) {
-//        tempBox.min.set(mover.position);
-//        tempBox.max.set(tempBox.min).add(1);
-//        tempBox.update();
-        results.clear();
-        // TODO: replace movers
-//        movers.remove(mover);
-//        movers.query(tempBox, results);
-//        movers.add(mover);
-        return results;
+    public Array<Mover> checkCollision(Mover mover) {
+        return movers.collisionsWith(mover);
     }
 }

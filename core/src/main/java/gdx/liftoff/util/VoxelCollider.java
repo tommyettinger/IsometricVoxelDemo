@@ -9,9 +9,12 @@ import com.badlogic.gdx.utils.ObjectSet;
 import java.util.Comparator;
 
 /**
- * What am I even doing? Something about the separated axis theorem. I have no idea what I am doing.
- * I am riding into town on a horse walking backwards with the saddle on my head.
- * @param <T> Some type that you can get a Vector3 position from.
+ * Allows checking a group of {@code T} entities, where an entity is any type that can have a Vector3 position retrieved
+ * from it via the {@link HasPosition3D} interface, for collisions with another entity or a member of its own group.
+ * This doesn't currently allow getting a minimum translation vector to undo the collision, but since this only is meant
+ * to check one moving entity at a time against all other entities, you can potentially refuse the movement that would
+ * result in the collision by tracking the previous position and reverting to it if any collision occurs.
+ * @param <T> Any type that you can get a Vector3 position from; must implement HasPosition3D
  */
 public class VoxelCollider<T extends HasPosition3D> {
     public Array<T> entities;
@@ -19,6 +22,10 @@ public class VoxelCollider<T extends HasPosition3D> {
     private final Vector3 tempVector3 = new Vector3();
 
     public final Array<T> colliding = new Array<>();
+
+    public VoxelCollider() {
+        entities = new Array<>(16);
+    }
 
     public VoxelCollider(Array<T> colliders){
         entities = new Array<>(colliders);
