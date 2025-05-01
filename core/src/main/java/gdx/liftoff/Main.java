@@ -21,8 +21,8 @@ import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
 public class Main extends ApplicationAdapter {
     public static final float PLAYER_W = 0.125f;
-    public static final float FISH_W = 0.25f;
-    public static final float NPC_W = 0.375f;
+    public static final float FISH_W = PLAYER_W + 0x1p-10f;
+    public static final float NPC_W = PLAYER_W;
     public static final int ENEMY_COUNT = 10;
     private SpriteBatch batch;
     private TextureAtlas atlas;
@@ -163,6 +163,8 @@ public class Main extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
         handleInput(delta);
         player.update(delta);
+        for(Mover e : enemies) e.update(delta);
+
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
 

@@ -2,9 +2,6 @@ package gdx.liftoff.util;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.FloatArray;
-import com.badlogic.gdx.utils.NumberUtils;
-import com.badlogic.gdx.utils.ObjectSet;
 
 import java.util.Comparator;
 
@@ -76,7 +73,8 @@ public class VoxelCollider<T extends HasPosition3D> {
                 iterator.remove();
             }
         }
-        if(colliding.notEmpty()) System.out.println(collider + " has hit " + colliding);
+        // TODO: Remove debug print
+//        if(colliding.notEmpty()) System.out.println(collider + " has hit " + colliding);
         return colliding;
     }
 }
