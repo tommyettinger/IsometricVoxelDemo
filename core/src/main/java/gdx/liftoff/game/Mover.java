@@ -323,4 +323,9 @@ public class Mover implements HasPosition3D {
     public Vector3 getPosition() {
         return position;
     }
+
+    @Override
+    public String toString() {
+        return "Mover { visual: " +  visual + ", type: " + AssetData.ENTITIES.findKey(animationID) + " }";
+    }
 }

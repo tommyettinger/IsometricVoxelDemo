@@ -63,7 +63,7 @@ public class VoxelCollider<T extends HasPosition3D> {
         c = tempVector3.y;
         for (Array.ArrayIterator<T> iterator = colliding.iterator(); iterator.hasNext(); ) {
             T e = iterator.next();
-            if (Math.abs(c) - e.getPosition().y >= 1f) {
+            if (Math.abs(c - e.getPosition().y) >= 1f) {
                 iterator.remove();
             }
         }
@@ -72,10 +72,11 @@ public class VoxelCollider<T extends HasPosition3D> {
         c = tempVector3.z;
         for (Array.ArrayIterator<T> iterator = colliding.iterator(); iterator.hasNext(); ) {
             T e = iterator.next();
-            if (Math.abs(c) - e.getPosition().z >= 1f) {
+            if (Math.abs(c - e.getPosition().z) >= 1f) {
                 iterator.remove();
             }
         }
+        if(colliding.notEmpty()) System.out.println(collider + " has hit " + colliding);
         return colliding;
     }
 }
