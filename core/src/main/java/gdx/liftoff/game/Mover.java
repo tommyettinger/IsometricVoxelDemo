@@ -10,9 +10,10 @@ import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.Main;
 import gdx.liftoff.LocalMap;
+import gdx.liftoff.util.HasPosition3D;
 
-public class Mover {
-    public final Vector3 position = new Vector3();
+public class Mover implements HasPosition3D {
+    private final Vector3 position = new Vector3();
     public final Vector3 velocity = new Vector3(0, 0, 0);
     private final Vector4 tempVectorA = new Vector4();
     public boolean isGrounded;
@@ -321,4 +322,7 @@ public class Mover {
         return (lx < sumX && ly < sumY && lz <= sumZ);
     }
 
+    public Vector3 getPosition() {
+        return position;
+    }
 }

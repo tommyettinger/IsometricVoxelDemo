@@ -193,7 +193,7 @@ public class Main extends ApplicationAdapter {
             map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
         }
 
-        Vector3 pos = player.position;
+        Vector3 pos = player.getPosition();
         map.setToFishPosition(tempVector4, pos.x, pos.y, pos.z);
         IsoSprite fish = map.everything.get(tempVector4);
         if(fish instanceof AnimatedIsoSprite && fish != player.visual){

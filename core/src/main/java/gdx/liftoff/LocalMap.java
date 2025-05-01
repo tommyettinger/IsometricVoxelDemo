@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedMap;
@@ -151,10 +150,10 @@ public class LocalMap {
     }
 
     public Vector4 addMover(Mover mover, float depth) {
-        mover.position.z = getDepth() - 1;
-        Vector4 pos = new Vector4(mover.position, depth);
-        tempBounds.min.set(mover.position);
-        tempBounds.max.set(mover.position).add(1, 1, 1);
+        mover.getPosition().z = getDepth() - 1;
+        Vector4 pos = new Vector4(mover.getPosition(), depth);
+        tempBounds.min.set(mover.getPosition());
+        tempBounds.max.set(mover.getPosition()).add(1, 1, 1);
         tempBounds.update();
         results.clear();
         while (getTile(pos) != -1) {
