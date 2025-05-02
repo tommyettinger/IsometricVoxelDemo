@@ -30,6 +30,8 @@ public class Mover implements HasPosition3D {
     private transient float totalMoveTime = 0f;
     private int currentDirection;
 
+    public int health = 3;
+
     private static final float GRAVITY = -0.04f;
     private static final float MAX_GRAVITY = -0.3f;
     private static final float JUMP_FORCE = 0.6f;

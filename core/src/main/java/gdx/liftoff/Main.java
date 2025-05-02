@@ -36,6 +36,7 @@ public class Main extends ApplicationAdapter {
     private Skin skin;
     private Label fpsLabel;
     public Label goalLabel;
+    public Label healthLabel;
     public Music backgroundMusic;
     private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
@@ -133,6 +134,9 @@ public class Main extends ApplicationAdapter {
         updateFish();
         fpsLabel = new Label("0 FPS", skin);
         fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
+        healthLabel = new Label("[RED]♥ ♥ ♥ ", skin);
+        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
+        updateHealth();
     }
 
     public void regenerate(long seed) {
@@ -216,6 +220,7 @@ public class Main extends ApplicationAdapter {
         fpsLabel.invalidate();
         goalLabel.draw(batch, 1f);
         fpsLabel.draw(batch, 1f);
+        healthLabel.draw(batch, 1f);
         batch.end();
     }
 
@@ -366,6 +371,18 @@ public class Main extends ApplicationAdapter {
             ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
         goalLabel.setAlignment(Align.center);
         goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
+    }
+
+    public void updateHealth() {
+        if(player.health <= 0)
+        {
+            goalLabel.setText("YOU FAILED.. BY DYING...");
+            goalLabel.setAlignment(Align.center);
+            goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
+            healthLabel.setText("[RED]:(");
+        }
+        else
+            healthLabel.getText().setLength(5 + player.health * 2);
     }
 }
 
