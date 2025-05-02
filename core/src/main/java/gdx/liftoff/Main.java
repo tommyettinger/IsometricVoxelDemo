@@ -235,7 +235,7 @@ public class Main extends ApplicationAdapter {
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 
-        player.move(rf, rg);
+        player.move(rf, rg, Mover.MOVE_SPEED);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_0)

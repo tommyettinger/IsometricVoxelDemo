@@ -33,7 +33,8 @@ public class Mover implements HasPosition3D {
     private static final float GRAVITY = -0.04f;
     private static final float MAX_GRAVITY = -0.3f;
     private static final float JUMP_FORCE = 0.6f;
-    private static final float MOVE_SPEED = 0.15f;
+    public static final float MOVE_SPEED = 0.15f;
+    public static final float NPC_MOVE_SPEED = 0.07f;
 
     private static int ID_COUNTER = 1;
 
@@ -57,12 +58,15 @@ public class Mover implements HasPosition3D {
     public void update(float deltaTime) {
         totalMoveTime += deltaTime;
         if(npc){
-            velocity.x = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.7548f, id) * 1.4f * deltaTime;
-            velocity.y = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.5698f, ~id) * 1.4f * deltaTime;
-            if (MathUtils.cosDeg(-45f - map.rotationDegrees) * velocity.y - MathUtils.sinDeg(-45f - map.rotationDegrees) * velocity.x > 0.1f) currentDirection = 1; // Up
-            else currentDirection = 0; // Down
+            float df = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.7548f, id);
+            float dg = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.5698f, ~id);
+            float c = map.cosRotation;
+            float s = map.sinRotation;
+            float rf = c * df + s * dg;
+            float rg = c * dg - s * df;
 
-            if(isGrounded && velocity.len() > deltaTime) jump();
+            if(isGrounded && df * df + dg * dg > 0.5f) jump();
+            move(rf, rg, NPC_MOVE_SPEED);
         }
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
@@ -100,7 +104,7 @@ public class Mover implements HasPosition3D {
         }
     }
 
-    public void move(float df, float dg) {
+    public void move(float df, float dg, float speed) {
         boolean movingDiagonally = (df != 0 && dg != 0);
 
         if (movingDiagonally) {
@@ -110,8 +114,8 @@ public class Mover implements HasPosition3D {
             dg *= length;
         }
 
-        velocity.x = df * MOVE_SPEED;
-        velocity.y = dg * MOVE_SPEED;
+        velocity.x = df * speed;
+        velocity.y = dg * speed;
 
         if (df == 0 && dg == 0) return;
 
