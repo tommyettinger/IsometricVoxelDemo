@@ -11,6 +11,7 @@ import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.Main;
 import gdx.liftoff.LocalMap;
 import gdx.liftoff.util.HasPosition3D;
+import gdx.liftoff.util.MiniNoise;
 
 public class Mover implements HasPosition3D {
     private final Vector3 position = new Vector3();
@@ -19,11 +20,14 @@ public class Mover implements HasPosition3D {
     public boolean isGrounded;
     public final int id;
 
+    public final boolean npc;
+
     private transient LocalMap map;
 
     private final Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     public final int animationID;
     private transient float accumulator;
+    private transient float totalMoveTime = 0f;
     private int currentDirection;
 
     private static final float GRAVITY = -0.04f;
@@ -47,9 +51,19 @@ public class Mover implements HasPosition3D {
 
         visual = new AnimatedIsoSprite(animations.get(currentDirection).get(playerId), fPos, gPos, hPos);
         id = ID_COUNTER++;
+        npc = id > 1;
     }
 
     public void update(float deltaTime) {
+        totalMoveTime += deltaTime;
+        if(npc){
+            velocity.x = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.7548f, id) * 1.4f * deltaTime;
+            velocity.y = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.5698f, ~id) * 1.4f * deltaTime;
+            if (MathUtils.cosDeg(-45f - map.rotationDegrees) * velocity.y - MathUtils.sinDeg(-45f - map.rotationDegrees) * velocity.x > 0.1f) currentDirection = 1; // Up
+            else currentDirection = 0; // Down
+
+            if(isGrounded && velocity.len() > deltaTime) jump();
+        }
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
             accumulator -= (1f / 60f);
@@ -59,8 +73,8 @@ public class Mover implements HasPosition3D {
             handleCollision();
             position.add(velocity);
 
-            // while jumping, show attack animation; while standing, show idle animation.
-            if (velocity.z != 0) {
+            // while jumping, show attack animation; while standing, show idle animation. NPCs are always attacking.
+            if (npc || velocity.z != 0) {
                 /* The "currentDirection + 2" gets an attack animation instead of an idle one for the appropriate facing. */
                 visual.animation = animations.get(currentDirection + 2).get(animationID);
             } else {
