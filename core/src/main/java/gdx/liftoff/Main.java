@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -35,6 +36,7 @@ public class Main extends ApplicationAdapter {
     private Skin skin;
     private Label fpsLabel;
     public Label goalLabel;
+    public Music backgroundMusic;
     private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     public static final int TILE_WIDTH = 8;
@@ -84,6 +86,11 @@ public class Main extends ApplicationAdapter {
     public void create() {
         // Change this to LOG_ERROR or LOG_NONE when releasing anything.
         Gdx.app.setLogLevel(Application.LOG_INFO);
+
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("Komiku - Road 4 Fight.ogg"));
+        backgroundMusic.setVolume(0.5f);
+        backgroundMusic.setLooping(true);
+        backgroundMusic.play();
 
         batch = new SpriteBatch();
         atlas = new TextureAtlas(ATLAS_FILE_NAME);

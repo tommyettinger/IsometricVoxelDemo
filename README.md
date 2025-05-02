@@ -3,10 +3,17 @@
 A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3D positions.
 
 Based on [voxelia by bergice](https://gitlab.com/bergice/voxelia/-/tree/master).
+License is [MIT](LICENSE).
 
 Uses [art by Gustavo Vituri](https://gvituri.itch.io/isometric-trpg).
+License says ['You are free to use all sprites in both personal and commercial projects.'](assets/isometric-trpg-License.txt),
+and to credit Gustavo Vituri.
 
 Contains a [scene2d.ui skin by Raymond Buckley](https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/).
+License is [CC-BY 4.0](assets/Skin-License.txt).
+
+Contains a [song by Komiku, 'Road 4 Fight'](https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/road-4-fight/)
+License is [CC0](assets/Komiku%20-%20Road%204%20Fight%20-%20License.txt).
 
 ## Platforms
 
