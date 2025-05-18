@@ -4,7 +4,7 @@ buildscript {
     gradlePluginPortal()
   }
   dependencies {
-    classpath "io.github.fourlastor:construo:1.6.1"
+    classpath "io.github.fourlastor:construo:1.7.1"
     if(enableGraalNative == 'true') {
       classpath "org.graalvm.buildtools.native:org.graalvm.buildtools.native.gradle.plugin:0.9.28"
     }
@@ -105,6 +105,7 @@ construo {
         jdkUrl.set("https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.14%2B7/OpenJDK17U-jdk_x64_windows_hotspot_17.0.14_7.zip")
         // Uncomment the next line to show a console when the game runs, to print messages.
         //useConsole.set(true)
+        icon.set(project.file("icons/logo.png"))
       }
     }
 }

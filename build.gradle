@@ -25,6 +25,7 @@ allprojects {
       testOutputDir file('build/classes/java/test')
     }
   }
+  idea.module.excludeDirs += [file("docs/")]
 }
 
 configure(subprojects - project(':android')) {

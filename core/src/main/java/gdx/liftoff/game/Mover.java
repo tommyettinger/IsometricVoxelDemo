@@ -28,6 +28,7 @@ public class Mover implements HasPosition3D {
     public final int animationID;
     private transient float accumulator;
     private transient float totalMoveTime = 0f;
+    private transient float invincibilityEndTime = -100f;
     private int currentDirection;
 
     public int health = 3;
@@ -90,6 +91,10 @@ public class Mover implements HasPosition3D {
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
+            if(totalMoveTime < invincibilityEndTime)
+                visual.sprite.setAlpha(Math.min(Math.max(MathUtils.sin(totalMoveTime * 100f) * 0.75f + 0.5f, 0f), 1f));
+            else
+                visual.sprite.setAlpha(1f);
         }
     }
 
@@ -103,6 +108,16 @@ public class Mover implements HasPosition3D {
         if (isGrounded) {
             velocity.z = JUMP_FORCE; // Jump should affect H axis (heel to head, stored as z in a Vector)
             isGrounded = false;
+        }
+    }
+
+    public void takeDamage() {
+        if(totalMoveTime < invincibilityEndTime) return;
+        health--;
+        if(health <= 0) {
+            if(npc) map.movers.entities.removeValue(this, true);
+        } else {
+            invincibilityEndTime = totalMoveTime + 2f;
         }
     }
 
@@ -151,6 +166,7 @@ public class Mover implements HasPosition3D {
                 velocity.x = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.y >= 0 &&
             (!map.isValid(position.x, position.y + 1, position.z) ||
@@ -164,6 +180,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.x <= 0 &&
             (!map.isValid(position.x - 1, position.y, position.z) ||
@@ -177,6 +194,7 @@ public class Mover implements HasPosition3D {
                 velocity.x = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.y <= 0 &&
             (!map.isValid(position.x, position.y - 1, position.z) ||
@@ -190,6 +208,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
 
         // tile collision from the side, two axes
@@ -209,6 +228,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.x > 0 && velocity.y < 0 &&
             (!map.isValid(position.x + 1, position.y - 1, position.z) ||
@@ -226,6 +246,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.x < 0 && velocity.y > 0 &&
             (!map.isValid(position.x - 1, position.y + 1, position.z) ||
@@ -243,6 +264,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
         if (velocity.x < 0 && velocity.y < 0 &&
             (!map.isValid(position.x - 1, position.y - 1, position.z) ||
@@ -260,6 +282,7 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
+            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
         }
 
 

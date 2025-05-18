@@ -56,7 +56,6 @@ public class VoxelCollider<T extends HasPosition3D> {
         }
         colliding.removeValue(collider, true);
         if(colliding.isEmpty()) return colliding;
-        colliding.sort(yDistance);
         c = tempVector3.y;
         for (Array.ArrayIterator<T> iterator = colliding.iterator(); iterator.hasNext(); ) {
             T e = iterator.next();
@@ -65,7 +64,6 @@ public class VoxelCollider<T extends HasPosition3D> {
             }
         }
         if(colliding.isEmpty()) return colliding;
-        colliding.sort(zDistance);
         c = tempVector3.z;
         for (Array.ArrayIterator<T> iterator = colliding.iterator(); iterator.hasNext(); ) {
             T e = iterator.next();
@@ -73,8 +71,6 @@ public class VoxelCollider<T extends HasPosition3D> {
                 iterator.remove();
             }
         }
-        // TODO: Remove debug print
-//        if(colliding.notEmpty()) System.out.println(collider + " has hit " + colliding);
         return colliding;
     }
 }
