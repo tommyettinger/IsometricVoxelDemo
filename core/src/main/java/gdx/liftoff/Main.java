@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.*;
 
@@ -37,6 +38,7 @@ public class Main extends ApplicationAdapter {
     private Label fpsLabel;
     public Label goalLabel;
     public Label healthLabel;
+    private transient StringBuilder sb = new StringBuilder(16);
     public Music backgroundMusic;
     private int cap = 60;
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
@@ -76,6 +78,7 @@ public class Main extends ApplicationAdapter {
         (a, b) -> NumberUtils.floatToIntBits(
             IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w -
                 IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) - b.w + 0.0f);
+
 //
 //    // The above is equivalent to:
 //    public final Comparator<? super Vector4> comparator =
@@ -141,6 +144,7 @@ public class Main extends ApplicationAdapter {
 
     public void regenerate(long seed) {
 
+        Mover.ID_COUNTER = 1;
         startTime = TimeUtils.millis();
         map = LocalMap.generateTestMap(
             seed,
@@ -343,6 +347,7 @@ public class Main extends ApplicationAdapter {
     private void reset() {
         regenerate(MathUtils.random.nextLong());
         updateFish();
+        updateHealth();
     }
 
     @Override
@@ -366,7 +371,7 @@ public class Main extends ApplicationAdapter {
     public void updateFish() {
         if(map.totalFish == map.fishSaved)
             goalLabel.setText("YOU SAVED THEM ALL! Great job!");
-        else
+        else if(player.health > 0)
             goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
             ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
         goalLabel.setAlignment(Align.center);
@@ -379,10 +384,17 @@ public class Main extends ApplicationAdapter {
             goalLabel.setText("YOU FAILED.. BY DYING...");
             goalLabel.setAlignment(Align.center);
             goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
-            healthLabel.setText("[RED]:(");
+            healthLabel.setText("[FIREBRICK]:(");
         }
-        else
-            healthLabel.getText().setLength(5 + player.health * 2);
+        else {
+            sb.clear();
+            sb.append("[SCARLET]");
+            for (int i = 0; i < player.health; i++) {
+                sb.append(" ♥");
+            }
+            healthLabel.setText(sb);
+            updateFish();
+        }
     }
 }
 

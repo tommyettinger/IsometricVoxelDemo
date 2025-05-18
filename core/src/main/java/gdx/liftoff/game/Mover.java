@@ -1,5 +1,6 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
@@ -39,7 +40,7 @@ public class Mover implements HasPosition3D {
     public static final float MOVE_SPEED = 0.15f;
     public static final float NPC_MOVE_SPEED = 0.07f;
 
-    private static int ID_COUNTER = 1;
+    public static int ID_COUNTER = 1;
 
     public AnimatedIsoSprite visual;
 
@@ -119,6 +120,7 @@ public class Mover implements HasPosition3D {
         } else {
             invincibilityEndTime = totalMoveTime + 2f;
         }
+        if(!npc) ((Main) Gdx.app.getApplicationListener()).updateHealth();
     }
 
     public void move(float df, float dg, float speed) {
