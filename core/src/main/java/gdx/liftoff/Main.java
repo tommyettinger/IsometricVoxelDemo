@@ -13,7 +13,6 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.*;
-import com.badlogic.gdx.utils.StringBuilder;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import gdx.liftoff.game.*;
 
@@ -380,6 +379,9 @@ public class Main extends ApplicationAdapter {
         player.update(delta);
         for(Mover e : enemies) e.update(delta);
 
+        // If the player is dead, show them as a translucent ghost.
+        if(player.health <= 0) player.visual.sprite.setAlpha(0.5f);
+
         // This bit of code gets a little complex to handle rotating the map...
         // But rotating the map is so cool! You can do it by pressing '[' or ']' .
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
@@ -488,6 +490,7 @@ public class Main extends ApplicationAdapter {
      * @param delta the amount of time in seconds since the last unpaused render
      */
     private void handleInput(float delta) {
+        // Get out of here!
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
             return;
@@ -609,6 +612,9 @@ public class Main extends ApplicationAdapter {
         return isoTempVector.set(f, g, 0);
     }
 
+    /**
+     * Resets the map to a procedurally-generated new map, and updates Labels showing gameplay progress.
+     */
     private void reset() {
         regenerate(MathUtils.random.nextLong());
         updateFish();
@@ -619,6 +625,8 @@ public class Main extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
         atlas.dispose();
+        backgroundMusic.stop();
+        backgroundMusic.dispose();
     }
 
     @Override
@@ -633,16 +641,24 @@ public class Main extends ApplicationAdapter {
         viewport.update(width, height);
     }
 
+    /**
+     * Updates the goal Label to show the appropriate number of goldfish you need to save, or if you have won.
+     */
     public void updateFish() {
-        if(map.totalFish == map.fishSaved)
-            goalLabel.setText("YOU SAVED THEM ALL! Great job!");
-        else if(player.health > 0)
-            goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
-            ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
+        if(player.health > 0) {
+            if (map.totalFish == map.fishSaved)
+                goalLabel.setText("YOU SAVED THEM ALL! Great job!");
+            else
+                goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
+                    ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
+        }
         goalLabel.setAlignment(Align.center);
         goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
     }
 
+    /**
+     * Updates the health and sometimes goal Labels to show your current health and if you have died.
+     */
     public void updateHealth() {
         if(player.health <= 0)
         {
@@ -659,7 +675,6 @@ public class Main extends ApplicationAdapter {
             }
             healthLabel.setText(healthLabel.getText().toString());
             healthLabel.invalidate();
-            updateFish();
         }
     }
 }
