@@ -138,31 +138,78 @@ public class LocalMap {
         movers = new VoxelCollider<>();
     }
 
+    /**
+     * Checks if the given f,g,h isometric tile position is a valid position that can be looked up in {@link #tiles}.
+     * @param f f-coordinate; if negative or too high, this returns false
+     * @param g g-coordinate; if negative or too high, this returns false
+     * @param h h-coordinate; if negative or too high, this returns false
+     * @return true if the given coordinates are valid for array indices into {@link #tiles}, or false otherwise
+     */
     public boolean isValid(int f, int g, int h) {
         return f >= 0 && g >= 0 && h >= 0 && f < tiles.length && g < tiles[0].length && h < tiles[0][0].length;
     }
 
+    /**
+     * Rounds f, g, and h and passes them to {@link #isValid(int, int, int)}. Note that this permits small negative
+     * inputs due to rounding bringing them up to 0.0f if they are greater than -0.5f .
+     * @param f f-coordinate; if too low or too high, this returns false
+     * @param g g-coordinate; if too low or too high, this returns false
+     * @param h h-coordinate; if too low or too high, this returns false
+     * @return true if the given coordinates, after rounding, are valid for array indices into {@link #tiles}, or false otherwise
+     */
     public boolean isValid(float f, float g, float h) {
         return isValid(round(f), round(g), round(h));
     }
-
+    /**
+     * Delegates to {@link #isValid(float, float, float)} using only the x, y, and z coordinates of {@code point}.
+     * @param point a Vector4 of which only x, y, and z will be checked
+     * @return true if the given point, after rounding x, y, and z, is valid for array indices into {@link #tiles}, or false otherwise
+     */
     public boolean isValid(Vector4 point) {
-        return isValid((int)point.x, (int)point.y, (int)point.z);
+        return isValid(point.x, point.y, point.z);
     }
 
+    /**
+     * If f, g, and h are valid, this returns the tile at that location; if no tile is present or if the coordinates are
+     * invalid, this returns -1.
+     * @param f f-coordinate; if negative or too high, this returns false
+     * @param g g-coordinate; if negative or too high, this returns false
+     * @param h h-coordinate; if negative or too high, this returns false
+     * @return the tile ID at the given location, or -1 if no tile is present or the location is invalid
+     */
     public int getTile(int f, int g, int h) {
         return isValid(f, g, h) ? tiles[f][g][h] : -1;
     }
 
+    /**
+     * Rounds the given float coordinates and passes them to {@link #getTile(int, int, int)}. Note that this permits
+     * small negative inputs due to rounding bringing them up to 0.0f if they are greater than -0.5f .
+     * @param f f-coordinate; if too low or too high, this returns false
+     * @param g g-coordinate; if too low or too high, this returns false
+     * @param h h-coordinate; if too low or too high, this returns false
+     * @return the tile ID at the given location, or -1 if no tile is present or the location is invalid
+     */
     public int getTile(float f, float g, float h) {
-        int rf = round(f), rg = round(g), rh = round(h);
-        return isValid(rf, rg, rh) ? tiles[rf][rg][rh] : -1;
+        return getTile(round(f), round(g), round(h));
     }
 
+    /**
+     * Rounds the x, y, and z of {@code point} and passes them to {@link #getTile(int, int, int)}. Note that this
+     * permits small negative inputs due to rounding bringing them up to 0.0f if they are greater than -0.5f .
+     * @param point a Vector4 of which only x, y, and z will be checked
+     * @return the tile ID at the given location, or -1 if no tile is present or the location is invalid
+     */
     public int getTile(Vector4 point) {
-        return isValid(point) ? tiles[round(point.x)][round(point.y)][round(point.z)] : -1;
+        return getTile(round(point.x), round(point.y), round(point.z));
     }
 
+    /**
+     * Gets the IsoSprite with the appropriate depth for a terrain voxel at the given isometric position (not rounded).
+     * @param f f position of the terrain, almost always an integer stored in a float
+     * @param g g position of the terrain, almost always an integer stored in a float
+     * @param h h position of the terrain, almost always an integer stored in a float
+     * @return the IsoSprite for terrain at the given position or {@code null} if none is present
+     */
     public IsoSprite getIsoSpriteTerrain(float f, float g, float h) {
         return everything.get(tempVec4.set(f, g, h, 0));
     }
@@ -182,8 +229,14 @@ public class LocalMap {
         changing.set(round(f), round(g), round(h), Main.FISH_W);
     }
 
+    /**
+     * Adds a {@link Mover} to {@link #everything} and {@link #movers}
+     * @param mover
+     * @param depth
+     * @return
+     */
     public Vector4 addMover(Mover mover, float depth) {
-        mover.getPosition().z = getDepth() - 1;
+        mover.getPosition().z = getLayers() - 1;
         Vector4 pos = new Vector4(mover.getPosition(), depth);
         while (getTile(pos) != -1 || movers.collisionsWith(mover).notEmpty()) {
             pos.x = MathUtils.random(getWidth() - 1);
@@ -204,6 +257,16 @@ public class LocalMap {
         return everything.get(point);
     }
 
+    /**
+     * Sets the voxel terrain tile at the given isometric tile position to the tile with the given ID.
+     * IDs can be seen in {@link AssetData}.
+     * This also places an {@link #edge} at the same isometric position but a lower depth, so it only shows if there is
+     * empty space behind the voxel in the depth sort.
+     * @param f f-position as an int
+     * @param g g-position as an int
+     * @param h h-position as an int
+     * @param tileId an ID for a tile, typically from {@link AssetData}
+     */
     public void setTile(int f, int g, int h, int tileId) {
         if (isValid(f, g, h)) {
             tiles[f][g][h] = tileId;
@@ -227,11 +290,23 @@ public class LocalMap {
         }
     }
 
+    /**
+     * Sets the voxel terrain tile at the given isometric tile position (as a Vector4, which will be rounded when used
+     * in {@link #tiles}) to the tile with the given ID. IDs can be seen in {@link AssetData}.
+     * This also places an {@link #edge} at the same isometric position but a lower depth, so it only shows if there is
+     * empty space behind the voxel in the depth sort.
+     * @param point a Vector4 of which x, y, and z will be used for a position and w will genrerally be treated as 0
+     * @param tileId an ID for a tile, typically from {@link AssetData}
+     */
     public void setTile(Vector4 point, int tileId) {
-        if (isValid(point)) {
-            tiles[(int)point.x][(int)point.y][(int)point.z] = tileId;
+        int f = round(point.x);
+        int g = round(point.y);
+        int h = round(point.z);
+        if (isValid(f, g, h)) {
+            tiles[f][g][h] = tileId;
             if (tileId == -1) {
                 everything.remove(point);
+                // remove the outline, too
                 everything.remove(point.add(0,0,0,-1.5f));
             } else {
                 IsoSprite iso;
@@ -280,7 +355,7 @@ public class LocalMap {
         return tiles[0].length;
     }
 
-    public int getDepth() {
+    public int getLayers() {
         return tiles[0][0].length;
     }
 

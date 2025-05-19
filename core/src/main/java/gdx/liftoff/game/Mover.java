@@ -348,6 +348,13 @@ public class Mover implements HasPosition3D {
         return this;
     }
 
+    /**
+     * Not currently used, but this can test two BoundingBoxes to see if they are not touching at all on x and y (they
+     * must not be overlapping or equal), but if z is overlapping or equal this considers it to be intersecting.
+     * @param a a BoundingBox
+     * @param b a BoundingBox
+     * @return true if a and b overlap on x or y, and either touch or overlap on z
+     */
     public static boolean intersectsExclusiveLateral (BoundingBox a, BoundingBox b) {
         if (!a.isValid() || !b.isValid()) return false;
 

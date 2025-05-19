@@ -340,7 +340,7 @@ public class Main extends ApplicationAdapter {
             seed,
             /* Used for both dimensions of the ground plane. */
             MAP_SIZE + ((int)seed & 3),
-            /* Used for the depth of the map, in elevation. */
+            /* Used for the number of layers of the map, in elevation. */
             MAP_PEAK,
             /* All terrain tiles in the tileset. */
             atlas);
