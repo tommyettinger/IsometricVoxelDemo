@@ -55,26 +55,8 @@ import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
  */
 public class Main extends ApplicationAdapter {
     /**
-     * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
-     */
-    public static final float PLAYER_W = (1f/8f);
-    /**
-     * The depth modifier used by goldfish, which is slightly different from the player or NPC depth modifiers so
-     * goldfish can't get removed by an overlapping NPC, and so an overlapping player doesn't remove the goldfish before
-     * its rescue can be processed.
-     */
-    public static final float FISH_W = PLAYER_W + (1f/1024f);
-    /**
-     * The depth modifier used by all moving NPCs; this is the same as {@link #PLAYER_W}.
-     */
-    public static final float NPC_W = PLAYER_W;
-    /**
-     * Can be changed to make the game harder with more enemies, or easier with fewer.
-     */
-    public static int ENEMY_COUNT = 10;
-    /**
      * Used to draw things from back to front as 2D sprites. Even though our tiles use 3D positions. Well, 4D. Don't run
-     * away, I explain all of this!
+     * away, I explained all of this in the class comment!
      */
     private SpriteBatch batch;
     /**
@@ -105,6 +87,24 @@ public class Main extends ApplicationAdapter {
      * CUSTOM TO YOUR GAME.
      */
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
+    /**
+     * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
+     */
+    public static final float PLAYER_W = (1f/8f);
+    /**
+     * The depth modifier used by goldfish, which is slightly different from the player or NPC depth modifiers so
+     * goldfish can't get removed by an overlapping NPC, and so an overlapping player doesn't remove the goldfish before
+     * its rescue can be processed.
+     */
+    public static final float FISH_W = PLAYER_W + (1f/1024f);
+    /**
+     * The depth modifier used by all moving NPCs; this is the same as {@link #PLAYER_W}.
+     */
+    public static final float NPC_W = PLAYER_W;
+    /**
+     * Can be changed to make the game harder with more enemies, or easier with fewer.
+     */
+    public static int ENEMY_COUNT = 10;
     /**
      * Used frequently here, this is the current location map that gameplay takes place in, which also stores the
      * inhabitants of that level.
@@ -278,14 +278,18 @@ public class Main extends ApplicationAdapter {
         // Change this to LOG_ERROR or LOG_NONE when releasing anything.
         Gdx.app.setLogLevel(Application.LOG_INFO);
 
+        // Create and play looping background music.
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("Komiku - Road 4 Fight.ogg"));
         backgroundMusic.setVolume(0.5f);
         backgroundMusic.setLooping(true);
         backgroundMusic.play();
 
+        // We draw everything as 2D graphics with a carefully determined sort order.
         batch = new SpriteBatch();
-        atlas = new TextureAtlas(ATLAS_FILE_NAME);
 
+        // Loads the atlas from an internal path, in "assets/".
+        atlas = new TextureAtlas(ATLAS_FILE_NAME);
+        // All regions in the atlas for creatures start with "entity" and have an index.
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
         // This step will be different for every game's assets.
@@ -318,13 +322,17 @@ public class Main extends ApplicationAdapter {
         regenerate(
             /* The seed will change after just over one hour, and will stay the same for over an hour. */
             TimeUtils.millis() >>> 22);
+        // The skin isn't used here much, but it is ready for more widgets to be used.
         skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        // The goal label changes when updateFish() or updateHealth() is called.
         goalLabel = new Label("", skin);
         goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
+        // The FPS label can be removed if you want in production.
         fpsLabel = new Label("0 FPS", skin);
         fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
-        healthLabel = new Label("[RED]♥ ♥ ♥ ", skin);
+        // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
+        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
         healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
     }
