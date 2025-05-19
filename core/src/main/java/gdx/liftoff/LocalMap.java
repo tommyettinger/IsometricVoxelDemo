@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
 import gdx.liftoff.game.AssetData;
 import gdx.liftoff.game.Mover;
+import gdx.liftoff.util.HasPosition3D;
 import gdx.liftoff.util.MathSupport;
 import gdx.liftoff.util.MiniNoise;
 import gdx.liftoff.util.VoxelCollider;
@@ -230,10 +231,12 @@ public class LocalMap {
     }
 
     /**
-     * Adds a {@link Mover} to {@link #everything} and {@link #movers}
-     * @param mover
-     * @param depth
-     * @return
+     * Adds a {@link Mover} to {@link #everything} and {@link #movers}. If the Mover's position is already occupied by
+     * a terrain tile, or if this would collide with another Mover, the Mover's position is randomized until it finds
+     * a valid location.
+     * @param mover a {@link Mover} that will have its position potentially altered if invalid
+     * @param depth the depth modifier to use for the Mover, such as {@link Main#PLAYER_W}
+     * @return the used Vector4 position the Mover was placed into, which may be different from its original position
      */
     public Vector4 addMover(Mover mover, float depth) {
         mover.getPosition().z = getLayers() - 1;
@@ -326,6 +329,16 @@ public class LocalMap {
         }
     }
 
+    /**
+     * Adds an {@link IsoSprite} to {@link #everything} at the requested f, g, h, depth position, if and only if the
+     * position (with rounded float coordinates) is valid in the bounds of {@link #tiles}. This removes whatever tile
+     * may be present at the position this places the entity into.
+     * @param f the "France to Finland" isometric coordinate; will be rounded and assigned to changing
+     * @param g the "Germany to Greenland" isometric coordinate; will be rounded and assigned to changing
+     * @param h the "heel to head" isometric coordinate; will be rounded and assigned to changing
+     * @param depth the depth modifier to use, such as {@link Main#PLAYER_W}
+     * @param sprite the {@link IsoSprite} to place into {@link #everything}
+     */
     public void setEntity(float f, float g, float h, float depth, IsoSprite sprite) {
         int rf = round(f), rg = round(g), rh = round(h);
         if (isValid(rf, rg, rh)) {
@@ -347,23 +360,40 @@ public class LocalMap {
         return tiles[0][0].length;
     }
 
+    /**
+     * The same as {@link #getFSize()}.
+     * @return the f-size of the map.
+     */
     public int getWidth() {
         return tiles.length;
     }
 
+    /**
+     * The same as {@link #getGSize()}.
+     * @return the g-size of the map.
+     */
     public int getHeight() {
         return tiles[0].length;
     }
 
+    /**
+     * The same as {@link #getHSize()}.
+     * @return the h-size of the map.
+     */
     public int getLayers() {
         return tiles[0][0].length;
     }
 
+    /**
+     * Used to allow paths to meander across the map area, without changing directions completely at random.
+     */
     private static final GridPoint2[] DIRECTIONS = {new GridPoint2(1, 0), new GridPoint2(0, 1), new GridPoint2(-1, 0), new GridPoint2(0, -1)};
     /**
      * Generates a simple test map that assumes a specific tileset (using {@code isometric-trpg.atlas} as
      * {@code tileset}, {@code tileset.findRegions("tile")}). Allows setting a specific seed to get the same map every
      * time. This requires a minimum {@code mapSize} of 11 and a minimum {@code mapPeak} of 4.
+     * <br>
+     * CUSTOM TO YOUR GAME.
      * @param seed if this {@code long} is the same, the same map will be produced on each call
      * @param mapSize the width and height of the map, or the dimensions of the ground plane in tiles
      * @param mapPeak the layer count or max elevation of the map
@@ -376,6 +406,9 @@ public class LocalMap {
         MiniNoise baseNoise = new MiniNoise((int) (seed), 0.06f, MiniNoise.FBM, 3);
         // noise that is usually a low value, but has ridges of high values
         MiniNoise ridgeNoise = new MiniNoise((int) (seed >> 32), 0.1f, MiniNoise.RIDGED, 1);
+        // This makes calls to MathUtils random number methods predictable, including after this call completes!
+        // You may want to re-randomize MathUtils' random number generator after this completes, using:
+        //  MathUtils.random.setSeed(System.currentTimeMillis());
         MathUtils.random.setSeed(seed);
 
         mapSize = Math.max(11, mapSize);
@@ -401,63 +434,40 @@ public class LocalMap {
             }
         }
 
-//        // Place random full-height stone tiles over center of map.
-//        int margin = 5;
-//        for (int f = margin; f < mapSize - margin; f++) {
-//            for (int g = margin; g < mapSize - margin; g++) {
-//                // More likely to place tiles in the middle of the map than the edges.
-//                if (MathUtils.randomBoolean(1.4f / (1f + Math.abs(mapSize * 0.5f - f) + Math.abs(mapSize * 0.5f - g)))) {
-//                    map.setTile(f, g, 1, AssetData.BASALT);
-//                }
-//            }
-//        }
-
-//        // outline
-//        for (int f = 0; f < mapSize; f++) {
-//            for (int g = 0; g < mapSize; g++) {
-//                if ((f == 0 || f == mapSize - 1) || (g == 0 || g == mapSize - 1)) {
-//                    // Produces either lava or basalt, with lava much more likely.
-//                    map.setTile(f, g, 0, 2 + Math.max(MathUtils.random(1), MathUtils.random(1)) * 22);
-//                }
-//            }
-//        }
-
-//        // Sets the corners to 2-voxel-tall basalt pillars.
-//        map.setTile(0, 0, 0, 2);
-//        map.setTile(0, 0, 1, 2);
-//        map.setTile(mapSize -1, 0, 0, 2);
-//        map.setTile(mapSize -1, 0, 1, 2);
-//        map.setTile(0, mapSize -1, 0, 2);
-//        map.setTile(0, mapSize -1, 1, 2);
-//        map.setTile(mapSize -1, mapSize -1, 0, 2);
-//        map.setTile(mapSize -1, mapSize -1 ,1, 2);
-
+        // Here we add a little pathway to the map.
+        // We start at a random position with centered f-position and low g-position.
         int pathF = mapSize / 2 + MathUtils.random(mapSize / -4, mapSize / 4);
         int pathG = mapSize / 4 + MathUtils.random(mapSize / -6, mapSize / 6);
+        // angle is 0, 1, 2, or 3.
         float angle = 1f;
+        // We randomly may swap f and g...
         if(MathUtils.randomBoolean()){
             int temp = pathG;
             pathG = pathF;
             pathF = temp;
             angle = 0f;
         }
+        // and randomly may make them start on the opposite side, making pathG high instead of low (f if swapped).
         if(MathUtils.randomBoolean()){
             pathF = mapSize - 1 - pathF;
             pathG = mapSize - 1 - pathG;
             angle += 2f;
         }
 
+        // We use 1D noise to make the path change angle.
         baseNoise.setOctaves(1);
         for (int i = 0, n = mapSize + mapSize; i < n; i++) {
             if(map.isValid(pathF, pathG, 0)) {
                 for (int h = mapPeak - 1; h >= 0; h--) {
                     if(map.getTile(pathF, pathG, h) != -1) {
+                        // we have an 80% change to place a path at any valid position, if we still have one.
                         if(MathUtils.randomBoolean(0.8f))
                             map.setTile(pathF, pathG, h, AssetData.PATH_GRASS_FGTR);
                         break;
                     }
                 }
             } else {
+                // If the current position is invalid, try again with a new start position.
                 pathF = mapSize / 2 + MathUtils.random(mapSize / -4, mapSize / 4);
                 pathG = mapSize / 4 + MathUtils.random(mapSize / -6, mapSize / 6);
                 angle = 1f;
@@ -474,16 +484,25 @@ public class LocalMap {
                 }
 
             }
+            // Gradually change the angle of the path using continuous noise.
             angle = (angle + baseNoise.getNoise(i * 25f) * 0.7f + 4f) % 4f;
             GridPoint2 dir = DIRECTIONS[(int) angle];
             pathF += dir.x;
             pathG += dir.y;
         }
 
+        // When we're done, we just need to take all the all-connected path tiles and change them to linear paths.
         AssetData.realignPaths(map);
         return map;
     }
 
+    /**
+     * Places berry bushes, which were used in an earlier version instead of goldfish.
+     * Berry bushes are harder to notice than goldfish at small sizes, though.
+     * @param seed if this {@code long} is the same, the same map will be produced on each call
+     * @param bushCount how many bushes to try to place
+     * @return this LocalMap, for chaining
+     */
     public LocalMap placeBushes(long seed, int bushCount) {
         GridPoint2 point = new GridPoint2();
         int fs = getFSize(), gs = getGSize(), hs = getHSize();
@@ -513,6 +532,15 @@ public class LocalMap {
         return this;
     }
 
+    /**
+     * Places goldfish {@link AnimatedIsoSprite} instances at various valid locations, chosen sub-randomly.
+     * Sub-random here means it is extremely unlikely two goldfish will spawn nearby each other, but their position is
+     * otherwise random-seeming.
+     * @param seed if this {@code long} is the same, the same map will be produced on each call
+     * @param fishCount how many fish to place
+     * @param animations used to get the animation for a fish so we can make {@link AnimatedIsoSprite}s per fish
+     * @return this LocalMap for chaining
+     */
     public LocalMap placeFish(long seed, int fishCount, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations) {
         GridPoint2 point = new GridPoint2();
         int fs = getFSize(), gs = getGSize(), hs = getHSize();
@@ -530,6 +558,11 @@ public class LocalMap {
         return this;
     }
 
+    /**
+     * Simply wraps {@link VoxelCollider#collisionsWith(HasPosition3D)}, using this LocalMap's {@link #movers}.
+     * @param mover the Mover to check if any existing Movers collide with
+     * @return an Array of colliding Movers, which will be empty if nothing collides with {@code mover}
+     */
     public Array<Mover> checkCollision(Mover mover) {
         return movers.collisionsWith(mover);
     }
