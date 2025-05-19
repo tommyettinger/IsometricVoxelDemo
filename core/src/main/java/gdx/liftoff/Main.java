@@ -21,6 +21,38 @@ import java.util.Comparator;
 
 import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
+/**
+ * This is the primary starting point in the core module, and the only platform-specific code should be in "Launcher"
+ * classes in other modules. This is an isometric pixel art demo project where the player (a little person in blue) runs
+ * around trying to save goldfish (little orange fish out of water) without bumping into enemies (green-skinned, brawny
+ * orcs). Bumping into enemies will take away your health, and reaching 0 health is a game-over condition. Saving all 10
+ * goldfish is the win condition.
+ * <br>
+ * This uses a special kind of coordinates because isometric coordinates just don't correspond nicely to x, y,
+ * and z with any common convention. Here, when referring to isometric tiles, we use "f, g, h" positions.The f and g
+ * axes are diagonal, and correspond to movement at a shallow angle on both world x and world y. The h axis is used for
+ * elevation, and corresponds to movement on world y. The mnemonics here work as if on a world map, with the origin
+ * somewhere in Belgium or the Netherlands:
+ * <ul>
+ *     <li>The f axis is roughly the diagonal from France to Finland.</li>
+ *     <li>The g axis is roughly the diagonal from Germany to Greenland (or Greece to Germany, or Greece to Greenland).</li>
+ *     <li>The h axis is the vertical line from your heel to your head (or Hell to Heaven).</li>
+ * </ul>
+ * The letters "t" and "r" also show up, with the geography mnemonics "Tallinn" (in Estonia, near Finland) and Reykjavík
+ * (in Iceland, on the way to Greenland); these refer specifically to the positive f direction and positive g direction,
+ * or the back faces of a voxel, while f and g refer to the faces on the front. "fgtr" are the recommended keys on a
+ * QWERTY keyboard to move in those directions, or on a map of Europe, the locations of France, Germany, Tallinn (in
+ * Estonia), and Reykjavík (in Iceland) relative to Amsterdam in the center. The "fgtr" keys also are close in shape to
+ * matching the X-shape of directions you can travel on one axis at a time in isometric coordinates, at least on a
+ * QWERTY keyboard.
+ * <br>
+ * When a Vector3 is used for an isometric position, x,y,z refer to f,g,h. This code also sometimes uses Vector4 when
+ * camera distance needs to vary; in that case, the w coordinate refers to camera depth. While movement on the f and g
+ * axes moves an object on both screen x and y, movement on the h axis only moves an object on screen y, and movement on
+ * depth only changes its sort order (potentially rendering it before or after other objects, and sometimes covering it
+ * up entirely). A major goal of this demo is to show how sort order works using only a SpriteBatch to draw things with
+ * 3D (or really, 2.5D) positions, using only 2D sprites.
+ */
 public class Main extends ApplicationAdapter {
     /**
      * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
@@ -139,49 +171,107 @@ public class Main extends ApplicationAdapter {
      * framerate-independent.
      */
     private int cap = 60;
+    /**
+     * The horizontal distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
+     * of the diamond-shaped top of any solid tile here, measured from left to right for a single side.
+     */
     public static final int TILE_WIDTH = 8;
+    /**
+     * The vertical distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
+     * of the diamond-shaped top of any solid tile here, measured from bottom to top for a single side.
+     */
     public static final int TILE_HEIGHT = 4;
+    /**
+     * The vertical distance in pixels between stacked tiles. This is equivalent to the distance of a vertical side of
+     * any full-sized solid tile (on the left or right side of the block), measured from bottom to top of a solid side.
+     */
     public static final int TILE_DEPTH = 8;
+    /**
+     * The base width and height in tiles of a map; this may vary slightly when the map is created, for variety.
+     * The variance only goes up by 0 to 3 width and height (by the same amount).
+     */
     public static final int MAP_SIZE = 40;
+    /**
+     * The maximum number of voxels and creatures that can be stacked on top of each other in the map; typically also
+     * includes some room to jump higher.
+     */
     public static final int MAP_PEAK = 10;
+    /**
+     * The computed width in pixels of a full map at its largest possible {@link #MAP_SIZE}.
+     */
     public static final int SCREEN_HORIZONTAL = (MAP_SIZE+3) * 2 * TILE_WIDTH;
+    /**
+     * The computed height in pixels of a full map at its largest possible {@link #MAP_SIZE} and {@link #MAP_PEAK}.
+     */
     public static final int SCREEN_VERTICAL = (MAP_SIZE+3) * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
+    /**
+     * The position in fractional tiles of the very center of the map, measured from bottom center.
+     */
     public float mapCenter = (MAP_SIZE - 1f) * 0.5f;
 
+    /**
+     * Can be changed to any fraction that is {@code 1.0f} divided by any integer greater than 0, which makes the screen
+     * zoom to double size if this is {@code 1.0f / 2}, or triple size if this is {@code 1.0f / 3}, and so on.
+     */
     public float CAMERA_ZOOM = 1f;
-    public long startTime, animationStart = -1000000L;
+    /**
+     * In milliseconds, the time since the map was generated or regenerated.
+     */
+    public long startTime;
+    /**
+     * In milliseconds, the time at which any multi-frame animation started (usually a map rotation).
+     */
+    public long animationStart = -1000000L;
 
+    /**
+     * A temporary Vector3 used to store either pixel or world positions being projected or unprojected in 3D.
+     */
     private static final Vector3 projectionTempVector = new Vector3();
+    /**
+     * A temporary Vector3 used to store tile positions (which are world positions on the diagonal grid) in 3D.
+     */
     private static final Vector3 isoTempVector = new Vector3();
+    /**
+     * A temporary Vector2 used to store screen positions in pixels.
+     */
     private static final Vector2 screenTempVector = new Vector2();
+    /**
+     * A temporary Vector4 used to store positions in {@link LocalMap#everything}, which stores every object and Mover
+     * so they can be sorted correctly and then displayed in that order. This Vector4 is commonly set to some values
+     * that should be checked if they exist in "everything", such as with {@link OrderedMap#containsKey(Object)}.
+     * The x, y, and z coordinates correspond directly to a tile's isometric f, g, and h coordinates, while the
+     * Vector4's w coordinate corresponds to the depth modifier for any sprite at that f,g,h position. A position with
+     * the same x,y,z position (or f,g,h) but a different w (or depth modifier) is treated as different in "everything"
+     * and this allows more than one sprite to share a position. This is how the outlines on terrain are handled, and
+     * how goldfish can briefly occupy the same area as the player or an enemy.
+     */
     private static final Vector4 tempVector4 = new Vector4();
 
     /**
      * Used to depth-sort isometric points, including if the map is mid-rotation. This gets the center of the LocalMap
-     * directly from its size, and permits {@link LocalMap#rotationDegrees}
-     * to be any finite value in degrees. The isometric points here are Vector4, but for the most part, only the x, y,
+     * directly from its size, and permits {@link LocalMap#rotationDegrees} to be any finite value in degrees.
+     * It uses the map's pre-calculated {@link LocalMap#cosRotation} and sinRotation instead of needing to repeatedly
+     * call cos() and sin(). The isometric points here are Vector4, but for the most part, only the x, y,
      * and z components are used. The fourth component, w, is only used to create another point at the same x, y, z
      * location but with a different depth. The depth change is currently used to draw outlines behind terrain tiles,
      * but have them be overdrawn by other terrain tiles if nearby. The outlines only appear if there is empty space
      * behind a terrain tile.
-     * <br>
-     * Internally, this uses {@link NumberUtils#floatToIntBits(float)} instead of {@link Float#compare(float, float)}
-     * because it still returns a completely valid comparison value (it only distinguishes between an int that is
-     * positive, negative, or zero), and seems a tiny bit faster. To avoid {@code -0.0f} being treated as a negative
-     * comparison value, this adds {@code 0.0f} to the difference of the two compared depths. This is absolutely a magic
-     * trick, and it is probably unnecessary and gratuitous!
      */
     public final Comparator<? super Vector4> comparator =
-        (a, b) -> NumberUtils.floatToIntBits(
-            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w -
-                IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) - b.w + 0.0f);
+        (a, b) -> Float.compare(
+            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w,
+            IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + b.w);
 
-//
-//    // The above is equivalent to:
+    // You can use this block of code instead; it may perform better if framerate is an issue in practice, but it isn't
+    // quite as clear to read. Internally, this uses {@link NumberUtils#floatToIntBits(float)} instead of
+    // {@link Float#compare(float, float)} because it still returns a completely valid comparison value (it only
+    // distinguishes between an int that is positive, negative, or zero), and seems a tiny bit faster. To avoid
+    // {@code -0.0f} being treated as a negative comparison value, this adds {@code 0.0f} to the difference of the two
+    // compared depths. This is absolutely a magic trick, and the whole thing is probably unnecessary and gratuitous!
 //    public final Comparator<? super Vector4> comparator =
-//        (a, b) -> Float.compare(
-//            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w,
-//            IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + b.w);
+//        (a, b) -> NumberUtils.floatToIntBits(
+//            IsoSprite.viewDistance(a.x, a.y, a.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) + a.w -
+//                IsoSprite.viewDistance(b.x, b.y, b.z, map.fCenter, map.gCenter, map.cosRotation, map.sinRotation) - b.w + 0.0f);
 
     @Override
     public void create() {
