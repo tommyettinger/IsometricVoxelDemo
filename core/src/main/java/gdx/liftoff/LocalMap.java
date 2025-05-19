@@ -4,9 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.*;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ObjectSet;
 import com.badlogic.gdx.utils.OrderedMap;
 import gdx.liftoff.game.AssetData;
 import gdx.liftoff.game.Mover;
@@ -16,54 +14,126 @@ import gdx.liftoff.util.VoxelCollider;
 
 import static com.badlogic.gdx.math.MathUtils.round;
 
+/**
+ * Stores a current "level" of the game and its contents, including moving beings and immobile terrain.
+ * One of the more important and widely-used classes here.
+ */
 public class LocalMap {
 
+    /**
+     * Grid-aligned terrain storage, this uses an int ID per voxel for convenience. In this case, you could also use
+     * byte IDs, and some games might require short IDs, but int is used just because Java can directly create ints.
+     */
     public int[][][] tiles;
+    /**
+     * The critical, sortable mapping of Vector4 positions to visible IsoSprites. This includes two IsoSprites for each
+     * voxel of terrain: one is the terrain cube itself, and one is its outline, which has a substantial depth modifier
+     * so it will only render if no other terrain is covering it. Movers' IsoSprite (and AnimatedIsoSprite) instances
+     * are also stored in here.
+     */
     public OrderedMap<Vector4, IsoSprite> everything;
+    /**
+     * The Array of voxel types that can be shown here, typically drawn from a TextureAtlas.
+     */
     public Array<TextureAtlas.AtlasRegion> tileset;
+    /**
+     * The reused Sprite for all voxel edges, each of which is a translucent outline above the upper edges of the voxel.
+     */
     public Sprite edge;
+    /**
+     * The center position, in fractional tiles, of the entire map's f-size.
+     */
     public float fCenter;
+    /**
+     * The center position, in fractional tiles, of the entire map's g-size.
+     */
     public float gCenter;
-
+    /**
+     * How many fish we started out needing to rescue.
+     */
     public int totalFish = 10;
+    /**
+     * How many fish have been saved so far.
+     */
     public int fishSaved = 0;
+
+    /**
+     * A collision tracker for Movers so we can tell when the player should be damaged by touching an enemy.
+     */
     public VoxelCollider<Mover> movers;
 
+    /**
+     * @return the rotation of the map in degrees
+     */
     public float getRotationDegrees() {
         return rotationDegrees;
     }
 
+    /**
+     * Sets {@link #rotationDegrees}, but also {@link #cosRotation} and {@link #sinRotation}.
+     * @param rotationDegrees the desired rotation of the map, in degrees
+     */
     public void setRotationDegrees(float rotationDegrees) {
         this.rotationDegrees = rotationDegrees;
         cosRotation = MathUtils.cosDeg(rotationDegrees);
         sinRotation = MathUtils.sinDeg(rotationDegrees);
     }
 
+    /**
+     * The map's current rotation, in degrees.
+     */
     public float rotationDegrees = 0f;
+    /**
+     * The cosine of the map's current rotation, used to avoid repeated calls to {@link MathUtils#cosDeg(float)}.
+     */
     public float cosRotation = 0f;
+    /**
+     * The sine of the map's current rotation, used to avoid repeated calls to {@link MathUtils#sinDeg(float)}.
+     */
     public float sinRotation = 0f;
+    /**
+     * During a rotation animation, this is the starting rotation, in degrees.
+     */
     public float previousRotation = 0f;
+    /**
+     * During a rotation animation, this is the target rotation, in degrees.
+     */
     public float targetRotation = 0f;
 
-    private static final Vector4 tempPointA = new Vector4();
-    private static final Vector4 tempPointB = new Vector4();
+    /**
+     * Mutated often in-place and used to check for positions in {@link #everything}.
+     */
+    private static final Vector4 tempVec4 = new Vector4();
 
-    private static final ObjectSet<Mover> results = new ObjectSet<>(8);
+    /**
+     * Present for serialization only, this creates a LocalMap but needs many fields initialized.
+     * {@link #tileset}, {@link #tiles}, {@link #edge}, {@link #fCenter}, {@link #gCenter}, {@link #movers}, and of
+     * course {@link #everything} need to be initialized if you use this.
+     */
+    public LocalMap() {
 
-    public LocalMap(int width, int height, int depth, TextureAtlas atlas) {
+    }
+    /**
+     * Creates a new LocalMap and initializes all fields.
+     * @param width the f-size of the map
+     * @param height the g-size of the map
+     * @param layers the h-size of the map
+     * @param atlas a TextureAtlas this will pull all "tile" regions from and the Sprite for "edge"
+     */
+    public LocalMap(int width, int height, int layers, TextureAtlas atlas) {
         this.tileset = atlas.findRegions("tile");
         this.edge = atlas.createSprite("edge");
-        tiles = new int[width][height][depth];
+        tiles = new int[width][height][layers];
         fCenter = (width - 1) * 0.5f;
         gCenter = (height - 1) * 0.5f;
         for (int f = 0; f < width; f++) {
             for (int g = 0; g < height; g++) {
-                for (int h = 0; h < depth; h++) {
+                for (int h = 0; h < layers; h++) {
                     tiles[f][g][h] = -1;
                 }
             }
         }
-        everything = new OrderedMap<>(width * height * depth * 3 >>> 2, 0.625f);
+        everything = new OrderedMap<>(width * height * layers * 3 >>> 2, 0.625f);
 
         movers = new VoxelCollider<>();
     }
@@ -94,7 +164,7 @@ public class LocalMap {
     }
 
     public IsoSprite getIsoSpriteTerrain(float f, float g, float h) {
-        return everything.get(tempPointA.set(f, g, h, 0));
+        return everything.get(tempVec4.set(f, g, h, 0));
     }
 
     /**
@@ -138,11 +208,11 @@ public class LocalMap {
         if (isValid(f, g, h)) {
             tiles[f][g][h] = tileId;
             if (tileId == -1) {
-                everything.remove(tempPointB.set(f, g, h, 0));
-                everything.remove(tempPointB.set(f, g, h, -1.5f));
+                everything.remove(tempVec4.set(f, g, h, 0));
+                everything.remove(tempVec4.set(f, g, h, -1.5f));
             } else {
                 IsoSprite iso;
-                if ((iso = everything.get(tempPointB.set(f, g, h, 0))) != null) {
+                if ((iso = everything.get(tempVec4.set(f, g, h, 0))) != null) {
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
                     everything.put(new Vector4(f, g, h, 0), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
@@ -221,7 +291,7 @@ public class LocalMap {
      * time. This requires a minimum {@code mapSize} of 11 and a minimum {@code mapPeak} of 4.
      * @param seed if this {@code long} is the same, the same map will be produced on each call
      * @param mapSize the width and height of the map, or the dimensions of the ground plane in tiles
-     * @param mapPeak the depth or max elevation of the map
+     * @param mapPeak the layer count or max elevation of the map
      * @param atlas should probably be the TextureAtlas loaded from {@code isometric-trpg.atlas}
      * @return a new LocalMap
      */
