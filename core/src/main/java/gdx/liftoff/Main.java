@@ -444,17 +444,30 @@ public class Main extends ApplicationAdapter {
         batch.end();
     }
 
+    /**
+     * Only handles movement input for the player character. This is called from the main input handling in
+     * {@link #handleInput(float)}.
+     */
     private void handleInputPlayer() {
+        // Our difference (delta) on the f and g isometric axes.
         float df = 0, dg = 0;
-        if (Gdx.input.isKeyPressed(Input.Keys.F) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_1)) df = -1;
+        // We allow f,g,t,r to move on one isometric axis, or the numpad to move in all 8 directions.
+        // You can also hold a pair of f,g,t,r (adjacent on a QWERTY keyboard) to move north, south, east, or west.
+             if (Gdx.input.isKeyPressed(Input.Keys.F) && Gdx.input.isKeyPressed(Input.Keys.G)) { df = -INVERSE_ROOT_2; dg = -INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.F) && Gdx.input.isKeyPressed(Input.Keys.R)) { df = -INVERSE_ROOT_2; dg = INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.G) && Gdx.input.isKeyPressed(Input.Keys.T)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.T) && Gdx.input.isKeyPressed(Input.Keys.R)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.F) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_1)) df = -1;
         else if (Gdx.input.isKeyPressed(Input.Keys.G) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_3)) dg = -1;
         else if (Gdx.input.isKeyPressed(Input.Keys.T) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_9)) df = 1;
         else if (Gdx.input.isKeyPressed(Input.Keys.R) || Gdx.input.isKeyPressed(Input.Keys.NUMPAD_7)) dg = 1;
-        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_2)) { df = -INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
-        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_4)) { df = -INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
-        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_6)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2;}
-        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_8)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2;}
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_2)) { df = -INVERSE_ROOT_2; dg = -INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_4)) { df = -INVERSE_ROOT_2; dg = INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_6)) { df = INVERSE_ROOT_2; dg = -INVERSE_ROOT_2; }
+        else if (Gdx.input.isKeyPressed(Input.Keys.NUMPAD_8)) { df = INVERSE_ROOT_2; dg = INVERSE_ROOT_2; }
 
+        // We account for the map's rotation so the visual rotation of the map (for the player) also affects the
+        // direction in tiles for their chosen direction as they perceive it.
         float c = map.cosRotation;
         float s = map.sinRotation;
         float rf = c * df + s * dg;
@@ -462,6 +475,7 @@ public class Main extends ApplicationAdapter {
 
         player.move(rf, rg, Mover.MOVE_SPEED);
 
+        // Whee! Space or Numpad 0 or 5 make the player character jump really high.
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_0)
          || Gdx.input.isKeyJustPressed(Input.Keys.NUMPAD_5)) {
