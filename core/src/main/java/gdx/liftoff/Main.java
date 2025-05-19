@@ -483,31 +483,41 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+    /**
+     * Input for the game itself, though this also calls {@link #handleInputPlayer()}.
+     * @param delta the amount of time in seconds since the last unpaused render
+     */
     private void handleInput(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Gdx.app.exit();
             return;
         }
-        // zero state
+        // Zero-state, or a brand-new map and fresh healthy character, also with 10 enemies and 10 goldfish.
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             reset();
             return;
         }
         // cap for frame rate
         if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            // If cap is 60, set it to 0; if cap is 0, set it to 60. This toggles cap.
             cap ^= 60;
+            // If cap is 0, there is no limit on FPS unless the user's drivers force VSync on.
             Gdx.graphics.setForegroundFPS(cap);
             return;
         }
         handleInputPlayer();
 
+        // The arrow keys move the camera, which isn't really necessary here.
+        // You can comment out the next 4 lines if you want.
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) camera.translate(0, 200 * delta);
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) camera.translate(0, -200 * delta);
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) camera.translate(-200 * delta, 0);
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) camera.translate(200 * delta, 0);
+        // I and O zoom in and out, respectively.
         if (Gdx.input.isKeyJustPressed(Input.Keys.I)) camera.zoom *= .5f; // In
         if (Gdx.input.isKeyJustPressed(Input.Keys.O)) camera.zoom *= 2f; // Out
 
+        // The square bracket keys handle rotation, which can be important to spot goldfish behind terrain.
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
             map.previousRotation = map.rotationDegrees;
             map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) + 1 & 3) * 90;
@@ -518,9 +528,12 @@ public class Main extends ApplicationAdapter {
             map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) - 1 & 3) * 90;
             animationStart = TimeUtils.millis();
         }
-
+        // Because the arrow keys, as well as I and O, can change the camera, we update it here.
         camera.update();
 
+        // These are sort-of present for debugging.
+        // Left-clicking the top of a voxel will stack a random voxel on it.
+        // Right-clicking the top of a voxel will remove it.
         if (Gdx.input.justTouched()) {
             Vector3 targetBlock = raycastToBlock(Gdx.input.getX(), Gdx.input.getY());
 
@@ -541,6 +554,14 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+    /**
+     * Used to take a screen position and find the isometric tile position of the voxel shown at that screen position.
+     * This returns {@link #isoTempVector} and modifies it every time this is called, so you should use its value
+     * immediately or set() it into another Vector3.
+     * @param screenX screen coordinate, horizontal
+     * @param screenY screen coordinate, vertical; note that this uses y-down by libGDX convention
+     * @return an isometric tile position of a voxel or an empty space at ground level; always {@link #isoTempVector}
+     */
     public Vector3 raycastToBlock(float screenX, float screenY) {
         Vector3 worldPos = camera.unproject(projectionTempVector.set(screenX, screenY, 0));
         // Why is the projection slightly off on both x and y? It is a mystery!
@@ -558,17 +579,31 @@ public class Main extends ApplicationAdapter {
         }
 
         // No block was hit, return ground level
-        Vector3 groundCoords = screenToIso(worldPos.x, worldPos.y);
+        Vector3 groundCoords = worldToIso(worldPos.x, worldPos.y);
         return groundCoords.set(MathUtils.ceil(groundCoords.x), MathUtils.ceil(groundCoords.y), 0);
     }
 
-    public static Vector2 isoToScreen(float f, float g, float h) {
+    /**
+     * Currently unused; converts an un-rotated isometric tile position to a world position in viewport units.
+     * World positions use y-up.
+     * @param f France to Finland axis
+     * @param g Germany to Greenland axis
+     * @param h heel to head axis
+     * @return {@link #screenTempVector}, modified in-place and returned directly
+     */
+    public static Vector2 isoToWorld(float f, float g, float h) {
         float screenX = (f - g) * TILE_WIDTH;
         float screenY = (f + g) * TILE_HEIGHT + h * TILE_DEPTH;
         return screenTempVector.set(screenX, screenY);
     }
 
-    public static Vector3 screenToIso(float screenX, float screenY) {
+    /**
+     *
+     * @param screenX world position, horizontal in viewport units
+     * @param screenY world position; vertical in viewport units; uses y-up like most of libGDX
+     * @return {@link #isoTempVector}, modified in-place and returned directly
+     */
+    public static Vector3 worldToIso(float screenX, float screenY) {
         float f = screenY * (0.5f / TILE_HEIGHT) + screenX * (0.5f / TILE_WIDTH) + 1;
         float g = screenY * (0.5f / TILE_HEIGHT) - screenX * (0.5f / TILE_WIDTH) + 1;
         return isoTempVector.set(f, g, 0);
