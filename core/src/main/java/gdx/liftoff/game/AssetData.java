@@ -20,7 +20,7 @@ import gdx.liftoff.LocalMap;
  * <li>Tiles that are meant to be approximately half as tall as a unit voxel contain "HALF" in the constant name.</li>
  * <li>Tiles that are meant to just barely cover the top of a unit voxel contain "BASE" in their constant name.</li>
  * <li>Tiles that are meant to flow over the top of a surface of their height contain "COVER" in their constant name.</li>
- * <li>Cover tiles have a suffix containing "F", "G", and/or "H" depending on whether they cover the f or g vertical faces,
+ * <li>Cover tiles have a suffix containing "F", "G", and/or "H" depending on whether they cover the f or g side edges,
  * or the h face on top.</li>
  * <li>Tiles that have a path on them that changes depending on view angle have "PATH" in their constant name. Path tiles
  * have a suffix containing "F", "G", "T", and/or "R" depending on which faces are connected to the path, where fgtr are

@@ -22,26 +22,123 @@ import java.util.Comparator;
 import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
 
 public class Main extends ApplicationAdapter {
-    public static final float PLAYER_W = 0.125f;
-    public static final float FISH_W = PLAYER_W + 0x1p-10f;
+    /**
+     * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
+     */
+    public static final float PLAYER_W = (1f/8f);
+    /**
+     * The depth modifier used by goldfish, which is slightly different from the player or NPC depth modifiers so
+     * goldfish can't get removed by an overlapping NPC, and so an overlapping player doesn't remove the goldfish before
+     * its rescue can be processed.
+     */
+    public static final float FISH_W = PLAYER_W + (1f/1024f);
+    /**
+     * The depth modifier used by all moving NPCs; this is the same as {@link #PLAYER_W}.
+     */
     public static final float NPC_W = PLAYER_W;
-    public static final int ENEMY_COUNT = 10;
+    /**
+     * Can be changed to make the game harder with more enemies, or easier with fewer.
+     */
+    public static int ENEMY_COUNT = 10;
+    /**
+     * Used to draw things from back to front as 2D sprites. Even though our tiles use 3D positions. Well, 4D. Don't run
+     * away, I explain all of this!
+     */
     private SpriteBatch batch;
-    private TextureAtlas atlas;
-    private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
-    private LocalMap map;
-    private OrthographicCamera camera;
-    private ScreenViewport viewport;
-    private Mover player;
-    private Array<Mover> enemies;
-    private Skin skin;
-    private Label fpsLabel;
-    public Label goalLabel;
-    public Label healthLabel;
-    private transient StringBuilder sb = new StringBuilder(16);
-    public Music backgroundMusic;
-    private int cap = 60;
+    /**
+     * This is the file name of the atlas of 2D assets used in the game. It uses
+     * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
+     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a mangled, pixelated skin originally by Raymond Buckley</a>.
+     * <br>
+     * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
+     */
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
+    /**
+     * This is the actual TextureAtlas of 2D assets used in the game. It uses
+     * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
+     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a mangled, pixelated skin originally by Raymond Buckley</a>.
+     * <br>
+     * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
+     */
+    private TextureAtlas atlas;
+    /**
+     * Animations taken from {@link #atlas} to be loaded in a more game-runtime-friendly format.
+     * Index 0 is front-facing idle animations.
+     * Index 1 is rear-facing idle animations.
+     * Index 2 is front-facing attack animations.
+     * Index 3 is rear-facing attack animations.
+     * Inside each of those four Arrays, there is an Array of many Animations of AtlasSprites, with each Animation for a
+     * different type of monster or character.
+     * <br>
+     * CUSTOM TO YOUR GAME.
+     */
+    private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
+    /**
+     * Used frequently here, this is the current location map that gameplay takes place in, which also stores the
+     * inhabitants of that level.
+     * <br>
+     * CUSTOM TO YOUR GAME.
+     */
+    private LocalMap map;
+    /**
+     * The camera we use to show things with an isometric, or for sticklers, "dimetric" camera projection.
+     * We can't use a PerspectiveCamera here, even with sort-of 3D positions, because it wouldn't be pixel-perfect.
+     */
+    private OrthographicCamera camera;
+    /**
+     * ScreenViewport is used here with a simple fraction for its {@link ScreenViewport#setUnitsPerPixel(float)}. Using
+     * 1f, 1f/2f, 1f/3f, 1f/4f, etc. will ensure pixels stay all square consistently, and don't form ugly artifacts.
+     */
+    private ScreenViewport viewport;
+    /**
+     * Mover represents any moving creature or hazard, and can be a player character or non-player character (NPC).
+     * This is the player, which has {@code npc = false;} and so won't move on their own.
+     */
+    private Mover player;
+    /**
+     * The enemies are stored in a simple Array. There aren't ever so many of them that the data structure could matter.
+     * There's currently no logic for an enemy receiving damage; the player just tries to avoid the orc enemies.
+     */
+    private Array<Mover> enemies;
+    /**
+     * Not currently used, but present in the assets.
+     * See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
+     * for more information on how to use a Skin.
+     */
+    private Skin skin;
+    /**
+     * Shows current frames per second on the screen; you can remove this in production.
+     */
+    private Label fpsLabel;
+    /**
+     * Shows how many goldfish you need to rescue, if you have "won" by saving all goldfish, or if you have "died" by
+     * taking 3 separate hits (you are hit by touching an enemy, which is always a green orc here).
+     * <br>
+     * CUSTOM TO YOUR GAME.
+     */
+    public Label goalLabel;
+    /**
+     * Only shows the current health of the player, using {@code "♥ "} for each point of health.
+     * <br>
+     * CUSTOM TO YOUR GAME.
+     */
+    public Label healthLabel;
+    /**
+     * Used to construct the current health string; recycled so it doesn't need to be recreated each time.
+     */
+    private static final StringBuilder sb = new StringBuilder(16);
+    /**
+     * This currently plays a public domain song by Komiku, "Road 4 Fight", the entire time.
+     * I hope it isn't too annoying to be playing on loop...
+     * <br>
+     * CUSTOM TO YOUR GAME.
+     */
+    public Music backgroundMusic;
+    /**
+     * Currently, pressing 'c' will toggle the framerate cap, so you can see if any physics changes are still
+     * framerate-independent.
+     */
+    private int cap = 60;
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 4;
     public static final int TILE_DEPTH = 8;
@@ -108,10 +205,10 @@ public class Main extends ApplicationAdapter {
             new Array<>(true, 16, Animation.class),
             new Array<>(true, 16, Animation.class));
         for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
-            /* Index 0 is front-facing idle animations. */
-            /* Index 1 is rear-facing idle animations. */
+            /* Index 0 is front-facing idle animations.   */
+            /* Index 1 is rear-facing idle animations.    */
             /* Index 2 is front-facing attack animations. */
-            /* Index 3 is rear-facing attack animations. */
+            /* Index 3 is rear-facing attack animations.  */
             animations.get(0).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+0)), new TextureAtlas.AtlasSprite(entities.get(outer+1))), Animation.PlayMode.LOOP));
             animations.get(1).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+4)), new TextureAtlas.AtlasSprite(entities.get(outer+5))), Animation.PlayMode.LOOP));
             animations.get(2).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+2)), new TextureAtlas.AtlasSprite(entities.get(outer+3))), Animation.PlayMode.LOOP));
