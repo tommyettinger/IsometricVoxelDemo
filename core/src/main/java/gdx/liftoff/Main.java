@@ -156,10 +156,6 @@ public class Main extends ApplicationAdapter {
      */
     public Label healthLabel;
     /**
-     * Used to construct the current health string; recycled so it doesn't need to be recreated each time.
-     */
-    private static final StringBuilder sb = new StringBuilder(16);
-    /**
      * This currently plays a public domain song by Komiku, "Road 4 Fight", the entire time.
      * I hope it isn't too annoying to be playing on loop...
      * <br>
@@ -353,16 +349,22 @@ public class Main extends ApplicationAdapter {
         map.fishSaved = 0;
         map.placeFish(seed, map.totalFish, animations);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
+        // Random initial position for the player.
         int rf = MathUtils.random(1, MAP_SIZE - 2), rg = MathUtils.random(1, MAP_SIZE - 2);
+        // Random character graphic for the player; id 0-3 will always be a human wearing blue.
         int id = MathUtils.random(3);
         player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
         map.addMover(player, PLAYER_W);
         enemies = new Array<>(ENEMY_COUNT);
         for (int i = 0; i < ENEMY_COUNT; i++) {
+            // enemies can be anywhere except the very edges of the map.
             rf = MathUtils.random(1, MAP_SIZE - 2);
             rg = MathUtils.random(1, MAP_SIZE - 2);
+            // id 4-7 will always be a green-skinned, brawny orc.
             id = MathUtils.random(4, 7);
             Mover enemy = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1.6f);
+            // We track enemies here as well as tracking them as general Movers in the map so that we can handle the
+            // semi-random movement of enemies when we update them in Main, without semi-randomly moving the player.
             enemies.add(enemy);
             map.addMover(enemy, NPC_W);
         }
@@ -371,18 +373,29 @@ public class Main extends ApplicationAdapter {
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
+        // handleInput() is where all keyboard input is handled. Mouse input isn't really handled right now, except to
+        // add or remove blocks as a bit of debugging play.
         handleInput(delta);
+        // Calling update() on a Mover makes them do all their logic for an unpaused game.
         player.update(delta);
         for(Mover e : enemies) e.update(delta);
 
+        // This bit of code gets a little complex to handle rotating the map...
+        // But rotating the map is so cool! You can do it by pressing '[' or ']' .
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
+        // Rotations stop on a 90-degree angle increment, stored as an int from 0 to 3.
         int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
 
+        // A rotation completes in half a second, which is quick enough to conceal some of the roughness during parts
+        // of the animation.
         map.setRotationDegrees(MathUtils.lerpAngleDeg(map.previousRotation, map.targetRotation,
             Math.min(TimeUtils.timeSinceMillis(animationStart) * 0.002f, 1f)));
+
+        // We sort the "everything" OrderedMap here using our custom comparator.
         final Array<Vector4> order = map.everything.orderedKeys();
         order.sort(comparator);
 
+        // Our current rotation index, in 90-degree increments, so from 0 to 3.
         int rotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
         if(prevRotationIndex != rotationIndex) {
             for (int i = 0, n = order.size; i < n; i++) {
@@ -394,18 +407,25 @@ public class Main extends ApplicationAdapter {
             }
         }
 
+        // When the rotation has finished, we set the previous rotation to what we just ended on.
         if(MathUtils.isEqual(map.rotationDegrees, map.targetRotation))
             map.previousRotation = map.targetRotation;
+        // Very dark blue for the background color.
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
+        // Vital to get things to display. I don't actually know what the "combined" matrix is here.
         batch.setProjectionMatrix(camera.combined);
+        // We need to apply() the viewport here in case it changed for any reason, such as from key inputs.
         viewport.apply();
         batch.begin();
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
+            // Updates each voxel in "everything" and then draws it with the parameters needed for rotation.
             map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
         }
 
         Vector3 pos = player.getPosition();
+        // Makes tempVector4 store the position we want to check: the players's location, rounded, at the fish depth.
+        // If there is anything at that position, it is a fish the player is touching, and so has rescued.
         map.setToFishPosition(tempVector4, pos.x, pos.y, pos.z);
         IsoSprite fish = map.everything.get(tempVector4);
         if(fish instanceof AnimatedIsoSprite && fish != player.visual){
@@ -416,6 +436,7 @@ public class Main extends ApplicationAdapter {
 
         fpsLabel.getText().clear();
         fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
+        // Allows the FPS label to be drawn with the correct width.
         fpsLabel.invalidate();
         goalLabel.draw(batch, 1f);
         fpsLabel.draw(batch, 1f);
@@ -582,12 +603,13 @@ public class Main extends ApplicationAdapter {
             healthLabel.setText("[FIREBRICK]:(");
         }
         else {
-            sb.clear();
-            sb.append("[SCARLET]");
+            healthLabel.getText().clear();
+            healthLabel.getText().append("[SCARLET]");
             for (int i = 0; i < player.health; i++) {
-                sb.append(" ♥");
+                healthLabel.getText().append(" ♥");
             }
-            healthLabel.setText(sb);
+            healthLabel.setText(healthLabel.getText().toString());
+            healthLabel.invalidate();
             updateFish();
         }
     }
