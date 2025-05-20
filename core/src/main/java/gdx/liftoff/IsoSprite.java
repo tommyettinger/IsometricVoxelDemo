@@ -21,32 +21,80 @@ import com.badlogic.gdx.utils.NumberUtils;
  * </ul>
  */
 public class IsoSprite implements Comparable<IsoSprite> {
+    /**
+     * The "cube side length" for one voxel.
+     */
     public static float UNIT = Main.TILE_HEIGHT;
+    /**
+     * The Sprite this wraps and knows how to display.
+     */
     public Sprite sprite;
-    public float f, g, h;
+    /**
+     * The f-coordinate, on the diagonal axis from "France to Finland".
+     */
+    public float f;
+    /**
+     * The g-coordinate, on the diagonal axis from "Germany to Greenland".
+     */
+    public float g;
+    /**
+     * The h-coordinate, on the vertical/elevation axis from "heel to head".
+     */
+    public float h;
 
+    /**
+     * Creates an IsoSprite with an empty {@link Sprite#Sprite()} for its visual.
+     */
     public IsoSprite() {
         this(new Sprite());
     }
 
+    /**
+     * Creates an IsoSprite with the given Sprite for its visual.
+     * @param sprite the Sprite to show
+     */
     public IsoSprite(Sprite sprite) {
         this.sprite = sprite;
     }
+
+    /**
+     * Creates an IsoSprite with the given Sprite for its visual and the given isometric tile position.
+     * @param sprite the Sprite to show
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     public IsoSprite(Sprite sprite, float f, float g, float h) {
         this.sprite = sprite;
         setPosition(f, g, h);
     }
 
+    /**
+     * Creates an IsoSprite with the given Sprite for its visual and the given isometric tile position.
+     * @param sprite the Sprite to show
+     * @param position an isometric tile position, storing f,g,h in the Vector3's x,y,z
+     */
     public IsoSprite(Sprite sprite, Vector3 position) {
         this.sprite = sprite;
         setPosition(position.x, position.y, position.z);
     }
 
+    /**
+     * Creates an IsoSprite with the given Sprite for its visual and the given isometric tile position.
+     * @param sprite the Sprite to show
+     * @param position an isometric tile position, storing f,g,h in the GridPoint3's x,y,z
+     */
     public IsoSprite(Sprite sprite, GridPoint3 position) {
         this.sprite = sprite;
         setPosition(position.x, position.y, position.z);
     }
 
+    /**
+     * Sets the position to the given isometric tile coordinates.
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     public void setPosition(float f, float g, float h) {
         this.f = f;
         this.g = g;
@@ -56,14 +104,29 @@ public class IsoSprite implements Comparable<IsoSprite> {
         sprite.setPosition(worldX, worldY);
     }
 
+    /**
+     * Sets the position to the given isometric tile coordinates.
+     * @param point an isometric tile position, storing f,g,h in the GridPoint3's x,y,z
+     */
     public void setPosition(GridPoint3 point) {
         setPosition(point.x, point.y, point.z);
     }
 
+    /**
+     * Sets the position to the given isometric tile coordinates.
+     * @param point an isometric tile position, storing f,g,h in the Vector3's x,y,z
+     */
     public void setPosition(Vector3 point) {
         setPosition(point.x, point.y, point.z);
     }
 
+    /**
+     * Sets the Sprite's origin-based position to the given isometric tile coordinates.
+     * @see Sprite#setOriginBasedPosition(float, float)
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     public void setOriginBasedPosition(float f, float g, float h) {
         this.f = f;
         this.g = g;
@@ -72,10 +135,19 @@ public class IsoSprite implements Comparable<IsoSprite> {
         float worldY = (f + g) * UNIT + h * (2 * UNIT);
         sprite.setOriginBasedPosition(worldX, worldY);
     }
+
+    /**
+     * Sets the Sprite's origin, used for {@link #setOriginBasedPosition(float, float, float)} and so on.
+     * @param originX x relative to the Sprite's position, in world coordinates
+     * @param originY y relative to the Sprite's position, in world coordinates
+     */
     public void setOrigin(float originX, float originY) {
         sprite.setOrigin(originX, originY);
     }
 
+    /**
+     * Sets the Sprite's origin to its center, as with {@link Sprite#setOriginCenter()}.
+     */
     public void setOriginCenter() {
         sprite.setOriginCenter();
     }
@@ -88,10 +160,19 @@ public class IsoSprite implements Comparable<IsoSprite> {
         return sprite.getOriginY();
     }
 
+    /**
+     * Gets the visual currently used for this IsoSprite.
+     * @return the Sprite this uses
+     */
     public Sprite getSprite() {
         return sprite;
     }
 
+    /**
+     * Sets the visual Sprite to the given parameter, first setting its position, its color, and its origin to match
+     * what this IsoSprite uses, then making the {@link #sprite} the same reference as the parameter.
+     * @param sprite a Sprite that will be modified to match this IsoSprite's color, position, and origin
+     */
     public void setSprite(Sprite sprite) {
         float worldX = (f - g) * (2 * UNIT);
         float worldY = (f + g) * UNIT + h * (2 * UNIT);
@@ -135,9 +216,19 @@ public class IsoSprite implements Comparable<IsoSprite> {
     public float getViewDistance() {
         return (h * 3 - f - g) + (f - g) * (1f/2048);
     }
-    public static float viewDistance(float f, float g, float h) {
-        return (h * 3 - f - g) + (f - g) * (1f/2048);
-    }
+
+    /**
+     * Calculates the distance from the camera to the given f,g,h position, using the given cos and sin of the rotation
+     * of the map around the given origin point.
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     * @param originF the f-coordinate of the rotational center of the map
+     * @param originG the g-coordinate of the rotational center of the map
+     * @param cosRotation the pre-calculated cosine of the map's rotation
+     * @param sinRotation the pre-calculated sine of the map's rotation
+     * @return the view distance to the given position, with the given rotation around the given origin
+     */
     public static float viewDistance(float f, float g, float h, float originF, float originG, float cosRotation, float sinRotation) {
         f -= originF;
         g -= originG;
@@ -194,6 +285,12 @@ public class IsoSprite implements Comparable<IsoSprite> {
         return this;
     }
 
+
+    /**
+     * Not actually used. We always use an explicit Comparator that takes rotations into account.
+     * @param other the object to be compared.
+     * @return a negative int, 0, or a positive int, depending on if the view distance for this is less than, equal to, or greater than other's view distance
+     */
     @Override
     public int compareTo(IsoSprite other) {
         return NumberUtils.floatToIntBits(getViewDistance() - other.getViewDistance() + 0f);
