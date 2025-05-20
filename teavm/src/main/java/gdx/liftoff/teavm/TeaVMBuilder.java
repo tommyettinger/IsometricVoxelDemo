@@ -7,6 +7,8 @@ import com.github.xpenatan.gdx.backends.teavm.config.plugins.TeaReflectionSuppli
 import com.github.xpenatan.gdx.backends.teavm.gen.SkipClass;
 import java.io.File;
 import java.io.IOException;
+
+import org.teavm.tooling.TeaVMTargetType;
 import org.teavm.tooling.TeaVMTool;
 import org.teavm.vm.TeaVMOptimizationLevel;
 
@@ -21,15 +23,21 @@ public class TeaVMBuilder {
         // Register any extra classpath assets here:
         // teaBuildConfiguration.additionalAssetsClasspathFiles.add("gdx/liftoff/asset.extension");
 
+        teaBuildConfiguration.classesToPreserve.add("com.badlogic.gdx.utils.Array");
+        teaBuildConfiguration.classesToPreserve.add("com.badlogic.gdx.utils.ArraySupplier");
         // Register any classes or packages that require reflection here:
-        // TeaReflectionSupplier.addReflectionClass("gdx.liftoff.reflect");
+        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.utils");
+        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.utils.reflect");
+        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.scenes.scene2d");
+        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.scenes.scene2d.ui");
 
         TeaVMTool tool = TeaBuilder.config(teaBuildConfiguration);
+        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
         tool.setMainClass(TeaVMLauncher.class.getName());
         // For many (or most) applications, using the highest optimization won't add much to build time.
         // If your builds take too long, and runtime performance doesn't matter, you can change FULL to SIMPLE .
-        tool.setOptimizationLevel(TeaVMOptimizationLevel.FULL);
-        tool.setObfuscated(true);
+        tool.setOptimizationLevel(TeaVMOptimizationLevel.ADVANCED);
+        tool.setObfuscated(false);
         TeaBuilder.build(tool);
     }
 }
