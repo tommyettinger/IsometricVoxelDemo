@@ -4,7 +4,6 @@ import com.github.xpenatan.gdx.backends.teavm.config.AssetFileHandle;
 import com.github.xpenatan.gdx.backends.teavm.config.TeaBuildConfiguration;
 import com.github.xpenatan.gdx.backends.teavm.config.TeaBuilder;
 import com.github.xpenatan.gdx.backends.teavm.config.plugins.TeaReflectionSupplier;
-import com.github.xpenatan.gdx.backends.teavm.gen.SkipClass;
 import java.io.File;
 import java.io.IOException;
 
@@ -13,7 +12,6 @@ import org.teavm.tooling.TeaVMTool;
 import org.teavm.vm.TeaVMOptimizationLevel;
 
 /** Builds the TeaVM/HTML application. */
-@SkipClass
 public class TeaVMBuilder {
     public static void main(String[] args) throws IOException {
         TeaBuildConfiguration teaBuildConfiguration = new TeaBuildConfiguration();
@@ -23,13 +21,7 @@ public class TeaVMBuilder {
         // Register any extra classpath assets here:
         // teaBuildConfiguration.additionalAssetsClasspathFiles.add("gdx/liftoff/asset.extension");
 
-        teaBuildConfiguration.classesToPreserve.add("com.badlogic.gdx.utils.Array");
-        teaBuildConfiguration.classesToPreserve.add("com.badlogic.gdx.utils.ArraySupplier");
         // Register any classes or packages that require reflection here:
-        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.utils");
-        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.utils.reflect");
-        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.scenes.scene2d");
-        TeaReflectionSupplier.addReflectionClass("com.badlogic.gdx.scenes.scene2d.ui");
 
         TeaVMTool tool = TeaBuilder.config(teaBuildConfiguration);
         tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);

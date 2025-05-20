@@ -20,7 +20,7 @@ License is [CC0](assets/Komiku%20-%20Road%204%20Fight%20-%20License.txt).
 - `core`: Main module with the application logic shared by all platforms.
 - `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
 - `android`: Android mobile platform. Needs Android SDK.
-- `teavm`: Experimental web platform using TeaVM and WebGL.
+- `teavm`: Web platform using TeaVM and WebGL.
 - `ios-moe`: iOS mobile backend using Multi-OS Engine.
 
 ## Gradle
