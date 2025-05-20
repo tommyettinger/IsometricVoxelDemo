@@ -29,6 +29,11 @@ import static gdx.liftoff.util.MiniNoise.GradientVectors.*;
  * If you request very distant points in space from this, you should not notice any patterns between inputs and outputs.
  * This is useful for making organic-looking maps, though you might need to get creative to turn one float into a piece
  * of map terrain!
+ * <br>
+ * This was adapted from <a href="https://github.com/tommyettinger/cringe">Cringe</a> and its ContinuousNoise class,
+ * which can also use the type of noise algorithm here, "Perlue Noise". This whole class was originally more than one
+ * file, and it's long because so much has been smashed together here. But, this file is at least standalone, requiring
+ * libGDX but nothing else.
  */
 public class MiniNoise {
 
@@ -52,10 +57,8 @@ public class MiniNoise {
      * A way to layer octaves of noise so most values are biased toward low values but "ridges" of high
      * values run across the noise. This can be a good way of highlighting the least-natural aspects of
      * some kinds of noise; Perlin Noise has mostly ridges along 45-degree angles,
-     * Simplex Noise has many ridges along a triangular grid, and so on. Foam Noise
-     * and Honey Noise do well with this mode, though, and look something like lightning or
-     * bubbling fluids, respectively. Using Foam or Honey will have this look natural, but Perlin in
-     * particular will look unnatural if the grid is visible.
+     * Simplex Noise has many ridges along a triangular grid, and so on. The Perlue Noise used here doesn't
+     * look nearly as unnatural as the Perlin and Simplex types that are more common.
      * <br>
      * Meant to be used with {@link #setMode(int)}.
      */
@@ -74,20 +77,52 @@ public class MiniNoise {
      */
     public static final String[] MODES = {"FBM", "Billow", "Ridged", "Warp"};
 
+    /**
+     * A ContinuousNoise always wraps a noise algorithm, which here is always a PerlueNoise.
+     * If you want a more general solution, you can use the very similar API in
+     * <a href="https://github.com/tommyettinger/cringe">Cringe</a>, a third-party dependency.
+     */
     public PerlueNoise wrapped;
+    /**
+     * If high, details show up very often, if low, details are stretched out and take longer to change.
+     * This works by multiplying the frequency with each coordinate to a noise call, like x, y, or z.
+     */
     public float frequency;
+    /**
+     * One of 0, 1, 2, or 3, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}.
+     */
     public int mode;
+    /**
+     * How many layers of noise with different frequencies to use. Using 2 octaves or more is necessary with
+     * {@link #WARP} mode, and other modes tend to look better with more octaves, but the more octaves you request, the
+     * slower the noise is to calculate, and there's typically no benefit to using more than 8 or so octaves here.
+     */
     protected int octaves;
 
+    /**
+     * Creates a MiniNoise with seed 123, frequency (1f/32f), FBM mode, and 1 octave.
+     */
     public MiniNoise() {
         this(123, 0.03125f, FBM, 1);
 
     }
 
+    /**
+     * Creates a MiniNoise with the given PerlueNoise to wrap, frequency (1f/32f), FBM mode, and 1 octave.
+     */
     public MiniNoise(PerlueNoise toWrap){
         this(toWrap, 0.03125f, FBM, 1);
     }
 
+    /**
+     * Creates a MiniNoise wrapping the given PerlueNoise, with the given frequency (which should usually be small, less
+     * than 0.5f), mode (which can be 0, 1, 2, or 3, and is usually a constant from this class), and octaves (usually 1
+     * to at most 8 or so).
+     * @param toWrap the PerlueNoise to wrap; this will use its seed
+     * @param frequency the desired frequency, which is always greater than 0.0f but only by a small amount
+     * @param mode the mode, which can be {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @param octaves how many layers of noise to use with different frequencies; usually between 1 and 8
+     */
     public MiniNoise(PerlueNoise toWrap, float frequency, int mode, int octaves){
         wrapped = toWrap;
         this.frequency = frequency;
@@ -95,6 +130,15 @@ public class MiniNoise {
         this.octaves = octaves;
     }
 
+    /**
+     * Creates a MiniNoise with the given seed, with the given frequency (which should usually be small, less
+     * than 0.5f), mode (which can be 0, 1, 2, or 3, and is usually a constant from this class), and octaves (usually 1
+     * to at most 8 or so).
+     * @param seed a PerlueNoise will be created for this to use with this seed
+     * @param frequency the desired frequency, which is always greater than 0.0f but only by a small amount
+     * @param mode the mode, which can be {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @param octaves how many layers of noise to use with different frequencies; usually between 1 and 8
+     */
     public MiniNoise(int seed, float frequency, int mode, int octaves){
         wrapped = new PerlueNoise(seed);
         this.frequency = frequency;
@@ -102,6 +146,10 @@ public class MiniNoise {
         this.octaves = octaves;
     }
 
+    /**
+     * Copies another MiniNoise, including copying its internal PerlueNoise.
+     * @param other another MiniNoise to copy
+     */
     public MiniNoise(MiniNoise other) {
         setWrapped(other.getWrapped().copy());
         setSeed(other.getSeed());
@@ -110,18 +158,36 @@ public class MiniNoise {
         setFractalOctaves(other.getFractalOctaves());
     }
 
+    /**
+     * Gets the internal PerlueNoise this wraps.
+     * @return a PerlueNoise, which is the only algorithm here
+     */
     public PerlueNoise getWrapped() {
         return wrapped;
     }
 
+    /**
+     * Sets the internal PerlueNoise this wraps.
+     * @param wrapped the PerlueNoise to wrap; it's the only algorithm here
+     */
     public void setWrapped(PerlueNoise wrapped) {
         this.wrapped = wrapped;
     }
 
+    /**
+     * High frequency makes details occur more often; low frequency makes details stretch out over a larger area.
+     * Typically, this is a low float, such as {@code 1f/32f}.
+     * @return the current frequency
+     */
     public float getFrequency() {
         return frequency;
     }
 
+    /**
+     * High frequency makes details occur more often; low frequency makes details stretch out over a larger area.
+     * Typically, this is a low float, such as {@code 1f/32f}.
+     * @param frequency the frequency to use
+     */
     public void setFrequency(float frequency) {
         this.frequency = frequency;
     }
@@ -142,15 +208,20 @@ public class MiniNoise {
         setFractalType(mode);
     }
 
+    /**
+     * Gets the current mode, which is {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}.
+     * @return an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     */
     public int getFractalType() {
         return mode;
     }
 
     /**
+     * Sets the current mode to one of {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}.
      * @param mode an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
      */
     public void setFractalType(int mode) {
-        this.mode = mode;
+        this.mode = (mode & 3);
     }
 
     /**
@@ -169,29 +240,49 @@ public class MiniNoise {
         setFractalOctaves(octaves);
     }
 
+    /**
+     * Gets how many octaves this uses to increase detail.
+     * @return how many octaves this uses to increase detail
+     */
     public int getFractalOctaves() {
         return octaves;
     }
 
     /**
+     * Sets how many octaves this uses to increase detail; always at least 1.
      * @param octaves how many octaves to use to increase detail; must be at least 1.
      */
     public void setFractalOctaves(int octaves) {
         this.octaves = Math.max(1, octaves);
     }
 
+    /**
+     *
+     * @return PerlueNoise's minimum dimension, which is 1.
+     */
     public int getMinDimension() {
         return wrapped.getMinDimension();
     }
 
+    /**
+     * @return PerlueNoise's maximum dimension, which is currently 4.
+     */
     public int getMaxDimension() {
         return wrapped.getMaxDimension();
     }
 
+    /**
+     * Used by Cringe, at least, to serialize its noise concisely. This doesn't really need to be used here.
+     * @return a short String describing what noise class this is
+     */
     public String getTag() {
         return "MiniNoise";
     }
 
+    /**
+     * Saves this MiniNoise to a String and returns it.
+     * @return a String that can be fed to {@link #stringDeserialize(String)} to recreate this MiniNoise
+     */
     public String stringSerialize() {
         return "`" + wrapped.seed + '~' +
                 frequency + '~' +
@@ -199,6 +290,11 @@ public class MiniNoise {
                 octaves + '`';
     }
 
+    /**
+     * Reassigns this MiniNoise to use the serialized state produced earlier from {@link #stringSerialize()}.
+     * @param data a String produced by {@link #stringSerialize()}
+     * @return this MiniNoise, after restoring the state in data
+     */
     public MiniNoise stringDeserialize(String data) {
         int pos = data.indexOf('`', data.indexOf('`', 2) + 1)+1;
         setWrapped(new PerlueNoise(MathSupport.intFromDec(data, 1, pos)));
@@ -208,6 +304,18 @@ public class MiniNoise {
         return this;
     }
 
+    /**
+     * Creates a MiniNoise from a String produced by {@link #stringSerialize()}.
+     * @param data a serialized String, typically produced by {@link #stringSerialize()}
+     * @return a new MiniNoise, using the restored state from data
+     */
+    public static PerlueNoise recreateFromString(String data) {
+        return new PerlueNoise(1).stringDeserialize(data);
+    }
+
+    /**
+     * @return returns a copy of this MiniNoise made with {@link #MiniNoise(MiniNoise)}
+     */
     public MiniNoise copy() {
         return new MiniNoise(this);
     }
@@ -221,6 +329,10 @@ public class MiniNoise {
                 '}';
     }
 
+    /**
+     * Gets a more readable version of toString(), with the mode named rather than shown as a number.
+     * @return a human-readable summary of this MiniNoise
+     */
     public String toHumanReadableString() {
         return getTag() + " wrapping (" + wrapped.toHumanReadableString() + "), with frequency " + frequency +
                 ", " + octaves + " octaves, and mode " + MODES[mode];
@@ -248,6 +360,11 @@ public class MiniNoise {
 
     // The big part.
 
+    /**
+     * 1D noise using the current seed, frequency, octaves, and mode.
+     * @param x 1D coordinate
+     * @return a float between -1 and 1
+     */
     public float getNoise(float x) {
         final int seed = wrapped.getSeed();
         switch (mode) {
@@ -259,6 +376,12 @@ public class MiniNoise {
         }
     }
 
+    /**
+     * 2D noise using the current seed, frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @return a float between -1 and 1
+     */
     public float getNoise(float x, float y) {
         final int seed = wrapped.getSeed();
         switch (mode) {
@@ -269,7 +392,13 @@ public class MiniNoise {
             case 3: return warp(x * frequency, y * frequency, seed);
         }
     }
-
+    /**
+     * 3D noise using the current seed, frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param z depth coordinate (can also be time)
+     * @return a float between -1 and 1
+     */
     public float getNoise(float x, float y, float z) {
         final int seed = wrapped.getSeed();
         switch (mode) {
@@ -281,6 +410,14 @@ public class MiniNoise {
         }
     }
 
+    /**
+     * 4D noise using the current seed, frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param z depth coordinate
+     * @param w higher-dimensional coordinate (time?)
+     * @return a float between -1 and 1
+     */
     public float getNoise(float x, float y, float z, float w) {
         final int seed = wrapped.getSeed();
         switch (mode) {
@@ -300,6 +437,12 @@ public class MiniNoise {
         return wrapped.getSeed();
     }
 
+    /**
+     * 1D noise forcing the given seed and using the current frequency, octaves, and mode.
+     * @param x 1D coordinate
+     * @param seed any int; must be the same between noise that should connect seamlessly
+     * @return a float between -1 and 1
+     */
     public float getNoiseWithSeed(float x, int seed) {
         switch (mode) {
             default:
@@ -310,6 +453,13 @@ public class MiniNoise {
         }
     }
 
+    /**
+     * 2D noise forcing the given seed and using the current frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param seed any int; must be the same between noise that should connect seamlessly
+     * @return a float between -1 and 1
+     */
     public float getNoiseWithSeed(float x, float y, int seed) {
         switch (mode) {
             default:
@@ -320,6 +470,14 @@ public class MiniNoise {
         }
     }
 
+    /**
+     * 3D noise forcing the given seed and using the current frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param z depth coordinate (can also be time)
+     * @param seed any int; must be the same between noise that should connect seamlessly
+     * @return a float between -1 and 1
+     */
     public float getNoiseWithSeed(float x, float y, float z, int seed) {
         switch (mode) {
             default:
@@ -330,6 +488,15 @@ public class MiniNoise {
         }
     }
 
+    /**
+     * 4D noise forcing the given seed and using the current frequency, octaves, and mode.
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param z depth coordinate
+     * @param w higher-dimensional coordinate (time?)
+     * @param seed any int; must be the same between noise that should connect seamlessly
+     * @return a float between -1 and 1
+     */
     public float getNoiseWithSeed(float x, float y, float z, float w, int seed) {
         switch (mode) {
             default:
@@ -340,7 +507,7 @@ public class MiniNoise {
         }
     }
 
-    // 1D
+    // 1D noise variants.
 
     protected float fbm(float x, int seed) {
         float sum = wrapped.getNoiseWithSeed(x, seed);
@@ -400,7 +567,7 @@ public class MiniNoise {
         return sum / (amp * ((1 << octaves) - 1));
     }
 
-    // 2D
+    // 2D noise variants.
 
     protected float fbm(float x, float y, int seed) {
         float sum = wrapped.getNoiseWithSeed(x, y, seed);
@@ -465,7 +632,7 @@ public class MiniNoise {
         return sum / (amp * ((1 << octaves) - 1));
     }
 
-    // 3D
+    // 3D noise variants.
 
     protected float fbm(float x, float y, float z, int seed) {
         float sum = wrapped.getNoiseWithSeed(x, y, z, seed);
@@ -537,7 +704,7 @@ public class MiniNoise {
         return sum / (amp * ((1 << octaves) - 1));
     }
 
-    // 4D
+    // 4D noise variants.
 
     protected float fbm(float x, float y, float z, float w, int seed) {
         float sum = wrapped.getNoiseWithSeed(x, y, z, w, seed);
