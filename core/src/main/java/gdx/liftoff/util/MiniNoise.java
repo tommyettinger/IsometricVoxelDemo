@@ -782,11 +782,11 @@ public class MiniNoise {
     }
 
     /**
-     * Stores arrays representing vectors on the unit hypersphere in 2D through 6D. This is used by {@link PerlueNoise},
+     * Stores arrays representing vectors on the unit hypersphere in 2D through 4D. This is used by {@link PerlueNoise},
      * as well as indirectly by all classes that use it. Each constant in this class stores 256
      * unit vectors in a 1D array, one after the next, but sometimes with padding.  See the docs for each constant for more
-     * information, but {@link #GRADIENTS_2D} and {@link #GRADIENTS_4D} have no padding, and the others have one to three
-     * ignored floats after each vector.
+     * information, but {@link #GRADIENTS_2D} and {@link #GRADIENTS_4D} have no padding, and {@link #GRADIENTS_3D} has
+     * one ignored float after each vector.
      */
     public static final class GradientVectors {
         /**
@@ -794,6 +794,7 @@ public class MiniNoise {
          */
         private GradientVectors() {}
 
+//<editor-fold defaultstate="collapsed" desc="Huge constant arrays">
         /**
          * 256 equidistant points on the 2D unit circle.
          * Each point is stored in 2 floats, and there no padding. The distance from each
@@ -1399,6 +1400,8 @@ public class MiniNoise {
                 +0.8761548996f, +0.1062743291f, -0.1077154949f, +0.4576633871f,
                 +0.5605144501f, -0.7617027164f, +0.0315162092f, +0.3234800994f,
         };
+//</editor-fold>
+
     }
 
     /**
@@ -1495,17 +1498,52 @@ public class MiniNoise {
             return new PerlueNoise(this.seed);
         }
 
+        /**
+         * Hashes x, y, and the seed, then uses that hash both to look up a gradient vector and as a value noise result.
+         * @param seed any int
+         * @param x x position of a lattice point
+         * @param y y position of a lattice point
+         * @param xd how far on x the requested point is from the lattice point
+         * @param yd how far on y the requested point is from the lattice point
+         * @return a float that's uh... close to 0, and not too much outside -1 to 1...
+         */
         protected static float gradCoord2D(int seed, int x, int y,
                                            float xd, float yd) {
             final int h = hashAll(x, y, seed);
             final int hash = h & (255 << 1);
             return (h * 0x1p-32f) + xd * GRADIENTS_2D[hash] + yd * GRADIENTS_2D[hash + 1];
         }
+
+        /**
+         * Hashes x, y, z, and the seed, then uses that hash both to look up a gradient vector and as a value noise result.
+         * @param seed any int
+         * @param x x position of a lattice point
+         * @param y y position of a lattice point
+         * @param z z position of a lattice point
+         * @param xd how far on x the requested point is from the lattice point
+         * @param yd how far on y the requested point is from the lattice point
+         * @param zd how far on z the requested point is from the lattice point
+         * @return a float that's uh... close to 0, and not too much outside -1 to 1...
+         */
         protected static float gradCoord3D(int seed, int x, int y, int z, float xd, float yd, float zd) {
             final int h = hashAll(x, y, z, seed);
             final int hash = h & (31 << 2);
             return (h * 0x1p-32f) + xd * GRADIENTS_3D[hash] + yd * GRADIENTS_3D[hash + 1] + zd * GRADIENTS_3D[hash + 2];
         }
+
+        /**
+         * Hashes x, y, z, w, and the seed, then uses that hash both to look up a gradient vector and as a value noise result.
+         * @param seed any int
+         * @param x x position of a lattice point
+         * @param y y position of a lattice point
+         * @param z z position of a lattice point
+         * @param w w position of a lattice point
+         * @param xd how far on x the requested point is from the lattice point
+         * @param yd how far on y the requested point is from the lattice point
+         * @param zd how far on z the requested point is from the lattice point
+         * @param wd how far on w the requested point is from the lattice point
+         * @return a float that's uh... close to 0, and not too much outside -1 to 1...
+         */
         protected static float gradCoord4D(int seed, int x, int y, int z, int w,
                                            float xd, float yd, float zd, float wd) {
             final int h = hashAll(x, y, z, w, seed);
@@ -1531,6 +1569,11 @@ public class MiniNoise {
             return x * mul / (float) Math.sqrt(x * x + add);
         }
 
+        /**
+         * Just calls {@link #getNoiseWithSeed(float, int)} using our internal seed.
+         * @param x a distance traveled; should change by less than 1 between calls, and should be less than about 10000
+         * @return a smoothly-interpolated swaying value between -1 and 1, both exclusive
+         */
         public float getNoise(final float x) {
             return getNoiseWithSeed(x, seed);
         }
@@ -1719,6 +1762,11 @@ public class MiniNoise {
             return this;
         }
 
+        /**
+         * Creates a PerlueNoise from a String produced by {@link #stringSerialize()}.
+         * @param data a serialized String, typically produced by {@link #stringSerialize()}
+         * @return a new PerlueNoise, using the restored state from data
+         */
         public static PerlueNoise recreateFromString(String data) {
             return new PerlueNoise(MathSupport.intFromDec(data, 1, data.indexOf('`', 1)));
         }
