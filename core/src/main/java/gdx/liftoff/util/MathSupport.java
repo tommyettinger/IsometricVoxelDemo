@@ -2,8 +2,14 @@ package gdx.liftoff.util;
 
 import com.badlogic.gdx.math.GridPoint2;
 
+/**
+ * Static utility methods and constants for basic math operations, and some not-so-basic ones.
+ */
 public final class MathSupport {
 
+    /**
+     * Cannot be instantiated.
+     */
     private MathSupport(){}
 
     /**
@@ -16,6 +22,19 @@ public final class MathSupport {
      */
     public static final float INVERSE_ROOT_2 = 1f / ROOT_2;
 
+    /**
+     * Sets {@code changing} to the point at the given {@code index} into the "R2 Sequence", a sequence of points that
+     * remain separated from each other while seeming random for many sequential indices. Scales the point so it fits
+     * between 0,0 (inclusive) and the given width and height (exclusive).
+     * <br>
+     * <a href="https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/">See this article</a>
+     * for more on the R2 sequence, including both pretty pictures and serious math.
+     * @param changing the GridPoint2 that will be modified
+     * @param index the index into the R2 sequence, often a small positive number but can be any long
+     * @param width the width of the area to potentially place {@code changing}
+     * @param height the height of the area to potentially place {@code changing}
+     * @return {@code changing}, after modifications
+     */
     public static GridPoint2 fillR2(GridPoint2 changing, long index, int width, int height) {
         long ix = index * 0xC13FA9A902A6328FL;
         long iy = index * 0x91E10DA5C79E7B1DL;
