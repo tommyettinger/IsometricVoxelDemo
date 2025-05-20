@@ -3,24 +3,53 @@ package gdx.liftoff;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
+/**
+ * A variant on {@link IsoSprite} that changes its visual Sprite based on an animation, typically a looping one.
+ */
 public class AnimatedIsoSprite extends IsoSprite {
+    /**
+     * The Animation of Sprite that determines which Sprite will be currently shown.
+     */
     public Animation<? extends Sprite> animation;
 
+    /**
+     * Creates an empty AnimatedIsoSprite with no animation set.
+     */
     private AnimatedIsoSprite() {
         super();
     }
 
+    /**
+     * Creates an AnimatedIsoSprite with the given Animation of Sprite, setting the initial visual to its first frame.
+     * @param animation an Animation of Sprite or subclasses of Sprite
+     */
     public AnimatedIsoSprite(Animation<? extends Sprite> animation) {
         super(animation.getKeyFrame(0, true));
         this.animation = animation;
     }
 
+    /**
+     * Creates an AnimatedIsoSprite with the given Animation of Sprite, setting the initial visual to its first frame.
+     * Places it at the given isometric tile position.
+     * @param animation an Animation of Sprite or subclasses of Sprite
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     public AnimatedIsoSprite(Animation<? extends Sprite> animation, float f, float g, float h) {
         super(animation.getKeyFrame(0, true));
         this.animation = animation;
         setPosition(f, g, h);
     }
 
+
+    /**
+     * Acts just like the superclass implementation, {@link IsoSprite#setPosition(float, float, float)}, but also sets
+     * each Sprite's position in the animation.
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     @Override
     public void setPosition(float f, float g, float h) {
         this.f = f;
@@ -33,6 +62,13 @@ public class AnimatedIsoSprite extends IsoSprite {
         }
     }
 
+    /**
+     * Acts just like the superclass implementation, {@link IsoSprite#setOriginBasedPosition(float, float, float)} , but
+     * also sets each Sprite's origin-based position in the animation.
+     * @param f isometric tile f-coordinate
+     * @param g isometric tile g-coordinate
+     * @param h isometric tile h-coordinate
+     */
     @Override
     public void setOriginBasedPosition(float f, float g, float h) {
         this.f = f;
@@ -45,6 +81,12 @@ public class AnimatedIsoSprite extends IsoSprite {
         }
     }
 
+    /**
+     * Acts just like the superclass implementation, {@link IsoSprite#setOrigin(float, float)}, but also sets each
+     * Sprite's origin in the animation.
+     * @param originX x relative to the Sprite's position, in world coordinates
+     * @param originY y relative to the Sprite's position, in world coordinates
+     */
     @Override
     public void setOrigin(float originX, float originY) {
         for (Sprite s : animation.getKeyFrames()) {
@@ -52,6 +94,10 @@ public class AnimatedIsoSprite extends IsoSprite {
         }
     }
 
+    /**
+     * Acts just like the superclass implementation, {@link IsoSprite#setOriginCenter()}, but also sets the origin to
+     * center for each Sprite in the animation.
+     */
     @Override
     public void setOriginCenter() {
         for (Sprite s : animation.getKeyFrames()) {
