@@ -102,21 +102,34 @@ public class Mover implements HasPosition3D {
      */
     public AnimatedIsoSprite visual;
 
-    public Mover(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int playerId,
+    /**
+     * Creates a Mover in the given LocalMap, drawing an index from animations, and using the given f,g,h position.
+     * @param map a LocalMap that this Mover exists in
+     * @param animations typically created in the main game class from a TextureAtlas
+     * @param index the index into the inner Array of animations
+     * @param fPos isometric tile f-coordinate
+     * @param gPos isometric tile g-coordinate
+     * @param hPos isometric tile h-coordinate
+     */
+    public Mover(LocalMap map, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations, int index,
                  float fPos, float gPos, float hPos) {
         this.map = map;
         this.position.set(fPos, gPos, hPos);
         this.accumulator = 0;
         this.currentDirection = 0; // Default: facing down
-        this.animationIndex = playerId;
+        this.animationIndex = index;
 
         this.animations = animations;
 
-        visual = new AnimatedIsoSprite(animations.get(currentDirection).get(playerId), fPos, gPos, hPos);
+        visual = new AnimatedIsoSprite(animations.get(currentDirection).get(index), fPos, gPos, hPos);
         id = ID_COUNTER++;
         npc = id > 1;
     }
 
+    /**
+     * Updates this Mover's movement, physics, appearance, and for NPCs, "AI" as much as it can be called that.
+     * @param deltaTime the amount of time in seconds since the last update
+     */
     public void update(float deltaTime) {
         totalMoveTime += deltaTime;
         if(npc){
@@ -157,12 +170,18 @@ public class Mover implements HasPosition3D {
         }
     }
 
+    /**
+     * If this Mover is midair, makes their velocity go more negative unless it has already reached terminal velocity.
+     */
     private void applyGravity() {
         if (!isGrounded) {
             velocity.z = Math.max(velocity.z + GRAVITY, MAX_GRAVITY); // Apply gravity to H axis (z in a Vector)
         }
     }
 
+    /**
+     * If this Mover is on the ground, makes their velocity suddenly spike upward, and makes them no longer grounded.
+     */
     public void jump() {
         if (isGrounded) {
             velocity.z = JUMP_FORCE; // Jump should affect H axis (heel to head, stored as z in a Vector)
@@ -170,6 +189,11 @@ public class Mover implements HasPosition3D {
         }
     }
 
+    /**
+     * Mostly meant for the player at this point, this checks if the player is currently invincible, and if they aren't,
+     * their health goes down by one, and they become invincible for two seconds. This also updates the health label
+     * with {@link Main#updateHealth()}.
+     */
     public void takeDamage() {
         if(totalMoveTime < invincibilityEndTime) return;
         health--;
@@ -181,6 +205,14 @@ public class Mover implements HasPosition3D {
         if(!npc) ((Main) Gdx.app.getApplicationListener()).updateHealth();
     }
 
+    /**
+     * Changes the velocity of this Mover in the given direction (as df and dg) at the given speed (which is a constant
+     * rate usually). The velocity is considered by {@link #update(float)}, which allows part of it to move the player
+     * based on delta time for that physics update.
+     * @param df the direction on the isometric tile f-axis
+     * @param dg the direction on the isometric tile g-axis
+     * @param speed how fast the movement should be
+     */
     public void move(float df, float dg, float speed) {
         boolean movingDiagonally = (df != 0 && dg != 0);
 
@@ -201,9 +233,12 @@ public class Mover implements HasPosition3D {
         else currentDirection = 0; // Down
     }
 
+    /**
+     * Every {@link #update(float)}, this checks for collisions before finally moving a Mover to its next location.
+     * If a collision occurs, the movement is refused. If a collision occurs between movers and this is the player, then
+     * the player takes damage.
+     */
     private void handleCollision() {
-//        isGrounded = false;
-
         // bottom of map
         final float groundLevel = 1f;
         if (position.z < groundLevel) {
@@ -353,24 +388,12 @@ public class Mover implements HasPosition3D {
             || map.getTile(position.x + 0.5f, position.y - 0.5f, position.z - 1) != -1
             || map.getTile(position.x + 0.5f, position.y + 0.5f, position.z - 1) != -1
         ) {
-//                    tempBox.min.set(MathUtils.floor(position.x)  , MathUtils.floor(position.y)  , MathUtils.round(position.z - 1));
-//                    tempBox.max.set(MathUtils.ceil (position.x)+1, MathUtils.ceil (position.y)+1, MathUtils.round(position.z));
             if (velocity.z < 0) {
 
-//                    tempBox.min.set(MathUtils.round(position.x - 0.5f), MathUtils.round(position.y - 0.5f), MathUtils.round(position.z - 1));
-//                    tempBox.max.set(MathUtils.round(position.x + 1.5f), MathUtils.round(position.y + 1.5f), MathUtils.round(position.z    ));
-//                    tempBox.update();
-                // If tempBox was set to a 2x2x1 area below the player, then we check if the player intersects
-                // (or even just touched) that floor area. If they do touch or intersect, the player snaps to stand
-                // on the area, h-movement (velocity.z) is stopped, isGrounded is true (enabling jumping) and the
-                // player's position for future collisions is updated.
-//                    if (playerBox.intersects(tempBox)) {
-//                        System.out.println("tempBox " + tempBox + " collided with playerBox " + playerBox);
-//                    if (position.z != (int) position.z) {
                 position.z = MathUtils.round(position.z);
-//                    }
                 isGrounded = true;
                 velocity.z = 0;
+                // If we start to overlap with another tile, force a jump to avoid an unwanted collision.
                 if(!lateralCollision) {
                     if     (map.getTile(position.x - 0.5f, position.y - 0.5f, position.z) != -1 ||
                             map.getTile(position.x - 0.5f, position.y + 0.5f, position.z) != -1 ||
@@ -401,6 +424,11 @@ public class Mover implements HasPosition3D {
         this.currentDirection = currentDirection;
     }
 
+    /**
+     * Puts this Mover into {@link LocalMap#everything} at the given depth modifier, such as {@link Main#PLAYER_W}.
+     * @param depth a depth modifier like {@link Main#NPC_W} or {@link Main#FISH_W}
+     * @return this Mover, for chaining
+     */
     public Mover place(float depth) {
         map.setEntity(position.x, position.y, position.z, depth, visual);
         return this;
