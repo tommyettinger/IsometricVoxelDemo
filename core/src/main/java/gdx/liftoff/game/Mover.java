@@ -165,7 +165,8 @@ public class Mover implements HasPosition3D {
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
-            if(totalMoveTime < invincibilityEndTime)
+            // uses not greater than or equal to so if invincibilityEndTime is NaN, the player will always be invincible
+            if(!(totalMoveTime >= invincibilityEndTime))
                 visual.sprite.setAlpha(Math.min(Math.max(MathUtils.sin(totalMoveTime * 100f) * 0.75f + 0.5f, 0f), 1f));
             else
                 visual.sprite.setAlpha(1f);
@@ -197,7 +198,8 @@ public class Mover implements HasPosition3D {
      * with {@link Main#updateHealth()}.
      */
     public void takeDamage() {
-        if(totalMoveTime < invincibilityEndTime) return;
+        // uses not greater than or equal to so if invincibilityEndTime is NaN, the player will always be invincible
+        if(!(totalMoveTime >= invincibilityEndTime)) return;
         health--;
         if(health <= 0) {
             if(npc) map.movers.entities.removeValue(this, true);
@@ -205,6 +207,15 @@ public class Mover implements HasPosition3D {
             invincibilityEndTime = totalMoveTime + 2f;
         }
         if(!npc) ((Main) Gdx.app.getApplicationListener()).updateHealth();
+    }
+
+    /**
+     * Makes this mover invincible for the given time in seconds. If duration is {@link Float#NaN}, the invincibility
+     * will be permanent.
+     * @param duration in seconds; may be {@link Float#NaN} to make invincibility permanent
+     */
+    public void makeInvincible(float duration) {
+        invincibilityEndTime = totalMoveTime + duration;
     }
 
     /**
@@ -249,6 +260,7 @@ public class Mover implements HasPosition3D {
             isGrounded = true;
         }
 
+        map.movers.colliding.clear();
         boolean lateralCollision = false;
         // tile collision from the side, one axis
         if (velocity.x >= 0 &&

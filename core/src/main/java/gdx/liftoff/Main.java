@@ -646,8 +646,10 @@ public class Main extends ApplicationAdapter {
      */
     public void updateFish() {
         if(player.health > 0) {
-            if (map.totalFish == map.fishSaved)
+            if (map.totalFish == map.fishSaved) {
                 goalLabel.setText("YOU SAVED THEM ALL! Great job!");
+                player.makeInvincible(Float.NaN);
+            }
             else
                 goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
                     ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
