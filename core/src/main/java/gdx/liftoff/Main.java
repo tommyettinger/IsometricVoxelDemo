@@ -132,12 +132,6 @@ public class Main extends ApplicationAdapter {
      */
     private Array<Mover> enemies;
     /**
-     * Not currently used, but present in the assets.
-     * See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
-     * for more information on how to use a Skin.
-     */
-    private Skin skin;
-    /**
      * Shows current frames per second on the screen; you can remove this in production.
      */
     private Label fpsLabel;
@@ -270,8 +264,9 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void create() {
-        // Change this to LOG_ERROR or LOG_NONE when releasing anything.
-        Gdx.app.setLogLevel(Application.LOG_INFO);
+        // You can use LOG_INFO in development, but change this to LOG_ERROR or LOG_NONE when releasing anything.
+//        Gdx.app.setLogLevel(Application.LOG_INFO);
+        Gdx.app.setLogLevel(Application.LOG_ERROR);
 
         // Create and play looping background music.
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("Komiku - Road 4 Fight.ogg"));
@@ -288,17 +283,25 @@ public class Main extends ApplicationAdapter {
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
         // This step will be different for every game's assets.
-        animations = Array.with(
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class),
-            new Array<>(true, 16, Animation.class));
+        animations = new Array<>(4);
+        // Apologies for the duplicated lines; these use libGDX 1.13.5's preferred way of initializing an Array.
+        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation[]::new));
+        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation[]::new));
+        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation[]::new));
+        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation[]::new));
+        // Entities are stored in an odd order because of the tile sheet originally used for the atlas.
+        // The original tile sheet is stored in the development repo for this demo:
+        // https://github.com/tommyettinger/IsometricVoxelDemo/blob/a9c31f3891567958c3a4b581772defa2e902a5af/raw-assets/isometric-trpg-originals/IsometricTRPGAssetPack_Entities.png?raw=true
+        // It stores each 2-frame animation on the same row as another animation, and the next row has backwards-facing
+        // versions of the forwards-facing animations above them. The tile sheet determined what indices each
+        // AtlasRegion received, so we have to keep the tricky numbering convention. Your own game will probably have
+        // different art anyway!
         for (int i = 0, outer = 0; i < 16; i++, outer += 8) {
             /* Index 0 is front-facing idle animations.   */
             /* Index 1 is rear-facing idle animations.    */
             /* Index 2 is front-facing attack animations. */
             /* Index 3 is rear-facing attack animations.  */
-            animations.get(0).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+0)), new TextureAtlas.AtlasSprite(entities.get(outer+1))), Animation.PlayMode.LOOP));
+            animations.get(0).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer  )), new TextureAtlas.AtlasSprite(entities.get(outer+1))), Animation.PlayMode.LOOP));
             animations.get(1).add(new Animation<>(0.4f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+4)), new TextureAtlas.AtlasSprite(entities.get(outer+5))), Animation.PlayMode.LOOP));
             animations.get(2).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+2)), new TextureAtlas.AtlasSprite(entities.get(outer+3))), Animation.PlayMode.LOOP));
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
@@ -317,19 +320,24 @@ public class Main extends ApplicationAdapter {
         regenerate(
             /* The seed will change after just over one hour, and will stay the same for over an hour. */
             TimeUtils.millis() >>> 22);
-        // The skin isn't used here much, but it is ready for more widgets to be used.
-        skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
-        // The goal label changes when updateFish() or updateHealth() is called.
+
+        // Not currently used, but present in the assets.
+        // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
+        // for more information on how to use a Skin.
+        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        // The goal label text changes when updateFish() or updateHealth() is called.
         goalLabel = new Label("", skin);
         goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
-        // The FPS label can be removed if you want in production.
-        fpsLabel = new Label("0 FPS", skin);
-        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
+        // It shows " :( " if the player reaches 0 health, using darker red.
         healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
         healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
+
+        // The FPS label can be removed if you want in production.
+        fpsLabel = new Label("0 FPS", skin);
+        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
     }
 
     public void regenerate(long seed) {

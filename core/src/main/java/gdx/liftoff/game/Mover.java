@@ -260,6 +260,7 @@ public class Mover implements HasPosition3D {
             isGrounded = true;
         }
 
+        // If there was an earlier collision, it shouldn't affect the current frame.
         map.movers.colliding.clear();
         boolean lateralCollision = false;
         // tile collision from the side, one axis
@@ -275,7 +276,10 @@ public class Mover implements HasPosition3D {
                 velocity.x = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.y >= 0 &&
             (!map.isValid(position.x, position.y + 1, position.z) ||
@@ -289,7 +293,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.x <= 0 &&
             (!map.isValid(position.x - 1, position.y, position.z) ||
@@ -303,7 +310,10 @@ public class Mover implements HasPosition3D {
                 velocity.x = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.y <= 0 &&
             (!map.isValid(position.x, position.y - 1, position.z) ||
@@ -317,7 +327,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
 
         // tile collision from the side, two axes
@@ -337,7 +350,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.x > 0 && velocity.y < 0 &&
             (!map.isValid(position.x + 1, position.y - 1, position.z) ||
@@ -355,7 +371,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.x < 0 && velocity.y > 0 &&
             (!map.isValid(position.x - 1, position.y + 1, position.z) ||
@@ -373,7 +392,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
         if (velocity.x < 0 && velocity.y < 0 &&
             (!map.isValid(position.x - 1, position.y - 1, position.z) ||
@@ -391,7 +413,10 @@ public class Mover implements HasPosition3D {
                 velocity.y = 0;
                 lateralCollision = true;
             }
-            if(!npc && map.movers.colliding.notEmpty()) takeDamage();
+            if(!npc && map.movers.colliding.notEmpty()) {
+                takeDamage();
+                map.movers.colliding.clear();
+            }
         }
 
 
