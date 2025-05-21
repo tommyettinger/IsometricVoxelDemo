@@ -66,16 +66,17 @@ public class Mover implements HasPosition3D {
      */
     private transient float accumulator;
     /**
-     * The amount of time this Mover has been on-screen and able to move. Used for both the invincibility flash for the
-     * player when damaged, and to determine the meandering path of NPCs.
+     * The amount of time, in seconds, this Mover has been on-screen and able to move. Used for both the invincibility
+     * flash for the player when damaged, and to determine the meandering path of NPCs.
      */
     private transient float totalMoveTime = 0f;
     /**
-     * If the player is invincible due to just taking damage, this will be greater than {@link #totalMoveTime}.
+     * If the player is invincible due to just taking damage, this timestamp (in seconds) will be greater than
+     * {@link #totalMoveTime}. The player is also invincible when they first spawn.
      */
     private transient float invincibilityEndTime = -100f;
     /**
-     * An int denoting the current facing direction of the sprite and whether it is attaking. 0 and 1 are facing down
+     * An int denoting the current facing direction of the sprite and whether it is attacking. 0 and 1 are facing down
      * and up, respectively, without attacking, and 2 and 3 are down and up, respectively, while attacking.
      */
     private int currentDirection;
@@ -124,6 +125,7 @@ public class Mover implements HasPosition3D {
         visual = new AnimatedIsoSprite(animations.get(currentDirection).get(index), fPos, gPos, hPos);
         id = ID_COUNTER++;
         npc = id > 1;
+        if(!npc) invincibilityEndTime = totalMoveTime + 2f;
     }
 
     /**
