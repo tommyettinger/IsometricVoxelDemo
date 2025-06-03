@@ -34,7 +34,18 @@ import static gdx.liftoff.util.MiniNoise.GradientVectors.*;
  * which can also use the type of noise algorithm here, "Perlue Noise". This whole class was originally more than one
  * file, and it's long because so much has been smashed together here. But, this file is at least standalone, requiring
  * libGDX but nothing else.
+ * <br>
+ * If you are using this project as a basis for your own game, it probably makes more sense to depend on one of:
+ * <ul>
+ *     <li><a href="https://github.com/tommyettinger/cringe">Cringe</a></li>
+ *     <li><a href="https://github.com/czyzby/noise4j">Noise4J</a></li>
+ *     <li><a href="https://github.com/SudoPlayGames/Joise">Joise</a></li>
+ *     <li><a href="https://github.com/yellowstonegames/SquidSquad">SquidSquad</a> (maybe)</li>
+ * </ul>
+ * And to use any of those libraries for their more robust continuous noise code.
+ * Each of the suggested libraries is an option in gdx-liftoff's third-party extensions.
  */
+@SuppressWarnings("DefaultNotLastCaseInSwitch")
 public class MiniNoise {
 
     /**
@@ -194,7 +205,7 @@ public class MiniNoise {
 
     /**
      * Wraps {@link #getFractalType()}.
-     * @return an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @return an int between 0 and 3, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
      */
     public int getMode() {
         return getFractalType();
@@ -202,7 +213,7 @@ public class MiniNoise {
 
     /**
      * Wraps {@link #setFractalType(int)}
-     * @param mode an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @param mode an int between 0 and 3, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
      */
     public void setMode(int mode) {
         setFractalType(mode);
@@ -210,7 +221,7 @@ public class MiniNoise {
 
     /**
      * Gets the current mode, which is {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}.
-     * @return an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @return an int between 0 and 3, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
      */
     public int getFractalType() {
         return mode;
@@ -218,7 +229,7 @@ public class MiniNoise {
 
     /**
      * Sets the current mode to one of {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}.
-     * @param mode an int between 0 and 4, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
+     * @param mode an int between 0 and 3, corresponding to {@link #FBM}, {@link #BILLOW}, {@link #RIDGED}, or {@link #WARP}
      */
     public void setFractalType(int mode) {
         this.mode = (mode & 3);
@@ -1570,7 +1581,7 @@ public class MiniNoise {
         }
 
         /**
-         * Just calls {@link #getNoiseWithSeed(float, int)} using our internal seed.
+         * Just calls {@link #getNoiseWithSeed(float, int)} using our internal {@link #seed}.
          * @param x a distance traveled; should change by less than 1 between calls, and should be less than about 10000
          * @return a smoothly-interpolated swaying value between -1 and 1, both exclusive
          */
@@ -1598,10 +1609,14 @@ public class MiniNoise {
             // to avoid frequent multiplication and replace it with addition by constants, we track 3 variables, each of
             // which updates with a different large, negative long increment. when we want to get a result, we just XOR
             // m, n, and o, and use only the upper bits (by multiplying by a tiny fraction).
+            // the multipliers used for m, n, and o are each 2 to the 64 divided by "very irrational numbers" or their
+            // powers, with these three numbers all part of a related series.
             final long m = s * 0xD1B54A32D192ED03L;
             final long n = s * 0xABC98388FB8FAC03L;
             final long o = s * 0x8CB92BA72F3D8DD7L;
 
+            // each of the complicated hex constants is a multiple of a "very irrational" multiplier from above.
+            // a uses 0 times the m, n, or o multiplier, b uses 1 times that, c uses 2 times that, and d uses 3 times.
             final float a = (m ^ n ^ o);
             final float b = (m + 0xD1B54A32D192ED03L ^ n + 0xABC98388FB8FAC03L ^ o + 0x8CB92BA72F3D8DD7L);
             final float c = (m + 0xA36A9465A325DA06L ^ n + 0x57930711F71F5806L ^ o + 0x1972574E5E7B1BAEL);
@@ -1616,11 +1631,23 @@ public class MiniNoise {
             return (x * (x * x * p + x * (a - b - p) + c - a) + b) * 7.228014E-20f;
         }
 
-
+        /**
+         * Uses the {@link #seed} of this PerlueNoise
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @return a float between -1 and 1
+         */
         public float getNoise(final float x, final float y) {
             return getNoiseWithSeed(x, y, seed);
         }
 
+        /**
+         *
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @param seed may be any int; should be the same between calls to the same area of noise
+         * @return a float between -1 and 1
+         */
         public float getNoiseWithSeed(float x, float y, final int seed) {
             final int
                     xi = floor(x), x0 = xi * X2,
@@ -1635,10 +1662,25 @@ public class MiniNoise {
                                     ya) * SCALE2, EQ_ADD_2, EQ_MUL_2);//* 0.875;// * 1.4142;
         }
 
+        /**
+         * Uses the {@link #seed} of this PerlueNoise
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @param z z-coordinate; usually different by a small fraction between calls
+         * @return a float between -1 and 1
+         */
         public float getNoise(final float x, final float y, final float z) {
             return getNoiseWithSeed(x, y, z, seed);
         }
 
+        /**
+         *
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @param z z-coordinate; usually different by a small fraction between calls
+         * @param seed may be any int; should be the same between calls to the same area of noise
+         * @return a float between -1 and 1
+         */
         public float getNoiseWithSeed(float x, float y, float z, final int seed) {
             final int
                     xi = floor(x), x0 = xi * X3,
@@ -1675,10 +1717,27 @@ public class MiniNoise {
                                      za) * SCALE3, EQ_ADD_3, EQ_MUL_3); // 1.0625f
         }
 
+        /**
+         * Uses the {@link #seed} of this PerlueNoise
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @param z z-coordinate; usually different by a small fraction between calls
+         * @param w w-coordinate; usually different by a small fraction between calls
+         * @return a float between -1 and 1
+         */
         public float getNoise(final float x, final float y, final float z, final float w) {
             return getNoiseWithSeed(x, y, z, w, seed);
         }
 
+        /**
+         *
+         * @param x x-coordinate; usually different by a small fraction between calls
+         * @param y y-coordinate; usually different by a small fraction between calls
+         * @param z z-coordinate; usually different by a small fraction between calls
+         * @param w w-coordinate; usually different by a small fraction between calls
+         * @param seed may be any int; should be the same between calls to the same area of noise
+         * @return a float between -1 and 1
+         */
         public float getNoiseWithSeed(float x, float y, float z, float w, final int seed) {
             final int
                     xi = floor(x), x0 = xi * X4,
