@@ -483,7 +483,7 @@ public class Main extends ApplicationAdapter {
         float rf = c * df + s * dg;
         float rg = c * dg - s * df;
 
-        player.move(rf, rg, Mover.MOVE_SPEED);
+        player.move(rf, rg, Mover.PC_MOVE_SPEED);
 
         // Whee! Space or Numpad 0 or 5 make the player character jump really high.
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)

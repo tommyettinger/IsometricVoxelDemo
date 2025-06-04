@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.Main;
@@ -38,6 +37,7 @@ public class Mover implements HasPosition3D {
     public boolean isGrounded;
     /**
      * The unique identifier for this Mover; this is usually a sequential int starting at 1, where 1 is the player only.
+     * {@link #ID_COUNTER} is usually used to determine this, and reset when the map changes.
      */
     public final int id;
 
@@ -48,16 +48,21 @@ public class Mover implements HasPosition3D {
 
     /**
      * Each Mover knows what map it is on, and uses this to check for collisions with terrain and other Movers.
+     * This is "transient" to avoid any infinite loops while saving or loading a Mover to file.
      */
     private transient LocalMap map;
 
     /**
      * Typically calculated at game start in the main game class, this is an Array of four groups of sprite Animations,
      * with each group referring to a different facing ({@link #currentDirection}) and whether it is attacking.
+     * <br>
+     * This will likely need to change if the assets change.
      */
     private final Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     /**
      * The index into the inner Arrays of {@link #animations}, determining which creature this appears as.
+     * <br>
+     * This may need to change if the assets change.
      */
     public final int animationIndex;
     /**
@@ -78,6 +83,8 @@ public class Mover implements HasPosition3D {
     /**
      * An int denoting the current facing direction of the sprite and whether it is attacking. 0 and 1 are facing down
      * and up, respectively, without attacking, and 2 and 3 are down and up, respectively, while attacking.
+     * <br>
+     * This will likely need to change if the assets change.
      */
     private int currentDirection;
 
@@ -86,11 +93,29 @@ public class Mover implements HasPosition3D {
      */
     public int health = 3;
 
-    // These constants are hard to adjust, but can be changed to fit your game, very carefully.
+    /**
+     * Added to velocity on the h-axis (or z-axis) when a Mover is in the air.
+     * <br>
+     * These constants are hard to adjust, but can be changed to fit your game, very carefully.
+     */
     private static final float GRAVITY = -0.04f;
+    /**
+     * The terminal velocity a falling Mover can reach on the h-axis due to gravity.
+     * <br>
+     * These constants are hard to adjust, but can be changed to fit your game, very carefully.
+     */
     private static final float MAX_GRAVITY = -0.3f;
+    /**
+     * When a Mover jumps, their h-axis velocity is set to this immediately.
+     */
     private static final float JUMP_FORCE = 0.6f;
-    public static final float MOVE_SPEED = 0.15f;
+    /**
+     * May be adjusted to make the player character move faster or slower.
+     */
+    public static final float PC_MOVE_SPEED = 0.15f;
+    /**
+     * May be adjusted to make all NPCs move faster or slower.
+     */
     public static final float NPC_MOVE_SPEED = 0.07f;
 
     /**
@@ -130,12 +155,22 @@ public class Mover implements HasPosition3D {
 
     /**
      * Updates this Mover's movement, physics, appearance, and for NPCs, "AI" as much as it can be called that.
+     * <br>
+     * Chasing NPCs would require some additional dependency, such as gdx-ai (which is hard to use for pathfinding),
+     * simple-graphs (which is definitely simpler to use), or Gand (which is very close to simple-graphs with some extra
+     * features added and a key feature removed). This project only depends on libGDX by default.
+     * Alternatively, you could just average the direction to the player and the random direction this already gets for
+     * NPC movement, and NPCs would "lurch" in the rough direction of the player.
      * @param deltaTime the amount of time in seconds since the last update
      */
     public void update(float deltaTime) {
         totalMoveTime += deltaTime;
+        // NPCs move in meandering, lazily-changing paths with no rhyme or reason.
+        // If you include a pathfinding library as a dependency, then you can use that to make NPCs chase the PC.
         if(npc){
+            // Gets 1D noise (as a wiggly line, essentially) for distance to move on the f axis...
             float df = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.7548f, id);
+            // and on the g axis, as a different wiggly line. These values are always between -1 and 1.
             float dg = MiniNoise.PerlueNoise.instance.getNoiseWithSeed(totalMoveTime * 1.5698f, ~id);
             float c = map.cosRotation;
             float s = map.sinRotation;
@@ -166,6 +201,7 @@ public class Mover implements HasPosition3D {
             map.everything.remove(tempVectorA);
             map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
             // uses not greater than or equal to so if invincibilityEndTime is NaN, the player will always be invincible
+            // we set the player to be permanently invincible when they win.
             if(!(totalMoveTime >= invincibilityEndTime))
                 visual.sprite.setAlpha(Math.min(Math.max(MathUtils.sin(totalMoveTime * 100f) * 0.75f + 0.5f, 0f), 1f));
             else
@@ -254,6 +290,7 @@ public class Mover implements HasPosition3D {
     private void handleCollision() {
         // bottom of map
         final float groundLevel = 1f;
+        // a mover can't move below the lowest tiles.
         if (position.z < groundLevel) {
             position.z = groundLevel;
             velocity.z = 0;
@@ -263,6 +300,10 @@ public class Mover implements HasPosition3D {
         // If there was an earlier collision, it shouldn't affect the current frame.
         map.movers.colliding.clear();
         boolean lateralCollision = false;
+
+        // these blocks are, sadly, mostly-repeated code.
+        // Each block defines lo and hi differently, and checks them against different axes.
+
         // tile collision from the side, one axis
         if (velocity.x >= 0 &&
             (!map.isValid(position.x + 1, position.y, position.z) ||
@@ -332,6 +373,10 @@ public class Mover implements HasPosition3D {
                 map.movers.colliding.clear();
             }
         }
+
+        // these blocks define both loX and loY, and hiX/hiY, because they involve collisions on two axes.
+        // x and y can be considered equivalent to f and g here, but because this code could be used for
+        // non-isometric games, this uses x and y here.
 
         // tile collision from the side, two axes
         if (velocity.x > 0 && velocity.y > 0 &&
@@ -421,7 +466,7 @@ public class Mover implements HasPosition3D {
 
 
         // Here, we look for any lower-elevation tile in the four possible tiles below the player.
-        // If any are solid, tempBox is set to a 1x1x1 or 2x2x1 tile area below the player.
+        // If any are solid, and if the Mover is falling, we may stop them before they overlap the ground.
         if (   map.getTile(position.x - 0.5f, position.y - 0.5f, position.z - 1) != -1
             || map.getTile(position.x - 0.5f, position.y + 0.5f, position.z - 1) != -1
             || map.getTile(position.x + 0.5f, position.y - 0.5f, position.z - 1) != -1
@@ -443,6 +488,7 @@ public class Mover implements HasPosition3D {
                 }
             }
         } else {
+            // If nothing is below the Mover in the 4 nearby cells below, they are falling.
             isGrounded = false;
         }
     }
@@ -465,36 +511,13 @@ public class Mover implements HasPosition3D {
 
     /**
      * Puts this Mover into {@link LocalMap#everything} at the given depth modifier, such as {@link Main#PLAYER_W}.
+     * If a Mover's {@link #position} changes any coordinates, this should be called when those changes are complete.
      * @param depth a depth modifier like {@link Main#NPC_W} or {@link Main#FISH_W}
      * @return this Mover, for chaining
      */
     public Mover place(float depth) {
         map.setEntity(position.x, position.y, position.z, depth, visual);
         return this;
-    }
-
-    /**
-     * Not currently used, but this can test two BoundingBoxes to see if they are not touching at all on x and y (they
-     * must not be overlapping or equal), but if z is overlapping or equal this considers it to be intersecting.
-     * @param a a BoundingBox
-     * @param b a BoundingBox
-     * @return true if a and b overlap on x or y, and either touch or overlap on z
-     */
-    public static boolean intersectsExclusiveLateral (BoundingBox a, BoundingBox b) {
-        if (!a.isValid() || !b.isValid()) return false;
-
-        // test using SAT (separating axis theorem)
-
-        float lx = Math.abs(a.getCenterX() - b.getCenterX());
-        float sumX = (a.getWidth() / 2.0f) + (b.getWidth() / 2.0f);
-
-        float ly = Math.abs(a.getCenterY() - b.getCenterY());
-        float sumY = (a.getHeight() / 2.0f) + (b.getHeight() / 2.0f);
-
-        float lz = Math.abs(a.getCenterZ() - b.getCenterZ());
-        float sumZ = (a.getDepth() / 2.0f) + (b.getDepth() / 2.0f);
-
-        return (lx < sumX && ly < sumY && lz <= sumZ);
     }
 
     public Vector3 getPosition() {
