@@ -565,7 +565,8 @@ public class Main extends ApplicationAdapter {
         // Because the arrow keys, as well as I and O, can change the camera, we update it here.
         camera.update();
 
-        // These are sort-of present for debugging.
+        /*
+        // These are sort-of present (in a block comment) for debugging.
         // Left-clicking the top of a voxel will stack a random voxel on it.
         // Right-clicking the top of a voxel will remove it.
         if (Gdx.input.justTouched()) {
@@ -586,12 +587,16 @@ public class Main extends ApplicationAdapter {
                 }
             }
         }
+        */
     }
 
     /**
      * Used to take a screen position and find the isometric tile position of the voxel shown at that screen position.
      * This returns {@link #isoTempVector} and modifies it every time this is called, so you should use its value
      * immediately or set() it into another Vector3.
+     * <br>
+     * This is only used in a comment here, but if you uncomment the end of {@link #handleInput(float)}, then this will
+     * be in use, and clicking the top of a block will use this method to figure out which block was clicked.
      * @param screenX screen coordinate, horizontal
      * @param screenY screen coordinate, vertical; note that this uses y-down by libGDX convention
      * @return an isometric tile position of a voxel or an empty space at ground level; always {@link #isoTempVector}
@@ -619,6 +624,7 @@ public class Main extends ApplicationAdapter {
 
     /**
      * Currently unused; converts an un-rotated isometric tile position to a world position in viewport units.
+     * Because this doesn't understand rotation, it isn't as useful.
      * World positions use y-up.
      * @param f France to Finland axis
      * @param g Germany to Greenland axis
@@ -632,14 +638,15 @@ public class Main extends ApplicationAdapter {
     }
 
     /**
-     *
-     * @param screenX world position, horizontal in viewport units
-     * @param screenY world position; vertical in viewport units; uses y-up like most of libGDX
+     * Currently unused; converts a world position in viewport units to an un-rotated isometric tile position.
+     * Because this doesn't understand rotation, it isn't as useful.
+     * @param worldX world position, horizontal in viewport units
+     * @param worldY world position; vertical in viewport units; uses y-up like most of libGDX
      * @return {@link #isoTempVector}, modified in-place and returned directly
      */
-    public static Vector3 worldToIso(float screenX, float screenY) {
-        float f = screenY * (0.5f / TILE_HEIGHT) + screenX * (0.5f / TILE_WIDTH) + 1;
-        float g = screenY * (0.5f / TILE_HEIGHT) - screenX * (0.5f / TILE_WIDTH) + 1;
+    public static Vector3 worldToIso(float worldX, float worldY) {
+        float f = worldY * (0.5f / TILE_HEIGHT) + worldX * (0.5f / TILE_WIDTH) + 1;
+        float g = worldY * (0.5f / TILE_HEIGHT) - worldX * (0.5f / TILE_WIDTH) + 1;
         return isoTempVector.set(f, g, 0);
     }
 
