@@ -101,6 +101,10 @@ public class Main extends ApplicationAdapter {
      */
     public static final float NPC_W = PLAYER_W;
     /**
+     * Can be changed to make the game harder with more fish to save, or easier with fewer.
+     */
+    public static int FISH_COUNT = 10;
+    /**
      * Can be changed to make the game harder with more enemies, or easier with fewer.
      */
     public static int ENEMY_COUNT = 10;
@@ -155,11 +159,18 @@ public class Main extends ApplicationAdapter {
      * CUSTOM TO YOUR GAME.
      */
     public Music backgroundMusic;
+
     /**
-     * Currently, pressing 'c' will toggle the framerate cap, so you can see if any physics changes are still
-     * framerate-independent.
+     * This is the limit the current FPS will max out at unless the player un-limits FPS by pressing 'C'.
+     * With simple pixel art graphics, a higher frame rate is likely not noticeable, though input might be affected.
      */
-    private int cap = 60;
+    public static final int FRAME_RATE_LIMIT = 60;
+
+    /**
+     * Currently, pressing 'c' will toggle the frame rate cap, so you can see if any physics changes are still
+     * frame-rate-independent.
+     */
+    private int cap = FRAME_RATE_LIMIT;
     /**
      * The horizontal distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
      * of the diamond-shaped top of any solid tile here, measured from left to right for a single side.
@@ -338,10 +349,20 @@ public class Main extends ApplicationAdapter {
         // The FPS label can be removed if you want in production.
         fpsLabel = new Label("0 FPS", skin);
         fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
+
+        // These enforce the FPS cap and VSync settings from the first frame rendered.
+        // Pressing 'C' will toggle the frame rate cap on or off.
+        Gdx.graphics.setForegroundFPS(cap);
+        Gdx.graphics.setVSync(cap != 0);
     }
 
+    /**
+     * Re-creates the map with the given seed for procedurally-generating the map and its inhabitants.
+     * @param seed may be any long
+     */
     public void regenerate(long seed) {
 
+        // Needed so the PC Mover always has id 1
         Mover.ID_COUNTER = 1;
         startTime = TimeUtils.millis();
         map = LocalMap.generateTestMap(
@@ -352,7 +373,7 @@ public class Main extends ApplicationAdapter {
             MAP_PEAK,
             /* All terrain tiles in the tileset. */
             atlas);
-        map.totalFish = 10;
+        map.totalFish = FISH_COUNT;
         map.fishSaved = 0;
         map.placeFish(seed, map.totalFish, animations);
         mapCenter = (map.getFSize() - 1f) * 0.5f;
@@ -510,10 +531,12 @@ public class Main extends ApplicationAdapter {
         }
         // cap for frame rate
         if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
-            // If cap is 60, set it to 0; if cap is 0, set it to 60. This toggles cap.
-            cap ^= 60;
+            // If cap is at the limit, set it to 0; if cap is 0, set it to the limit. This toggles cap.
+            cap ^= FRAME_RATE_LIMIT;
             // If cap is 0, there is no limit on FPS unless the user's drivers force VSync on.
             Gdx.graphics.setForegroundFPS(cap);
+            // If the cap is disabled (at 0), then we try to turn VSync off to enable more FPS than can be seen.
+            Gdx.graphics.setVSync(cap != 0);
             return;
         }
         handleInputPlayer();
@@ -679,6 +702,7 @@ public class Main extends ApplicationAdapter {
         }
         else {
             healthLabel.getText().clear();
+            // Shows one red heart per point of health.
             healthLabel.getText().append("[SCARLET]");
             for (int i = 0; i < player.health; i++) {
                 healthLabel.getText().append(" ♥");
