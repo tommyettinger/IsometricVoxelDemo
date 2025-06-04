@@ -4,16 +4,42 @@ import com.badlogic.gdx.utils.*;
 import gdx.liftoff.LocalMap;
 
 /**
- * Data specific to the art assets used here. If the art assets change, you may need to update this class.
+ * Data specific to the art assets used here. If the art assets change, you will need to update this class.
+ * This tracks not just the numbers associated with unnamed art assets, but also which tiles are rotations of other
+ * tiles for when the map rotates, which path tiles can connect to which other path tiles, and so on. The
+ * {@link #realignPaths(LocalMap)} method takes a LocalMap and updates the rotations of paths in it so they all line up
+ * coherently. There are also some numbers and names for entities, but the code here mostly doesn't use them because the
+ * specific assets were already sorted how we needed them -- entities 0-3 are playable humans, and 4-7 are enemy orcs.
  * <br>
  * This has constants to provide names for the numbered tiles and entities in the {@code isometric-trpg.atlas}, a map
  * {@link #TILES} that allows looking up tile constants with a String name, and a map {@link #ENTITIES} that allows
  * looking up entity constants (for use in the four Animation Arrays). Importantly, this also stores data for how to
  * render some tiles when they rotate, to prevent paths from becoming disconnected when the map rotates.
  * <br>
+ * In the project as it is here, all tiles have already been stored in a single atlas on one page, sharing that page
+ * with a bitmap font and UI widgets. Using just one atlas page helps performance quite a bit, because it avoids any
+ * "texture swaps" that SpriteBatch would otherwise need to do when a different page or Texture was needed. If you have
+ * your own assets, packing them into an atlas is strongly recommended! For this project, the very convenient
+ * <a href="https://github.com/crashinvaders/gdx-texture-packer-gui">CrashInvaders' GDX Texture Packer GUI</a> was used,
+ * but you can also use the texture packer supplied in libGDX as part of its gdx-tools, or launch that packer as part of
+ * your Gradle configuration so your atlas is always up-to-date. Packing an atlas does best with individual tiny images
+ * with the appropriate names you want to look up, OR some common prefix followed by an underscore {@code _} and a
+ * number to make (usually) an animation frame with that index. The numbers can be finicky; make sure to start at 0 and
+ * not include any initial 0 otherwise ("0", "1", "2", is good, but "00", "01", "02" is not).
+ * <br>
  * If you use a different set of assets, you will not need the values in this file, but you could use it as an example
  * for how to make your own. You could also just use int indices throughout your project, or name the regions in your
- * atlas according to your own rules.
+ * atlas according to your own rules. Other free assets may have names you can apply to the atlas instead of numbers,
+ * but this tends to be rather rare in practice. It isn't isometric normally, but
+ * <a href="https://github.com/tommyettinger/DawnLikeAtlas">DawnLikeAtlas</a> is a large, free set of assets that has
+ * names attached to each file in a libGDX atlas. Its entities are about the same size as the ones used here, though
+ * they don't have facing and have just two animation frames. The DawnLike creatures could be used instead of the assets
+ * here, though, since there are many more of them. Ideally, you would repack any extra assets into an atlas like the
+ * one this uses (with a font and any terrain you want). You can either fetch the raw assets from the independent repo
+ * used for in-progress parts of this project,
+ * <a href="https://github.com/tommyettinger/IsometricVoxelDemo">which is here</a>, or unpack the atlas used here (the
+ * GUI linked above has an "Unpack atlas" option in the top bar), then get the parts you want from any atlases you want
+ * to mix in, and pack those all together into one central atlas. Using just one folder works well.
  * <br>
  * There are several terms used in the tile names for grouping logically.
  * <ul>
