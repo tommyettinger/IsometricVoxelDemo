@@ -499,6 +499,8 @@ public class LocalMap {
     /**
      * Places berry bushes, which were used in an earlier version instead of goldfish.
      * Berry bushes are harder to notice than goldfish at small sizes, though.
+     * <br>
+     * This should be customized for your game, if you use it.
      * @param seed if this {@code long} is the same, the same map will be produced on each call
      * @param bushCount how many bushes to try to place
      * @return this LocalMap, for chaining
@@ -536,6 +538,8 @@ public class LocalMap {
      * Places goldfish {@link AnimatedIsoSprite} instances at various valid locations, chosen sub-randomly.
      * Sub-random here means it is extremely unlikely two goldfish will spawn nearby each other, but their position is
      * otherwise random-seeming.
+     * <br>
+     * This should be customized for your game.
      * @param seed if this {@code long} is the same, the same map will be produced on each call
      * @param fishCount how many fish to place
      * @param animations used to get the animation for a fish so we can make {@link AnimatedIsoSprite}s per fish
