@@ -7,7 +7,7 @@ License is [MIT](LICENSE).
 
 Uses [art by Gustavo Vituri](https://gvituri.itch.io/isometric-trpg).
 License says ['You are free to use all sprites in both personal and commercial projects.'](assets/isometric-trpg-License.txt),
-and to credit Gustavo Vituri.
+and to credit Gustavo Vituri. Don't use the sprites in any NFT; it isn't permitted.
 
 Contains a [scene2d.ui skin by Raymond Buckley](https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/).
 License is [CC-BY 4.0](assets/Skin-License.txt).

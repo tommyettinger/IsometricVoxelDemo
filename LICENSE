@@ -1,3 +1,27 @@
+The code in this project is made available under the MIT License.
+It is based on voxelia by André Kiste, available at https://gitlab.com/bergice/voxelia/-/tree/master
+Changing the code is permitted by the MIT license and modifications do not need to be made public or
+released as source code.
+
+The assets it uses are mostly not covered by the MIT License (as they are not software), and have their own
+creators and license terms.
+
+The character and environment graphics use art by Gustavo Vituri, https://gvituri.itch.io/isometric-trpg
+The license says 'You are free to use all sprites in both personal and commercial projects.'
+and to credit Gustavo Vituri. Usage in NFTs is not permitted. See assets/isometric-trpg-License.txt
+
+Contains a scene2d.ui skin by Raymond Buckley, https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/
+License is CC-BY 4.0, so it requires attribution to Raymond Buckley. See assets/Skin-License.txt
+
+Contains a song by Komiku, 'Road 4 Fight', https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/road-4-fight/
+It is licensed under Creative Commons 0, releasing it into the public domain, and as such does not require attribution.
+See 'assets/Komiku - Road 4 Fight - License.txt'
+
+The font present in the assets is Cozette, by Slavfox, https://github.com/the-moonwitch/Cozette
+It is MIT-licensed. See assets/Cozette-License.txt
+
+The text of the MIT license for the software part of the project, which is all folders except assets/ , follows.
+
 MIT License
 
 Copyright (c) 2025 André Kiste
