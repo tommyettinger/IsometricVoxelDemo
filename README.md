@@ -15,6 +15,9 @@ License is [CC-BY 4.0](assets/Skin-License.txt).
 Contains a [song by Komiku, 'Road 4 Fight'](https://freemusicarchive.org/music/Komiku/Helice_Awesome_Dance_Adventure_/road-4-fight/)
 License is [CC0](assets/Komiku%20-%20Road%204%20Fight%20-%20License.txt).
 
+Contains the font [Cozette, by ines](https://github.com/the-moonwitch/Cozette).
+It is [MIT-licensed](assets/Cozette-License.txt).
+
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.
