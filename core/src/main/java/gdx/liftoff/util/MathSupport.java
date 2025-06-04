@@ -57,6 +57,11 @@ public final class MathSupport {
      * This doesn't throw on invalid input, though, instead returning 0 if the first char is not a decimal digit, or
      * stopping the parse process early if a non-0-9 char is read before end is reached. If the parse is stopped
      * early, this behaves as you would expect for a number with fewer digits, and simply doesn't fill the larger places.
+     * <br>
+     * This code was taken from <a href="https://github.com/tommyettinger/digital">digital</a> and its Base class, with
+     * any numbers for that class' variable radix hard-coded to 10 because that's all we need here. Though there is a
+     * similar method in Java 8, it isn't available to RoboVM, and even then it's not nearly as tolerant of invalid
+     * inputs as this method (this one parses what it can and returns what it can, rather than throwing an exception).
      *
      * @param cs    a CharSequence, such as a String, containing decimal digits with an optional sign
      * @param start the (inclusive) first character position in cs to read
@@ -111,6 +116,11 @@ public final class MathSupport {
      * This doesn't throw on invalid input, though, instead returning 0 if the first char is not a decimal digit, or
      * stopping the parse process early if a non-0-9 char is read before end is reached. If the parse is stopped
      * early, this behaves as you would expect for a number with fewer digits, and simply doesn't fill the larger places.
+     * <br>
+     * This code was taken from <a href="https://github.com/tommyettinger/digital">digital</a> and its Base class, with
+     * any numbers for that class' variable radix hard-coded to 10 because that's all we need here. Though there is a
+     * similar method in Java 8, it isn't available to RoboVM, and even then it's not nearly as tolerant of invalid
+     * inputs as this method (this one parses what it can and returns what it can, rather than throwing an exception).
      *
      * @param cs    a CharSequence, such as a String, containing decimal digits with an optional sign
      * @param start the (inclusive) first character position in cs to read
@@ -153,8 +163,12 @@ public final class MathSupport {
     /**
      * Reads a float in from the String {@code str}, using only the range from {@code start} (inclusive) to {@code end}
      * (exclusive). This effectively returns {@code Float.parseFloat(str.substring(start, Math.min(str.length(), end)))}
-     * . Unlike the other number-reading methods here, this doesn't do much to validate its input, so the end of the end
-     * of the String must be after the full float number. If the parse fails, this returns 0f.
+     * . Unlike the other number-reading methods here, this doesn't do much to validate its input, so the end of the
+     * String must be after the full float number. Because of how parseFloat() works, whitespace will be trimmed out of
+     * the substring if present, including space and any ASCII control chars. If the parse fails, this returns 0f.
+     * This can handle a wider variety of literals than one might expect; it tolerates a trailing {@code f} or even
+     * {@code d} at the end, and in addition to the standard {@code 12.34} decimal notation, it can parse scientific
+     * notation, {@code 1.234e+01}, as well as hexadecimal float notation, {@code 0x1.8ae148p3}.
      * @param str a String containing a valid float in the specified range
      * @param start the start index (inclusive) to read from
      * @param end the end index (exclusive) to stop reading before
