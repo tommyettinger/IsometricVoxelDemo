@@ -61,6 +61,28 @@ import gdx.liftoff.LocalMap;
 @SuppressWarnings("PointlessArithmeticExpression")
 public final class AssetData {
     /**
+     * The horizontal distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
+     * of the diamond-shaped top of any solid tile here, measured from left to right for a single side.
+     * <br>
+     * This depends on your exact terrain assets, and it will potentially change if your art does.
+     */
+    public static final int TILE_WIDTH = 8;
+    /**
+     * The vertical distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
+     * of the diamond-shaped top of any solid tile here, measured from bottom to top for a single side.
+     * <br>
+     * This depends on your exact terrain assets, and it will potentially change if your art does.
+     */
+    public static final int TILE_HEIGHT = 4;
+    /**
+     * The vertical distance in pixels between stacked tiles. This is equivalent to the distance of a vertical side of
+     * any full-sized solid tile (on the left or right side of the block), measured from bottom to top of a solid side.
+     * <br>
+     * This depends on your exact terrain assets, and it will potentially change if your art does.
+     */
+    public static final int TILE_DEPTH = 8;
+
+    /**
      * No need to instantiate.
      */
     private AssetData() {}

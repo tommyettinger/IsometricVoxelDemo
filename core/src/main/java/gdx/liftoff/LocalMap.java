@@ -227,7 +227,7 @@ public class LocalMap {
      * @param h the "heel to head" isometric coordinate; will be rounded and assigned to changing
      */
     public void setToFishPosition(Vector4 changing, float f, float g, float h) {
-        changing.set(round(f), round(g), round(h), Main.FISH_W);
+        changing.set(round(f), round(g), round(h), Mover.FISH_W);
     }
 
     /**
@@ -235,7 +235,7 @@ public class LocalMap {
      * a terrain tile, or if this would collide with another Mover, the Mover's position is randomized until it finds
      * a valid location.
      * @param mover a {@link Mover} that will have its position potentially altered if invalid
-     * @param depth the depth modifier to use for the Mover, such as {@link Main#PLAYER_W}
+     * @param depth the depth modifier to use for the Mover, such as {@link Mover#PLAYER_W}
      * @return the used Vector4 position the Mover was placed into, which may be different from its original position
      */
     public Vector4 addMover(Mover mover, float depth) {
@@ -336,7 +336,7 @@ public class LocalMap {
      * @param f the "France to Finland" isometric coordinate; will be rounded and assigned to changing
      * @param g the "Germany to Greenland" isometric coordinate; will be rounded and assigned to changing
      * @param h the "heel to head" isometric coordinate; will be rounded and assigned to changing
-     * @param depth the depth modifier to use, such as {@link Main#PLAYER_W}
+     * @param depth the depth modifier to use, such as {@link Mover#PLAYER_W}
      * @param sprite the {@link IsoSprite} to place into {@link #everything}
      */
     public void setEntity(float f, float g, float h, float depth, IsoSprite sprite) {
@@ -520,7 +520,7 @@ public class LocalMap {
                 }
                 if (below != -1) {
                     tiles[point.x][point.y][h + 1] = AssetData.DECO_HEDGE;
-                    everything.put(new Vector4(point.x, point.y, h + 1, Main.FISH_W),
+                    everything.put(new Vector4(point.x, point.y, h + 1, Mover.FISH_W),
                         new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h + 1));
                     setTile(point.x, point.y, h, AssetData.DIRT);
                     setTile(point.x + 1, point.y, h, AssetData.DIRT);
@@ -554,7 +554,7 @@ public class LocalMap {
             for (int h = hs - 2; h >= 0; h--) {
                 int below = getTile(point.x, point.y, h);
                 if (below != -1) {
-                    setEntity(point.x, point.y, h + 1, Main.FISH_W, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
+                    setEntity(point.x, point.y, h + 1, Mover.FISH_W, new AnimatedIsoSprite(animations.get(0).get(AssetData.FISH), point.x, point.y, h + 1));
                     break;
                 }
             }

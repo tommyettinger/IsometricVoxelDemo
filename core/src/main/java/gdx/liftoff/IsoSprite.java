@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.GridPoint3;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
+import gdx.liftoff.game.AssetData;
 
 /**
  * Wraps a {@link Sprite} so its position can be set using isometric coordinates.
@@ -24,7 +25,7 @@ public class IsoSprite implements Comparable<IsoSprite> {
     /**
      * The "cube side length" for one voxel.
      */
-    public static float UNIT = Main.TILE_HEIGHT;
+    public static float UNIT = AssetData.TILE_HEIGHT;
     /**
      * The Sprite this wraps and knows how to display.
      */

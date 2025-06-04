@@ -9,12 +9,20 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.OrderedMap;
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import gdx.liftoff.game.*;
+import gdx.liftoff.game.AssetData;
+import gdx.liftoff.game.Mover;
 
 import java.util.Comparator;
 
@@ -87,20 +95,6 @@ public class Main extends ApplicationAdapter {
      */
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
     /**
-     * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
-     */
-    public static final float PLAYER_W = (1f/8f);
-    /**
-     * The depth modifier used by goldfish, which is slightly different from the player or NPC depth modifiers so
-     * goldfish can't get removed by an overlapping NPC, and so an overlapping player doesn't remove the goldfish before
-     * its rescue can be processed.
-     */
-    public static final float FISH_W = PLAYER_W + (1f/1024f);
-    /**
-     * The depth modifier used by all moving NPCs; this is the same as {@link #PLAYER_W}.
-     */
-    public static final float NPC_W = PLAYER_W;
-    /**
      * Can be changed to make the game harder with more fish to save, or easier with fewer.
      */
     public static int FISH_COUNT = 10;
@@ -172,21 +166,6 @@ public class Main extends ApplicationAdapter {
      */
     private int cap = FRAME_RATE_LIMIT;
     /**
-     * The horizontal distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
-     * of the diamond-shaped top of any solid tile here, measured from left to right for a single side.
-     */
-    public static final int TILE_WIDTH = 8;
-    /**
-     * The vertical distance in pixels between adjacent tiles. This is equivalent to the distance of one diagonal side
-     * of the diamond-shaped top of any solid tile here, measured from bottom to top for a single side.
-     */
-    public static final int TILE_HEIGHT = 4;
-    /**
-     * The vertical distance in pixels between stacked tiles. This is equivalent to the distance of a vertical side of
-     * any full-sized solid tile (on the left or right side of the block), measured from bottom to top of a solid side.
-     */
-    public static final int TILE_DEPTH = 8;
-    /**
      * The base width and height in tiles of a map; this may vary slightly when the map is created, for variety.
      * The variance only goes up by 0 to 3 width and height (by the same amount).
      */
@@ -199,11 +178,11 @@ public class Main extends ApplicationAdapter {
     /**
      * The computed width in pixels of a full map at its largest possible {@link #MAP_SIZE}.
      */
-    public static final int SCREEN_HORIZONTAL = (MAP_SIZE+3) * 2 * TILE_WIDTH;
+    public static final int SCREEN_HORIZONTAL = (MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH;
     /**
      * The computed height in pixels of a full map at its largest possible {@link #MAP_SIZE} and {@link #MAP_PEAK}.
      */
-    public static final int SCREEN_VERTICAL = (MAP_SIZE+3) * 2 * TILE_HEIGHT + MAP_PEAK * TILE_DEPTH;
+    public static final int SCREEN_VERTICAL = (MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH;
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
@@ -321,7 +300,7 @@ public class Main extends ApplicationAdapter {
         // Initialize a Camera with the width and height of the area to be shown.
         camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
         // Center the camera in the middle of the map.
-        camera.position.set(TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0);
+        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0);
         // Updating the camera allows the changes we made to actually take effect.
         camera.update();
         // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
@@ -382,7 +361,7 @@ public class Main extends ApplicationAdapter {
         // Random character graphic for the player; id 0-3 will always be a human wearing blue.
         int id = MathUtils.random(3);
         player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
-        map.addMover(player, PLAYER_W);
+        map.addMover(player, Mover.PLAYER_W);
         enemies = new Array<>(ENEMY_COUNT);
         for (int i = 0; i < ENEMY_COUNT; i++) {
             // enemies can be anywhere except the very edges of the map.
@@ -394,7 +373,7 @@ public class Main extends ApplicationAdapter {
             // We track enemies here as well as tracking them as general Movers in the map so that we can handle the
             // semi-random movement of enemies when we update them in Main, without semi-randomly moving the player.
             enemies.add(enemy);
-            map.addMover(enemy, NPC_W);
+            map.addMover(enemy, Mover.NPC_W);
         }
     }
 
@@ -604,12 +583,12 @@ public class Main extends ApplicationAdapter {
     public Vector3 raycastToBlock(float screenX, float screenY) {
         Vector3 worldPos = camera.unproject(projectionTempVector.set(screenX, screenY, 0));
         // Why is the projection slightly off on both x and y? It is a mystery!
-        worldPos.x -= TILE_WIDTH;
-        worldPos.y -= TILE_HEIGHT * 4;
+        worldPos.x -= AssetData.TILE_WIDTH;
+        worldPos.y -= AssetData.TILE_HEIGHT * 4;
         // Check from highest to lowest Z
         for (int h = MAP_PEAK - 1; h >= 0; h--) {
-            int f = MathUtils.ceil(worldPos.y * (0.5f / TILE_HEIGHT) + worldPos.x * (0.5f / TILE_WIDTH) - h);
-            int g = MathUtils.ceil(worldPos.y * (0.5f / TILE_HEIGHT) - worldPos.x * (0.5f / TILE_WIDTH) - h);
+            int f = MathUtils.ceil(worldPos.y * (0.5f / AssetData.TILE_HEIGHT) + worldPos.x * (0.5f / AssetData.TILE_WIDTH) - h);
+            int g = MathUtils.ceil(worldPos.y * (0.5f / AssetData.TILE_HEIGHT) - worldPos.x * (0.5f / AssetData.TILE_WIDTH) - h);
             if (f >= 0 && f < MAP_SIZE && g >= 0 && g < MAP_SIZE) {
                 if (map.getTile(f, g, h) != -1) { // Found a solid block
                     return isoTempVector.set(f, g, h); // Return the first valid block found
@@ -632,8 +611,8 @@ public class Main extends ApplicationAdapter {
      * @return {@link #screenTempVector}, modified in-place and returned directly
      */
     public static Vector2 isoToWorld(float f, float g, float h) {
-        float screenX = (f - g) * TILE_WIDTH;
-        float screenY = (f + g) * TILE_HEIGHT + h * TILE_DEPTH;
+        float screenX = (f - g) * AssetData.TILE_WIDTH;
+        float screenY = (f + g) * AssetData.TILE_HEIGHT + h * AssetData.TILE_DEPTH;
         return screenTempVector.set(screenX, screenY);
     }
 
@@ -645,8 +624,8 @@ public class Main extends ApplicationAdapter {
      * @return {@link #isoTempVector}, modified in-place and returned directly
      */
     public static Vector3 worldToIso(float worldX, float worldY) {
-        float f = worldY * (0.5f / TILE_HEIGHT) + worldX * (0.5f / TILE_WIDTH) + 1;
-        float g = worldY * (0.5f / TILE_HEIGHT) - worldX * (0.5f / TILE_WIDTH) + 1;
+        float f = worldY * (0.5f / AssetData.TILE_HEIGHT) + worldX * (0.5f / AssetData.TILE_WIDTH) + 1;
+        float g = worldY * (0.5f / AssetData.TILE_HEIGHT) - worldX * (0.5f / AssetData.TILE_WIDTH) + 1;
         return isoTempVector.set(f, g, 0);
     }
 
@@ -674,8 +653,8 @@ public class Main extends ApplicationAdapter {
         // This meant to fit an isometric map that is about MAP_SIZE by MAP_PEAK by MAP_SIZE, where MAP_PEAK is how many
         // layers of voxels can be stacked on top of each other.
         viewport.setUnitsPerPixel(1f / Math.max(1, (int) Math.min(
-            width  / ((MAP_SIZE+1f) * (TILE_WIDTH * 2f)),
-            height / ((MAP_SIZE+1f) * (TILE_HEIGHT * 2f) + TILE_DEPTH * MAP_PEAK))));
+            width  / ((MAP_SIZE+1f) * (AssetData.TILE_WIDTH * 2f)),
+            height / ((MAP_SIZE+1f) * (AssetData.TILE_HEIGHT * 2f) + AssetData.TILE_DEPTH * MAP_PEAK))));
         viewport.update(width, height);
     }
 

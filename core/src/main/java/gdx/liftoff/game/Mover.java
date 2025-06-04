@@ -20,6 +20,20 @@ import gdx.liftoff.util.MiniNoise;
  */
 public class Mover implements HasPosition3D {
     /**
+     * The depth modifier used by the player, so they can't remove terrain voxels by overlapping them.
+     */
+    public static final float PLAYER_W = (1f/8f);
+    /**
+     * The depth modifier used by all moving NPCs; this is the same as {@link #PLAYER_W}.
+     */
+    public static final float NPC_W = PLAYER_W;
+    /**
+     * The depth modifier used by goldfish, which is slightly different from the player or NPC depth modifiers so
+     * goldfish can't get removed by an overlapping NPC, and so an overlapping player doesn't remove the goldfish before
+     * its rescue can be processed.
+     */
+    public static final float FISH_W = PLAYER_W + (1f/1024f);
+    /**
      * Can be retrieved with {@link #getPosition()}, which satisfies our interface requirement.
      */
     private final Vector3 position = new Vector3();
@@ -183,7 +197,7 @@ public class Mover implements HasPosition3D {
         accumulator += deltaTime;
         while (accumulator > (1f/60f)) {
             accumulator -= (1f / 60f);
-            tempVectorA.set(position, Main.PLAYER_W);
+            tempVectorA.set(position, PLAYER_W);
 
             applyGravity();
             handleCollision();
@@ -199,7 +213,7 @@ public class Mover implements HasPosition3D {
 
             visual.setPosition(position);
             map.everything.remove(tempVectorA);
-            map.everything.put(tempVectorA.set(position, Main.PLAYER_W), visual);
+            map.everything.put(tempVectorA.set(position, PLAYER_W), visual);
             // uses not greater than or equal to so if invincibilityEndTime is NaN, the player will always be invincible
             // we set the player to be permanently invincible when they win.
             if(!(totalMoveTime >= invincibilityEndTime))
@@ -510,9 +524,9 @@ public class Mover implements HasPosition3D {
     }
 
     /**
-     * Puts this Mover into {@link LocalMap#everything} at the given depth modifier, such as {@link Main#PLAYER_W}.
+     * Puts this Mover into {@link LocalMap#everything} at the given depth modifier, such as {@link Mover#PLAYER_W}.
      * If a Mover's {@link #position} changes any coordinates, this should be called when those changes are complete.
-     * @param depth a depth modifier like {@link Main#NPC_W} or {@link Main#FISH_W}
+     * @param depth a depth modifier like {@link Mover#NPC_W} or {@link Mover#FISH_W}
      * @return this Mover, for chaining
      */
     public Mover place(float depth) {
