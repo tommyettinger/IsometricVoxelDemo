@@ -46,21 +46,16 @@ public class VoxelCollider<T extends HasPosition3D> {
     }
 
     /**
-     * Sorts entities based on their relative distances to tempVector3, but on the x-axis only.
-     */
-    private final Comparator<T> xDistance = (a, b) -> Float.compare(Math.abs(tempVector3.x - a.getPosition().x), Math.abs(tempVector3.x - b.getPosition().x));
-
-    /**
      * Gets the Array of T entities that collide with the given Vector3 position.
      * If {@code collder} is a T in {@link #entities} (by identity), then the returned Array will never contain
      * that T entity.
      * <br>
-     * This uses the Separated Axis Theorem to limit how much work must be done to process entities. It sorts
-     * {@link #entities} by their x-distance to {@code collider}, which allows this to stop adding entities for
-     * additional checks earlier than it would otherwise. After that, it only has to check the entities that are close
-     * on the x-axis to see if they are close on y, removing any that aren't, and finally leaving only the entities that
-     * have been close on x, y, and z in {@link #colliding}, which this reuses.
-     * @param collider a
+     * This uses the Separated Axis Theorem to limit how much work must be done to process entities. It takes the list
+     * of entities and adds any candidates for a collision to {@link #colliding}, determined at first by being close
+     * enough on the x-axis. Once it has whatever entities are close on the x-axis, it checks only those to see if they
+     * are close on y, removing any that aren't, repeating that step for entities close on z, and finally leaving only
+     * the entities that have been close on x, y, and z in {@link #colliding}, which this reuses.
+     * @param collider an entity to check for collision; will never be considered self-colliding, and may be in entities
      * @return a reused Array (which will change on the next call to this method) of all T entities that overlap with {@code collider}, not including itself.
      */
     public Array<T> collisionsWith(T collider) {
@@ -69,16 +64,11 @@ public class VoxelCollider<T extends HasPosition3D> {
         tempVector3.set(voxelPosition);
         // The reused colliding Array must be cleared to avoid the last calculation remaining here.
         colliding.clear();
-        // This sort is a debatable optimization, but it doesn't seem to impose a meaningful slowdown or speedup.
-        entities.sort(xDistance);
         float c = tempVector3.x;
         for (T e : entities) {
             if(Math.abs(c - e.getPosition().x) < 1f){
                 // The distance between x coordinates is close enough for them to be overlapping
                 colliding.add(e);
-            } else {
-                // Because the array was sorted, once we have anything with too much distance, we can stop.
-                break;
             }
         }
         // Remove the collider we are checking by identity, so it can't collide with itself.
