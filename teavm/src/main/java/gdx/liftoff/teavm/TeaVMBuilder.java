@@ -7,8 +7,10 @@ import com.github.xpenatan.gdx.backends.teavm.config.plugins.TeaReflectionSuppli
 import java.io.File;
 import java.io.IOException;
 
+import org.teavm.tooling.TeaVMSourceFilePolicy;
 import org.teavm.tooling.TeaVMTargetType;
 import org.teavm.tooling.TeaVMTool;
+import org.teavm.tooling.sources.DirectorySourceFileProvider;
 import org.teavm.vm.TeaVMOptimizationLevel;
 
 /** Builds the TeaVM/HTML application. */
@@ -30,6 +32,12 @@ public class TeaVMBuilder {
         // If your builds take too long, and runtime performance doesn't matter, you can change FULL to SIMPLE .
         tool.setOptimizationLevel(TeaVMOptimizationLevel.ADVANCED);
         tool.setObfuscated(false);
+
+        tool.setDebugInformationGenerated(true);
+        tool.setSourceMapsFileGenerated(true);
+        tool.setSourceFilePolicy(TeaVMSourceFilePolicy.COPY);
+        tool.addSourceFileProvider(new DirectorySourceFileProvider(new File("../core/src/main/java/")));
+
         TeaBuilder.build(tool);
     }
 }
