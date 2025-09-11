@@ -23,7 +23,7 @@ public class TeaVMBuilder {
      * This works well when the targetType is set to JAVASCRIPT, but you can still set the targetType to WEBASSEMBLY_GC
      * while this is true in order to test that higher-performance target before releasing.
      */
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void main(String[] args) throws IOException {
 
@@ -43,7 +43,7 @@ public class TeaVMBuilder {
         // You can choose to use the WebAssembly (WASM) GC target instead, which tends to perform better, but isn't
         // as easy to debug. It might be a good idea to alternate target types during development if you plan on using
         // WASM at release time.
-        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
+//        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
 
         tool.setMainClass(TeaVMLauncher.class.getName());
         // For many (or most) applications, using the highest optimization won't add much to build time.

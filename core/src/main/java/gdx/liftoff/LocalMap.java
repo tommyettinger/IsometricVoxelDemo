@@ -52,7 +52,7 @@ public class LocalMap {
     /**
      * How many fish we started out needing to rescue.
      */
-    public int totalFish = 10;
+    public int totalFish = Main.FISH_COUNT;
     /**
      * How many fish have been saved so far.
      */
