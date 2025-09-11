@@ -1,5 +1,7 @@
 # VoxelExample
 
+![Rotating the world](docs/rotation.gif)
+
 A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3D positions.
 
 Based on [voxelia by bergice](https://gitlab.com/bergice/voxelia/-/tree/master).

@@ -21,7 +21,7 @@ import gdx.liftoff.game.AssetData;
  *     <li>The h axis is the vertical line from your heel to your head (or Hell to Heaven).</li>
  * </ul>
  */
-public class IsoSprite implements Comparable<IsoSprite> {
+public class IsoSprite {
     /**
      * The "cube side length" for one voxel.
      */
@@ -220,7 +220,8 @@ public class IsoSprite implements Comparable<IsoSprite> {
 
     /**
      * Calculates the distance from the camera to the given f,g,h position, using the given cos and sin of the rotation
-     * of the map around the given origin point.
+     * of the map around the given origin point. This won't really work for massive maps, larger than 1024x1024 or so
+     * in f by g size.
      * @param f isometric tile f-coordinate
      * @param g isometric tile g-coordinate
      * @param h isometric tile h-coordinate
@@ -231,10 +232,15 @@ public class IsoSprite implements Comparable<IsoSprite> {
      * @return the view distance to the given position, with the given rotation around the given origin
      */
     public static float viewDistance(float f, float g, float h, float originF, float originG, float cosRotation, float sinRotation) {
+        // Get f and g relative to the origin.
         f -= originF;
         g -= originG;
-        float rf = cosRotation * f - sinRotation * g + originF, rg = cosRotation * g + sinRotation * f + originG;
-        return (h * 3 - rf - rg) + (rf - rg) * (1f/2048);
+        // Get rotated f and g positions around the origin.
+        float rf = cosRotation * f - sinRotation * g + originF;
+        float rg = cosRotation * g + sinRotation * f + originG;
+        // Return the distance to the rotated position, with height taking priority, then the diagonal positions that
+        // affect distance to the camera, then with a tiny fraction of left-to-right position used to break ties.
+        return (h * 3f - rf - rg) + ((rf - rg) * (1f/2048f));
     }
 
     /**
@@ -284,17 +290,6 @@ public class IsoSprite implements Comparable<IsoSprite> {
      */
     public IsoSprite update(float stateTime) {
         return this;
-    }
-
-
-    /**
-     * Not actually used. We always use an explicit Comparator that takes rotations into account.
-     * @param other the object to be compared.
-     * @return a negative int, 0, or a positive int, depending on if the view distance for this is less than, equal to, or greater than other's view distance
-     */
-    @Override
-    public int compareTo(IsoSprite other) {
-        return NumberUtils.floatToIntBits(getViewDistance() - other.getViewDistance() + 0f);
     }
 
     @Override
