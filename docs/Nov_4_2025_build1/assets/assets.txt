@@ -1,0 +1,17 @@
+i:b:/Cozette-License.txt:1065:1
+i:b:/CozetteOutlined-standard.fnt:236481:1
+i:b:/isometric-trpg-License.txt:345:1
+i:b:/isometric-trpg.atlas:11989:1
+i:b:/isometric-trpg.json:10605:1
+i:b:/isometric-trpg.png:116280:1
+i:b:/Komiku - Road 4 Fight - License.txt:7048:1
+i:b:/Komiku - Road 4 Fight.ogg:910110:1
+i:b:/Skin-License.txt:19265:1
+c:b:/com/badlogic/gdx/utils/lsans-15.png:10270:1
+c:b:/com/badlogic/gdx/graphics/g3d/shaders/default.vertex.glsl:9096:1
+c:b:/com/badlogic/gdx/graphics/g3d/particles/particles.fragment.glsl:820:1
+c:b:/com/badlogic/gdx/graphics/g3d/particles/particles.vertex.glsl:2886:1
+c:b:/com/badlogic/gdx/graphics/g3d/shaders/depth.vertex.glsl:2931:1
+c:b:/com/badlogic/gdx/graphics/g3d/shaders/default.fragment.glsl:5874:1
+c:b:/com/badlogic/gdx/utils/lsans-15.fnt:17711:1
+c:b:/com/badlogic/gdx/graphics/g3d/shaders/depth.fragment.glsl:869:1
