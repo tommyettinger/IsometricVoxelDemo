@@ -7,6 +7,7 @@ import com.github.xpenatan.gdx.backends.teavm.config.TeaBuilder;
 import java.io.File;
 import java.io.IOException;
 
+import org.teavm.backend.wasm.WasmDebugInfoLevel;
 import org.teavm.tooling.TeaVMSourceFilePolicy;
 import org.teavm.tooling.TeaVMTargetType;
 import org.teavm.tooling.TeaVMTool;
@@ -36,19 +37,20 @@ public class TeaVMBuilder {
 
         // Register any classes or packages that require reflection here:
 
-        TeaVMTool tool = TeaBuilder.config(teaBuildConfiguration);
+        TeaBuilder.config(teaBuildConfiguration);
+        TeaVMTool tool = new TeaVMTool();
 
         // JavaScript is the default target type for TeaVM, and it works better during debugging.
-        tool.setTargetType(TeaVMTargetType.JAVASCRIPT);
+//        tool.setTargetType(TeaVMTargetType.JAVASCRIPT);
         // You can choose to use the WebAssembly (WASM) GC target instead, which tends to perform better, but isn't
         // as easy to debug. It might be a good idea to alternate target types during development if you plan on using
         // WASM at release time.
-//        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
+        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
 
         tool.setMainClass(TeaVMLauncher.class.getName());
         // For many (or most) applications, using the highest optimization won't add much to build time.
         // If your builds take too long, and runtime performance doesn't matter, you can change FULL to SIMPLE .
-        tool.setOptimizationLevel(TeaVMOptimizationLevel.ADVANCED);
+        tool.setOptimizationLevel(DEBUG ? TeaVMOptimizationLevel.SIMPLE : TeaVMOptimizationLevel.ADVANCED);
         tool.setObfuscated(!DEBUG);
 
         // If targetType is set to JAVASCRIPT, you can use the following lines to debug JVM languages from the browser,
@@ -57,6 +59,7 @@ public class TeaVMBuilder {
         if(DEBUG && tool.getTargetType() == TeaVMTargetType.JAVASCRIPT) {
             tool.setDebugInformationGenerated(true);
             tool.setSourceMapsFileGenerated(true);
+            tool.setWasmDebugInfoLevel(WasmDebugInfoLevel.FULL);
             tool.setSourceFilePolicy(TeaVMSourceFilePolicy.COPY);
             tool.addSourceFileProvider(new DirectorySourceFileProvider(new File("../core/src/main/java/")));
         }
