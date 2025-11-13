@@ -20,8 +20,8 @@ allprojects {
   // This allows you to "Build and run using IntelliJ IDEA", an option in IDEA's Settings.
   idea {
     module {
-      outputDir file('build/classes/java/main')
-      testOutputDir file('build/classes/java/test')
+      outputDir = file('build/classes/java/main')
+      testOutputDir = file('build/classes/java/test')
     }
   }
   idea.module.excludeDirs += [file("docs/")]
@@ -29,7 +29,7 @@ allprojects {
 
 configure(subprojects - project(':android')) {
   apply plugin: 'java-library'
-  sourceCompatibility = 11
+  java.sourceCompatibility = 11
 
   // From https://lyze.dev/2021/04/29/libGDX-Internal-Assets-List/
   // The article can be helpful when using assets.txt in your project.
@@ -66,8 +66,8 @@ subprojects {
     mavenLocal()
 //    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 //    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
-    maven { url 'https://jitpack.io' }
-    maven { url 'https://teavm.org/maven/repository/' }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://teavm.org/maven/repository/' }
   }
 }
 

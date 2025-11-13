@@ -55,9 +55,9 @@ dependencies {
 // Setup Multi-OS Engine
 moe {
   xcode {
-    project 'xcode/ios-moe.xcodeproj'
-    mainTarget 'ios-moe'
-    testTarget 'ios-moe-Test'
+    project = 'xcode/ios-moe.xcodeproj'
+    mainTarget = 'ios-moe'
+    testTarget = 'ios-moe-Test'
   }
 }
 
