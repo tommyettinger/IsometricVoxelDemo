@@ -3,7 +3,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath "org.multi-os-engine:moe-gradle:$multiOsEngineVersion"
+    classpath "org.multi-os-engine:moe-gradle:$moeVersion"
   }
 }
 
@@ -14,7 +14,7 @@ test { exclude '**' }
 
 // Copy all xcframeworks to xcode/native/ios
 // They need to be picked up from there for linking in XCode
-task copyNatives  {
+tasks.register('copyNatives') {
   doLast {
     file("xcode/native/ios/").mkdirs();
     def subDir = "META-INF/robovm/ios/libs/"
@@ -46,10 +46,10 @@ task copyNatives  {
 configurations { natives }
 
 dependencies {
-  implementation "io.github.berstanio:gdx-backend-moe:$gdxMoeVersion"
+  implementation "io.github.berstanio:gdx-backend-moe:$moeGdxVersion"
   implementation project(':core')
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
-
+  compileOnly "org.graalvm.sdk:graal-sdk:$moeGraalvmVersion"
 }
 
 // Setup Multi-OS Engine
@@ -58,6 +58,9 @@ moe {
     project = 'xcode/ios-moe.xcodeproj'
     mainTarget = 'ios-moe'
     testTarget = 'ios-moe-Test'
+  }
+  nativeImage {
+    options = ["--features=gdx.liftoff.SVMRegistrationFeature"]
   }
 }
 
