@@ -36,8 +36,8 @@ public final class MathSupport {
      * @return {@code changing}, after modifications
      */
     public static GridPoint2 fillR2(GridPoint2 changing, long index, int width, int height) {
-        long ix = index * 0xC13FA9A902A6328FL;
-        long iy = index * 0x91E10DA5C79E7B1DL;
+        long ix = index * 0xC13FA9A902A6328FL; // first specific constant for the R2 sequence, times 2 to the 64.
+        long iy = index * 0x91E10DA5C79E7B1DL; // second specific constant for the R2 sequence, times 2 to the 64.
         double x = (ix >>> 1) * (1.0842021724855043E-19 * width); //1.0842021724855043E-19 is just under pow(2, -63)
         double y = (iy >>> 1) * (1.0842021724855043E-19 * height); //1.0842021724855043E-19 is just under pow(2, -63)
         changing.set((int)x, (int)y);
