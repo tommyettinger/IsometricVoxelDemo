@@ -6,9 +6,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -20,7 +24,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.OrderedMap;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import gdx.liftoff.game.AssetData;
 import gdx.liftoff.game.Mover;
 
@@ -115,10 +121,27 @@ public class Main extends ApplicationAdapter {
      */
     private OrthographicCamera camera;
     /**
-     * ScreenViewport is used here with a simple fraction for its {@link ScreenViewport#setUnitsPerPixel(float)}. Using
-     * 1f, 1f/2f, 1f/3f, 1f/4f, etc. will ensure pixels stay all square consistently, and don't form ugly artifacts.
+     * ScreenViewport is used here for a tiny screen that will be drawn pixel-perfect and later scaled up using
+     * {@link #growingViewport} and a special shader for scaling pixel art.
      */
     private ScreenViewport viewport;
+    /**
+     * A FitViewport is used to draw the tiny pixel-perfect screen so it is large enough to see. This uses a different
+     * shader from normal that is meant to scale pixel art, but this isn't strictly necessary.
+     */
+    private Viewport growingViewport;
+    /**
+     * A way to draw a tiny pixel-perfect image off-screen, then later draw it larger with better scaling.
+     */
+    private FrameBuffer buffer;
+    /**
+     * Stores true if we are on a desktop/laptop platform, or if a necessary extension is available for mobile/web.
+     */
+    private boolean canUsePixelArtShader;
+    /**
+     * A special shader that resizes more crisply to noninteger scales, retaining pixel art details.
+     */
+    private ShaderProgram pixelArtShader;
     /**
      * Mover represents any moving creature or hazard, and can be a player character or non-player character (NPC).
      * This is the player, which has {@code npc = false;} and so won't move on their own.
@@ -187,12 +210,6 @@ public class Main extends ApplicationAdapter {
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
     public float mapCenter = (MAP_SIZE - 1f) * 0.5f;
-
-    /**
-     * Can be changed to any fraction that is {@code 1.0f} divided by any integer greater than 0, which makes the screen
-     * zoom to double size if this is {@code 1.0f / 2}, or triple size if this is {@code 1.0f / 3}, and so on.
-     */
-    public float CAMERA_ZOOM = 1f;
     /**
      * In milliseconds, the time since the map was generated or regenerated.
      */
@@ -309,13 +326,29 @@ public class Main extends ApplicationAdapter {
         }
 
         // Initialize a Camera with the width and height of the area to be shown.
-        camera = new OrthographicCamera(Gdx.graphics.getWidth() * CAMERA_ZOOM, Gdx.graphics.getHeight() * CAMERA_ZOOM);
+        camera = new OrthographicCamera(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
         // Center the camera in the middle of the map.
-        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0);
+        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0f);
         // Updating the camera allows the changes we made to actually take effect.
         camera.update();
         // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
         viewport = new ScreenViewport(camera);
+        // This FitViewport scales the world up to fit the screen, adding empty space as needed at the edges.
+        growingViewport = new FitViewport(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
+        // The FrameBuffer allows us to draw off-screen to a small "canvas" and scale it up later.
+        buffer = new FrameBuffer(Pixmap.Format.RGBA8888, SCREEN_HORIZONTAL, SCREEN_VERTICAL, false, false);
+
+        // The pixel art shader used here needs some functions that are only available on desktop OpenGL or
+        // if a certain (widely-available) extension is supported on Android, iOS, or the browser.
+        canUsePixelArtShader =
+            Gdx.app.getType() == Application.ApplicationType.Desktop
+            || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
+        // If we can use the pixel art shader, we load it from files, otherwise we use the SpriteBatch default.
+        pixelArtShader =
+            (canUsePixelArtShader
+                ? new ShaderProgram(Gdx.files.internal("vertex.glsl"), Gdx.files.internal("fragment.glsl"))
+                : null
+        );
 
         // Calling regenerate() does the procedural map generation, and chooses a random player character.
         regenerate(
@@ -431,6 +464,13 @@ public class Main extends ApplicationAdapter {
         // When the rotation has finished, we set the previous rotation to what we just ended on.
         if(MathUtils.isEqual(map.rotationDegrees, map.targetRotation))
             map.previousRotation = map.targetRotation;
+
+        // Set the shader to the default if we use the pixel art shader later.
+        if(canUsePixelArtShader)
+            batch.setShader(null);
+        // When we begin the FrameBuffer, anything we draw won't go to the screen, but an "off-screen canvas".
+        buffer.begin();
+        viewport.update(SCREEN_HORIZONTAL, SCREEN_VERTICAL, false);
         // Very dark blue for the background color.
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         // Vital to get things to display. I don't actually know what the "combined" matrix is here.
@@ -459,9 +499,34 @@ public class Main extends ApplicationAdapter {
         fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
         // Allows the FPS label to be drawn with the correct width.
         fpsLabel.invalidate();
+        // Draw the UI info.
         goalLabel.draw(batch, 1f);
         fpsLabel.draw(batch, 1f);
         healthLabel.draw(batch, 1f);
+        // When we end the batch, everything scheduled to draw so far actually gets drawn.
+        batch.end();
+        // When we end the buffer, everything that has been drawn to the tiny screen is now available.
+        buffer.end();
+        // Same background color, very dark blue.
+        ScreenUtils.clear(.14f, .15f, .2f, 1f);
+        // Here we use the different, non-tiny viewport and its projection.
+        batch.setProjectionMatrix(growingViewport.getCamera().combined);
+        // We still need to apply the viewport, but here we pass true to center the camera.
+        growingViewport.apply(true);
+        // This gets the "off-screen canvas" we drew the tiny texture to, and assigns it to fb.
+        Texture fb = buffer.getColorBufferTexture();
+        if(canUsePixelArtShader) {
+            // Works better with the pixel art shader.
+            fb.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            batch.setShader(pixelArtShader);
+            batch.begin();
+            // The uniform must be set after the batch has begun.
+            pixelArtShader.setUniformf("u_textureResolution", fb.getWidth(), fb.getHeight());
+        } else {
+            batch.begin();
+        }
+        // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
+        batch.draw(fb, 0, fb.getHeight(), fb.getWidth(), -fb.getHeight());
         batch.end();
     }
 
@@ -670,10 +735,13 @@ public class Main extends ApplicationAdapter {
         // This will only divide 1f by an integer amount 1 or greater, which makes pixels always the exact right size.
         // This meant to fit an isometric map that is about MAP_SIZE by MAP_PEAK by MAP_SIZE, where MAP_PEAK is how many
         // layers of voxels can be stacked on top of each other.
-        viewport.setUnitsPerPixel(1f / Math.max(1, (int) Math.min(
-            width  / ((MAP_SIZE+1f) * (AssetData.TILE_WIDTH * 2f)),
-            height / ((MAP_SIZE+1f) * (AssetData.TILE_HEIGHT * 2f) + AssetData.TILE_DEPTH * MAP_PEAK))));
-        viewport.update(width, height);
+//        viewport.setUnitsPerPixel(1f / Math.max(1, (int) Math.min(
+//            width  / ((MAP_SIZE+1f) * (AssetData.TILE_WIDTH * 2f)),
+//            height / ((MAP_SIZE+1f) * (AssetData.TILE_HEIGHT * 2f) + AssetData.TILE_DEPTH * MAP_PEAK))));
+//        viewport.update(width, height);
+
+        // Or, we can use growingViewport and not need integer scales at all!
+        growingViewport.update(width, height);
     }
 
     /**
