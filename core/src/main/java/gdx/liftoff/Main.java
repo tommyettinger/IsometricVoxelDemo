@@ -203,11 +203,11 @@ public class Main extends ApplicationAdapter {
     /**
      * The computed width in pixels of a full map at its largest possible {@link #MAP_SIZE}.
      */
-    public static final int SCREEN_HORIZONTAL = (MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH;
+    public static final int SCREEN_HORIZONTAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH) * 2;
     /**
      * The computed height in pixels of a full map at its largest possible {@link #MAP_SIZE} and {@link #MAP_PEAK}.
      */
-    public static final int SCREEN_VERTICAL = (MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH;
+    public static final int SCREEN_VERTICAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH) * 2;
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
@@ -330,11 +330,12 @@ public class Main extends ApplicationAdapter {
         // Initialize a Camera with the width and height of the area to be shown.
         camera = new OrthographicCamera(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
         // Center the camera in the middle of the map.
-        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0f);
+        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.25f, 0f);
         // Updating the camera allows the changes we made to actually take effect.
         camera.update();
         // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
         viewport = new ScreenViewport(camera);
+        viewport.setUnitsPerPixel(0.5f);
         // This FitViewport scales the world up to fit the screen, adding empty space as needed at the edges.
         growingViewport = new FitViewport(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
         // The FrameBuffer allows us to draw off-screen to a small "canvas" and scale it up later.
@@ -366,17 +367,17 @@ public class Main extends ApplicationAdapter {
         Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
         // The goal label text changes when updateFish() or updateHealth() is called.
         goalLabel = new Label("", skin);
-        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
+        goalLabel.setPosition(0, SCREEN_VERTICAL * 0.5f - 30, Align.center);
         updateFish();
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
         // It shows " :( " if the player reaches 0 health, using darker red.
         healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
-        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
+        healthLabel.setPosition(-300, SCREEN_VERTICAL * 0.5f - 30, Align.left);
         updateHealth();
 
         // The FPS label can be removed if you want in production.
         fpsLabel = new Label("0 FPS", skin);
-        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
+        fpsLabel.setPosition(0, SCREEN_VERTICAL * 0.5f - 50, Align.center);
 
         // These enforce the FPS cap and VSync settings from the first frame rendered.
         // Pressing 'C' will toggle the frame rate cap on or off.
@@ -520,14 +521,16 @@ public class Main extends ApplicationAdapter {
         growingViewport.apply(true);
         // This gets the "off-screen canvas" we drew the tiny texture to, and assigns it to fb.
         Texture fb = buffer.getColorBufferTexture();
+        // Works better with the pixel art shader.
+        fb.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         if(canUsePixelArtShader) {
-            // Works better with the pixel art shader.
-            fb.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             batch.setShader(pixelArtShader);
             batch.begin();
             // The uniform must be set after the batch has begun.
             pixelArtShader.setUniformf("u_textureResolution", fb.getWidth(), fb.getHeight());
         } else {
+            // Makes everything crisp, but also may duplicate pixels in an ugly way...
+//            fb.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
             batch.begin();
         }
         // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
