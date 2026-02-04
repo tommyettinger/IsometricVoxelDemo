@@ -200,14 +200,18 @@ public class Main extends ApplicationAdapter {
      * includes some room to jump higher.
      */
     public static final int MAP_PEAK = 10;
+
+    public static int ZOOM = 4;
+
+    public static float INVERSE_ZOOM = 1f / ZOOM;
     /**
      * The computed width in pixels of a full map at its largest possible {@link #MAP_SIZE}.
      */
-    public static final int SCREEN_HORIZONTAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH) * 2;
+    public static final int SCREEN_HORIZONTAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH);
     /**
      * The computed height in pixels of a full map at its largest possible {@link #MAP_SIZE} and {@link #MAP_PEAK}.
      */
-    public static final int SCREEN_VERTICAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH) * 2;
+    public static final int SCREEN_VERTICAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH);
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
@@ -328,18 +332,18 @@ public class Main extends ApplicationAdapter {
         }
 
         // Initialize a Camera with the width and height of the area to be shown.
-        camera = new OrthographicCamera(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
+        camera = new OrthographicCamera(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM);
         // Center the camera in the middle of the map.
-        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.25f, 0f);
+        camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0f);
         // Updating the camera allows the changes we made to actually take effect.
         camera.update();
         // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
         viewport = new ScreenViewport(camera);
-        viewport.setUnitsPerPixel(0.5f);
+        viewport.setUnitsPerPixel(INVERSE_ZOOM);
         // This FitViewport scales the world up to fit the screen, adding empty space as needed at the edges.
-        growingViewport = new FitViewport(SCREEN_HORIZONTAL, SCREEN_VERTICAL);
+        growingViewport = new FitViewport(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM);
         // The FrameBuffer allows us to draw off-screen to a small "canvas" and scale it up later.
-        buffer = new FrameBuffer(Pixmap.Format.RGBA8888, SCREEN_HORIZONTAL, SCREEN_VERTICAL, false, false);
+        buffer = new FrameBuffer(Pixmap.Format.RGBA8888, SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM, false, false);
 
         // The pixel art shader used here needs some functions that are only available on desktop OpenGL or
         // if a certain (widely-available) extension is supported on Android, iOS, or the browser.
@@ -367,17 +371,17 @@ public class Main extends ApplicationAdapter {
         Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
         // The goal label text changes when updateFish() or updateHealth() is called.
         goalLabel = new Label("", skin);
-        goalLabel.setPosition(0, SCREEN_VERTICAL * 0.5f - 30, Align.center);
+        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
         // It shows " :( " if the player reaches 0 health, using darker red.
         healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
-        healthLabel.setPosition(-300, SCREEN_VERTICAL * 0.5f - 30, Align.left);
+        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
 
         // The FPS label can be removed if you want in production.
         fpsLabel = new Label("0 FPS", skin);
-        fpsLabel.setPosition(0, SCREEN_VERTICAL * 0.5f - 50, Align.center);
+        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         // These enforce the FPS cap and VSync settings from the first frame rendered.
         // Pressing 'C' will toggle the frame rate cap on or off.
@@ -476,7 +480,7 @@ public class Main extends ApplicationAdapter {
             batch.setShader(null);
         // When we begin the FrameBuffer, anything we draw won't go to the screen, but an "off-screen canvas".
         buffer.begin();
-        viewport.update(SCREEN_HORIZONTAL, SCREEN_VERTICAL, false);
+        viewport.update(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM, false);
         // Very dark blue for the background color.
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         // Vital to get things to display. I don't actually know what the "combined" matrix is here.
