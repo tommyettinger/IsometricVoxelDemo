@@ -142,8 +142,6 @@ public class Main extends ApplicationAdapter {
      * A special shader that resizes more crisply to noninteger scales, retaining pixel art details.
      */
     private ShaderProgram pixelArtShader;
-
-    private String vertexShader, fragmentShader;
     /**
      * Mover represents any moving creature or hazard, and can be a player character or non-player character (NPC).
      * This is the player, which has {@code npc = false;} and so won't move on their own.
@@ -200,18 +198,35 @@ public class Main extends ApplicationAdapter {
      * includes some room to jump higher.
      */
     public static final int MAP_PEAK = 10;
-
-    public static int ZOOM = 4;
-
+    /**
+     * A scale factor applied to the smaller pixel art "canvas" so scaling it doesn't get as blurry. This only needs to
+     * be 1 or 2 on desktop, but on platforms that can't use the pixel art shader, we later set it to a higher value.
+     */
+    public static int ZOOM = 2;
+    /**
+     * To avoid having to cast ZOOM to a float and divide by it repeatedly, we just store its inverse here.
+     */
     public static float INVERSE_ZOOM = 1f / ZOOM;
     /**
-     * The computed width in pixels of a full map at its largest possible {@link #MAP_SIZE}.
+     * The computed width in pixels of a 1x zoom complete map at its largest possible {@link #MAP_SIZE}.
+     * This is used for the default window size.
      */
     public static final int SCREEN_HORIZONTAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_WIDTH);
     /**
-     * The computed height in pixels of a full map at its largest possible {@link #MAP_SIZE} and {@link #MAP_PEAK}.
+     * The computed height in pixels of a 1x zoom complete map at its largest possible {@link #MAP_SIZE} and
+     * {@link #MAP_PEAK}. This is used for the default window size.
      */
     public static final int SCREEN_VERTICAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH);
+    /**
+     * The computed width in pixels of a zoomed-in complete map at its largest possible {@link #MAP_SIZE}.
+     * This is used for the larger pixel view when the pixel art shader can't be used.
+     */
+    public static int ZOOMED_HORIZONTAL = SCREEN_HORIZONTAL * (ZOOM);
+    /**
+     * The computed height in pixels of a zoomed-in complete map at its largest possible {@link #MAP_SIZE} and
+     * {@link #MAP_PEAK}. This is used for the larger pixel view when the pixel art shader can't be used.
+     */
+    public static int ZOOMED_VERTICAL = SCREEN_VERTICAL * (ZOOM);
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
@@ -331,32 +346,41 @@ public class Main extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
+        // The pixel art shader used here needs some functions that are only available on desktop OpenGL or
+        // if a certain extension is supported on Android, iOS, or the browser.
+        canUsePixelArtShader =
+            Gdx.app.getType() == Application.ApplicationType.Desktop
+                || Gdx.graphics.isGL30Available()
+                || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
+
+        // If we aren't able to use the pixel art shader, we make do by using a much larger off-screen canvas, which is
+        // still pixel-perfect, and scale that down instead of up when we render.
+        if(!canUsePixelArtShader){
+            ZOOM = 4;
+            INVERSE_ZOOM = 1f / ZOOM;
+            ZOOMED_HORIZONTAL = SCREEN_HORIZONTAL * ZOOM;
+            ZOOMED_VERTICAL = SCREEN_VERTICAL * ZOOM;
+        }
+
         // Initialize a Camera with the width and height of the area to be shown.
-        camera = new OrthographicCamera(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM);
+        camera = new OrthographicCamera(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL);
         // Center the camera in the middle of the map.
         camera.position.set(AssetData.TILE_WIDTH, SCREEN_VERTICAL * 0.5f, 0f);
         // Updating the camera allows the changes we made to actually take effect.
         camera.update();
         // ScreenViewport is not always a great choice, but here we want only pixel-perfect zooms, and it can do that.
         viewport = new ScreenViewport(camera);
+        // This makes the pixel-perfect view potentially much larger, but always scales by an integer multiple.
         viewport.setUnitsPerPixel(INVERSE_ZOOM);
         // This FitViewport scales the world up to fit the screen, adding empty space as needed at the edges.
-        growingViewport = new FitViewport(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM);
-        // The FrameBuffer allows us to draw off-screen to a small "canvas" and scale it up later.
-        buffer = new FrameBuffer(Pixmap.Format.RGBA8888, SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM, false, false);
+        growingViewport = new FitViewport(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL);
+        // The FrameBuffer allows us to draw off-screen to a pixel-perfect "canvas" and scale it to any size later.
+        buffer = new FrameBuffer(Pixmap.Format.RGBA8888, ZOOMED_HORIZONTAL, ZOOMED_VERTICAL, false, false);
 
-        // The pixel art shader used here needs some functions that are only available on desktop OpenGL or
-        // if a certain (widely-available) extension is supported on Android, iOS, or the browser.
-        canUsePixelArtShader =
-            Gdx.app.getType() == Application.ApplicationType.Desktop
-                || Gdx.graphics.isGL30Available()
-                || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
         // If we can use the pixel art shader, we load it from files, otherwise we use the SpriteBatch default.
-        vertexShader = Gdx.files.internal("vertex.glsl").readString("UTF-8");
-        fragmentShader = Gdx.files.internal("fragment.glsl").readString("UTF-8");
         pixelArtShader =
             (canUsePixelArtShader
-                ? new ShaderProgram(vertexShader, fragmentShader)
+                ? new ShaderProgram(Gdx.files.internal("vertex.glsl"), Gdx.files.internal("fragment.glsl"))
                 : null
         );
 
@@ -480,7 +504,7 @@ public class Main extends ApplicationAdapter {
             batch.setShader(null);
         // When we begin the FrameBuffer, anything we draw won't go to the screen, but an "off-screen canvas".
         buffer.begin();
-        viewport.update(SCREEN_HORIZONTAL * ZOOM, SCREEN_VERTICAL * ZOOM, false);
+        viewport.update(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL, false);
         // Very dark blue for the background color.
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
         // Vital to get things to display. I don't actually know what the "combined" matrix is here.
