@@ -142,6 +142,8 @@ public class Main extends ApplicationAdapter {
      * A special shader that resizes more crisply to noninteger scales, retaining pixel art details.
      */
     private ShaderProgram pixelArtShader;
+
+    private String vertexShader, fragmentShader;
     /**
      * Mover represents any moving creature or hazard, and can be a player character or non-player character (NPC).
      * This is the player, which has {@code npc = false;} and so won't move on their own.
@@ -342,11 +344,14 @@ public class Main extends ApplicationAdapter {
         // if a certain (widely-available) extension is supported on Android, iOS, or the browser.
         canUsePixelArtShader =
             Gdx.app.getType() == Application.ApplicationType.Desktop
-            || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
+                || Gdx.graphics.isGL30Available()
+                || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
         // If we can use the pixel art shader, we load it from files, otherwise we use the SpriteBatch default.
+        vertexShader = Gdx.files.internal("vertex.glsl").readString("UTF-8");
+        fragmentShader = Gdx.files.internal("fragment.glsl").readString("UTF-8");
         pixelArtShader =
             (canUsePixelArtShader
-                ? new ShaderProgram(Gdx.files.internal("vertex.glsl"), Gdx.files.internal("fragment.glsl"))
+                ? new ShaderProgram(vertexShader, fragmentShader)
                 : null
         );
 
@@ -777,7 +782,10 @@ public class Main extends ApplicationAdapter {
             // Shows one red heart per point of health.
             healthLabel.getText().append("[SCARLET]");
             for (int i = 0; i < player.health; i++) {
-                healthLabel.getText().append(" ♥");
+                if(canUsePixelArtShader)
+                    healthLabel.getText().append(" ♥");
+                else
+                    healthLabel.getText().append("<3");
             }
             healthLabel.setText(healthLabel.getText().toString());
             healthLabel.invalidate();

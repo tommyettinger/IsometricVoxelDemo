@@ -37,15 +37,9 @@ public class TeaVMBuilder {
 
         // Register any classes or packages that require reflection here:
 
+        teaBuildConfiguration.targetType = TeaVMTargetType.WEBASSEMBLY_GC;
         TeaBuilder.config(teaBuildConfiguration);
         TeaVMTool tool = new TeaVMTool();
-
-        // JavaScript is the default target type for TeaVM, and it works better during debugging.
-//        tool.setTargetType(TeaVMTargetType.JAVASCRIPT);
-        // You can choose to use the WebAssembly (WASM) GC target instead, which tends to perform better, but isn't
-        // as easy to debug. It might be a good idea to alternate target types during development if you plan on using
-        // WASM at release time.
-        tool.setTargetType(TeaVMTargetType.WEBASSEMBLY_GC);
 
         tool.setMainClass(TeaVMLauncher.class.getName());
         // For many (or most) applications, using the highest optimization won't add much to build time.
@@ -56,7 +50,7 @@ public class TeaVMBuilder {
         // If targetType is set to JAVASCRIPT, you can use the following lines to debug JVM languages from the browser,
         // setting breakpoints in Java/Kotlin code and stopping in the appropriate place in generated JavaScript code.
         // These settings don't quite work currently if generating WebAssembly. They may in a future release.
-        if(DEBUG && tool.getTargetType() == TeaVMTargetType.JAVASCRIPT) {
+        if(DEBUG) {
             tool.setDebugInformationGenerated(true);
             tool.setSourceMapsFileGenerated(true);
             tool.setWasmDebugInfoLevel(WasmDebugInfoLevel.FULL);

@@ -8,7 +8,10 @@ precision mediump float;
 varying vec2 v_texCoords;
 varying LOWP vec4 v_color;
 uniform sampler2D u_texture;
+// This uniform must be set after the batch starts to the dimensions of the Texture being rendered.
 uniform vec2 u_textureResolution;
+
+// Adapted from https://www.shadertoy.com/view/ltfXWS by Permutator, CC0 licensed (no attribution necessary).
 
 vec2 v2len(vec2 a, vec2 b) {
     return sqrt(a*a+b*b);
