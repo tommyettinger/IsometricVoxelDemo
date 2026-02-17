@@ -134,14 +134,7 @@ public class Main extends ApplicationAdapter {
      * A way to draw a tiny pixel-perfect image off-screen, then later draw it larger with better scaling.
      */
     private FrameBuffer buffer;
-    /**
-     * Stores true if we are on a desktop/laptop platform, or if a necessary extension is available for mobile/web.
-     */
-    private boolean canUsePixelArtShader;
-    /**
-     * A special shader that resizes more crisply to noninteger scales, retaining pixel art details.
-     */
-    private ShaderProgram pixelArtShader;
+
     /**
      * Mover represents any moving creature or hazard, and can be a player character or non-player character (NPC).
      * This is the player, which has {@code npc = false;} and so won't move on their own.
@@ -199,10 +192,10 @@ public class Main extends ApplicationAdapter {
      */
     public static final int MAP_PEAK = 10;
     /**
-     * A scale factor applied to the smaller pixel art "canvas" so scaling it doesn't get as blurry. This only needs to
-     * be 1 or 2 on desktop, but on platforms that can't use the pixel art shader, we later set it to a higher value.
+     * A scale factor applied to the smaller pixel art "canvas" so scaling it doesn't get as blurry. This works well
+     * if it's set to about 4 or 8, with 4 being a little more blurry and 8 being a little less. They're very similar.
      */
-    public static int ZOOM = 2;
+    public static int ZOOM = 8;
     /**
      * To avoid having to cast ZOOM to a float and divide by it repeatedly, we just store its inverse here.
      */
@@ -346,22 +339,6 @@ public class Main extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
-        // The pixel art shader used here needs some functions that are only available on desktop OpenGL or
-        // if a certain extension is supported on Android, iOS, or the browser.
-        canUsePixelArtShader =
-            Gdx.app.getType() == Application.ApplicationType.Desktop
-                || Gdx.graphics.isGL30Available()
-                || Gdx.graphics.supportsExtension("GL_OES_standard_derivatives");
-
-        // If we aren't able to use the pixel art shader, we make do by using a much larger off-screen canvas, which is
-        // still pixel-perfect, and scale that down instead of up when we render.
-        if(!canUsePixelArtShader){
-            ZOOM = 4;
-            INVERSE_ZOOM = 1f / ZOOM;
-            ZOOMED_HORIZONTAL = SCREEN_HORIZONTAL * ZOOM;
-            ZOOMED_VERTICAL = SCREEN_VERTICAL * ZOOM;
-        }
-
         // Initialize a Camera with the width and height of the area to be shown.
         camera = new OrthographicCamera(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL);
         // Center the camera in the middle of the map.
@@ -376,13 +353,6 @@ public class Main extends ApplicationAdapter {
         growingViewport = new FitViewport(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL);
         // The FrameBuffer allows us to draw off-screen to a pixel-perfect "canvas" and scale it to any size later.
         buffer = new FrameBuffer(Pixmap.Format.RGBA8888, ZOOMED_HORIZONTAL, ZOOMED_VERTICAL, false, false);
-
-        // If we can use the pixel art shader, we load it from files, otherwise we use the SpriteBatch default.
-        pixelArtShader =
-            (canUsePixelArtShader
-                ? new ShaderProgram(Gdx.files.internal("vertex.glsl"), Gdx.files.internal("fragment.glsl"))
-                : null
-        );
 
         // Calling regenerate() does the procedural map generation, and chooses a random player character.
         regenerate(
@@ -499,9 +469,6 @@ public class Main extends ApplicationAdapter {
         if(MathUtils.isEqual(map.rotationDegrees, map.targetRotation))
             map.previousRotation = map.targetRotation;
 
-        // Set the shader to the default if we use the pixel art shader later.
-        if(canUsePixelArtShader)
-            batch.setShader(null);
         // When we begin the FrameBuffer, anything we draw won't go to the screen, but an "off-screen canvas".
         buffer.begin();
         viewport.update(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL, false);
@@ -549,18 +516,11 @@ public class Main extends ApplicationAdapter {
         growingViewport.apply(true);
         // This gets the "off-screen canvas" we drew the tiny texture to, and assigns it to fb.
         Texture fb = buffer.getColorBufferTexture();
-        // Works better with the pixel art shader.
+        // Causes a small amount of blur, but only at the edges between pixels.
+        // Each pixel is already drawn significantly larger, based on ZOOM, so only part of each will blur.
         fb.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        if(canUsePixelArtShader) {
-            batch.setShader(pixelArtShader);
-            batch.begin();
-            // The uniform must be set after the batch has begun.
-            pixelArtShader.setUniformf("u_textureResolution", fb.getWidth(), fb.getHeight());
-        } else {
-            // Makes everything crisp, but also may duplicate pixels in an ugly way...
-//            fb.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-            batch.begin();
-        }
+        // This batch will only draw one Texture, which is the screen we captured as a framebuffer.
+        batch.begin();
         // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
         batch.draw(fb, 0, fb.getHeight(), fb.getWidth(), -fb.getHeight());
         batch.end();
@@ -813,10 +773,7 @@ public class Main extends ApplicationAdapter {
             // Shows one red heart per point of health.
             healthLabel.getText().append("[SCARLET]");
             for (int i = 0; i < player.health; i++) {
-                if(canUsePixelArtShader)
-                    healthLabel.getText().append(" ♥");
-                else
-                    healthLabel.getText().append("<3");
+                healthLabel.getText().append(" ♥");
             }
             healthLabel.setText(healthLabel.getText().toString());
             healthLabel.invalidate();
