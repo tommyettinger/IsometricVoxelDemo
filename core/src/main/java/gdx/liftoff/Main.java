@@ -12,18 +12,14 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.OrderedMap;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -100,6 +96,14 @@ public class Main extends ApplicationAdapter {
      * CUSTOM TO YOUR GAME.
      */
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
+
+    private Stage stage;
+
+    private Table root;
+
+    private Touchpad touchpad;
+
+    private IntMap<TextButton> keyButtons;
     /**
      * Can be changed to make the game harder with more fish to save, or easier with fewer.
      */
@@ -311,6 +315,49 @@ public class Main extends ApplicationAdapter {
 
         // Loads the atlas from an internal path, in "assets/".
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
+
+        stage = new Stage(new ScreenViewport());
+
+        // Not currently used, but present in the assets.
+        // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
+        // for more information on how to use a Skin.
+        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        root = new Table(skin);
+        touchpad = new Touchpad(8f, skin);
+        keyButtons = new IntMap<>(16);
+        root.add(new Table(skin)).growY().row();
+        root.add(touchpad).width(128).height(128);
+        root.add(new Table(skin)).growX();
+        Table buttonTable = new Table(skin);
+        buttonTable.pad(5f);
+        TextButton reset = new TextButton("RESET", skin);
+        TextButton exit = new TextButton("EXIT", skin);
+        TextButton zoomIn = new TextButton("Zoom In", skin);
+        TextButton zoomOut = new TextButton("Zoom Out", skin);
+        TextButton rotateLeft = new TextButton("<-Rotate", skin);
+        TextButton rotateRight = new TextButton("Rotate->", skin);
+        TextButton jump = new TextButton("Jump", skin);
+        keyButtons.put(Input.Keys.Z, reset);
+        keyButtons.put(Input.Keys.Q, exit);
+        keyButtons.put(Input.Keys.I, zoomIn);
+        keyButtons.put(Input.Keys.O, zoomOut);
+        keyButtons.put(Input.Keys.LEFT_BRACKET, rotateLeft);
+        keyButtons.put(Input.Keys.RIGHT_BRACKET, rotateRight);
+        keyButtons.put(Input.Keys.SPACE, jump);
+        buttonTable.add(reset).width(90f);
+        buttonTable.add(exit).width(90f).row();
+        buttonTable.row();
+        buttonTable.add(rotateLeft).width(90);
+        buttonTable.add(rotateRight).width(90).row();
+        buttonTable.add(zoomIn).width(90);
+        buttonTable.add(zoomOut).width(90).row();
+        buttonTable.add(jump).width(190).height(40f).colspan(2);
+        root.add(buttonTable).width(200);
+        root.setFillParent(true);
+        root.pack();
+        stage.addActor(root);
+        Gdx.input.setInputProcessor(stage);
+
         // All regions in the atlas for creatures start with "entity" and have an index.
         Array<TextureAtlas.AtlasRegion> entities = atlas.findRegions("entity");
         // Extract animations from the atlas.
@@ -359,10 +406,6 @@ public class Main extends ApplicationAdapter {
             /* The seed will change after just over one hour, and will stay the same for over an hour. */
             TimeUtils.millis() >>> 22);
 
-        // Not currently used, but present in the assets.
-        // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
-        // for more information on how to use a Skin.
-        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
         // The goal label text changes when updateFish() or updateHealth() is called.
         goalLabel = new Label("", skin);
         goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
@@ -524,6 +567,9 @@ public class Main extends ApplicationAdapter {
         // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
         batch.draw(fb, 0, fb.getHeight(), fb.getWidth(), -fb.getHeight());
         batch.end();
+        stage.getViewport().apply();
+        stage.act(delta);
+        stage.draw();
     }
 
     /**
@@ -738,6 +784,7 @@ public class Main extends ApplicationAdapter {
 
         // Or, we can use growingViewport and not need integer scales at all!
         growingViewport.update(width, height);
+        stage.getViewport().update(width, height);
     }
 
     /**
