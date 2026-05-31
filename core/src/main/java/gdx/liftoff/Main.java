@@ -567,7 +567,7 @@ public class Main extends ApplicationAdapter {
         // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
         batch.draw(fb, 0, fb.getHeight(), fb.getWidth(), -fb.getHeight());
         batch.end();
-        stage.getViewport().apply();
+        stage.getViewport().apply(true);
         stage.act(delta);
         stage.draw();
     }
