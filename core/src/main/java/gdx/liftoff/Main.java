@@ -16,9 +16,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
-import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -352,7 +353,19 @@ public class Main extends ApplicationAdapter {
         TextButton zoomIn = new TextButton("Zoom In", skin);
         TextButton zoomOut = new TextButton("Zoom Out", skin);
         TextButton rotateLeft = new TextButton("<-Rotate", skin);
+        rotateLeft.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                rotateCamera(1);
+            }
+        });
         TextButton rotateRight = new TextButton("Rotate->", skin);
+        rotateRight.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                rotateCamera(-1);
+            }
+        });
         TextButton jump = new TextButton("Jump", skin);
         keyButtons.put(Input.Keys.Z, reset);
         keyButtons.put(Input.Keys.Q, exit);
@@ -673,14 +686,10 @@ public class Main extends ApplicationAdapter {
 
         // The square bracket keys handle rotation, which can be important to spot goldfish behind terrain.
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT_BRACKET)) {
-            map.previousRotation = map.rotationDegrees;
-            map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) + 1 & 3) * 90;
-            animationStart = TimeUtils.millis();
+            rotateCamera(1);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT_BRACKET)) {
-            map.previousRotation = map.rotationDegrees;
-            map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) - 1 & 3) * 90;
-            animationStart = TimeUtils.millis();
+            rotateCamera(-1);
         }
         // Because the arrow keys, as well as I and O, can change the camera, we update it here.
         camera.update();
@@ -715,6 +724,20 @@ public class Main extends ApplicationAdapter {
             }
         }
         */
+    }
+
+    /**
+     * Rotates the view as if the camera moved around the map by 90 degrees, over several frames.
+     * This actually rotates the map itself, not the camera, which is still fully 2D.
+     * Individual voxels don't get moved; here, the map rotation is what determines where voxels are placed and how
+     * they get sorted, but the rotation is just one float to change.
+     *
+     * @param amount Almost always either 1 for a left rotation or -1 for a right rotation.
+     */
+    public void rotateCamera(int amount) {
+        map.previousRotation = map.rotationDegrees;
+        map.targetRotation = (MathUtils.round(map.rotationDegrees * (1f/90f)) + amount & 3) * 90;
+        animationStart = TimeUtils.millis();
     }
 
     /**
