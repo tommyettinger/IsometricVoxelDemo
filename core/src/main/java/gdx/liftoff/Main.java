@@ -334,6 +334,14 @@ public class Main extends ApplicationAdapter {
         root = new Table(skin);
         touchpad = new Touchpad(8f, skin);
         keyButtons = new IntMap<>(16);
+
+        goalLabel = new Label("", skin);
+        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
+        fpsLabel = new Label("0 FPS", skin);
+
+        root.add(healthLabel);
+        root.add(goalLabel);
+        root.add(fpsLabel).row();
         root.add(new Table(skin)).growY().row();
         root.add(touchpad).width(128).height(128);
         root.add(new Table(skin)).growX();
@@ -416,18 +424,15 @@ public class Main extends ApplicationAdapter {
             TimeUtils.millis() >>> 22);
 
         // The goal label text changes when updateFish() or updateHealth() is called.
-        goalLabel = new Label("", nearestSkin);
-        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
+//        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
         // It shows " :( " if the player reaches 0 health, using darker red.
-        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", nearestSkin);
-        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
+//        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
 
         // The FPS label can be removed if you want in production.
-        fpsLabel = new Label("0 FPS", nearestSkin);
-        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
+//        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         // These enforce the FPS cap and VSync settings from the first frame rendered.
         // Pressing 'C' will toggle the frame rate cap on or off.
