@@ -351,7 +351,19 @@ public class Main extends ApplicationAdapter {
         TextButton reset = new TextButton("RESET", skin);
         TextButton exit = new TextButton("EXIT", skin);
         TextButton zoomIn = new TextButton("Zoom In", skin);
+        zoomIn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                camera.zoom *= .5f;
+            }
+        });
         TextButton zoomOut = new TextButton("Zoom Out", skin);
+        zoomOut.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                camera.zoom *= 2f;
+            }
+        });
         TextButton rotateLeft = new TextButton("<-Rotate", skin);
         rotateLeft.addListener(new ClickListener(){
             @Override
@@ -566,14 +578,6 @@ public class Main extends ApplicationAdapter {
             ((Main)Gdx.app.getApplicationListener()).updateFish();
         }
 
-        fpsLabel.getText().clear();
-        fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
-        // Allows the FPS label to be drawn with the correct width.
-        fpsLabel.invalidate();
-        // Draw the UI info.
-        goalLabel.draw(batch, 1f);
-        fpsLabel.draw(batch, 1f);
-        healthLabel.draw(batch, 1f);
         // When we end the batch, everything scheduled to draw so far actually gets drawn.
         batch.end();
         // When we end the buffer, everything that has been drawn to the tiny screen is now available.
@@ -594,6 +598,12 @@ public class Main extends ApplicationAdapter {
         // Because the framebuffer is vertically flipped, we need to draw it with negative height, and offset above.
         batch.draw(fb, 0, fb.getHeight(), fb.getWidth(), -fb.getHeight());
         batch.end();
+
+        fpsLabel.getText().clear();
+        fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
+        // Allows the FPS label to be drawn with the correct width.
+        fpsLabel.invalidate();
+
         stage.getViewport().apply(true);
         stage.act(delta);
         stage.draw();
@@ -847,7 +857,7 @@ public class Main extends ApplicationAdapter {
                     ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
         }
         goalLabel.setAlignment(Align.center);
-        goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
+//        goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
     }
 
     /**
@@ -858,7 +868,7 @@ public class Main extends ApplicationAdapter {
         {
             goalLabel.setText("YOU FAILED.. BY DYING...");
             goalLabel.setAlignment(Align.center);
-            goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
+//            goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
             healthLabel.setText("[FIREBRICK]:(");
         }
         else {
