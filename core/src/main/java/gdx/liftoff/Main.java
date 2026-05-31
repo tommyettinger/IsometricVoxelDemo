@@ -78,17 +78,10 @@ public class Main extends ApplicationAdapter {
      */
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
     /**
-     * This is the file name of the atlas of 2D GUI assets used in the game. It uses
-     * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
-     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a skin originally by Raymond Buckley</a>.
-     * <br>
-     * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
-     */
-    public static final String SKIN_ATLAS_FILE_NAME = "clean-crispy.atlas";
-    /**
      * This is the actual TextureAtlas of 2D assets used in the game. It uses
      * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
-     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a mangled, pixelated skin originally by Raymond Buckley</a>.
+     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a skin by Raymond Buckley</a> with the
+     * font changed to <a href="https://github.com/the-moonwitch/Cozette">Cozette</a>.
      * <br>
      * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
      */
@@ -106,13 +99,21 @@ public class Main extends ApplicationAdapter {
      */
     private Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations;
 
+    /**
+     * This is drawn separately from the gameplay, at 100% pixel-perfect size.
+     */
     private Stage stage;
-
-    private Table root;
-
+    /**
+     * Used so mobile users can actually play the game! This is an on-screen knob that can be dragged in any direction,
+     * to move the player around.
+     */
     private Touchpad touchpad;
-
+    /**
+     * A mapping of keys (the ones a desktop would use to play the game) to TextButtons that can be used on mobile
+     * devices. Only a few (or maybe just one) TextButton is actually accessed via this Map.
+     */
     private IntMap<TextButton> keyButtons;
+
     /**
      * Can be changed to make the game harder with more fish to save, or easier with fewer.
      */
@@ -159,7 +160,7 @@ public class Main extends ApplicationAdapter {
      */
     private Array<Mover> enemies;
     /**
-     * Shows current frames per second on the screen; you can remove this in production.
+     * Shows current frames per second on the screen. The FPS label can be removed, if you want, in production.
      */
     private Label fpsLabel;
     /**
@@ -327,15 +328,18 @@ public class Main extends ApplicationAdapter {
 
         stage = new Stage(new ScreenViewport());
 
-        // Not currently used, but present in the assets.
+        // Uses the same assets and a libGDX Skin JSON file to tell scene2d.ui widgets how to draw themselves.
         // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
         // for more information on how to use a Skin.
-        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), new TextureAtlas(Gdx.files.internal("clean-crispy.atlas")));
-        Skin nearestSkin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
-        root = new Table(skin);
+        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        // scene2d.ui uses a Table-based layout system. Here, root is our outermost table, and others are nested.
+        Table root = new Table(skin);
+        // The touchpad allows movement on mobile devices without a keyboard.
         touchpad = new Touchpad(8f, skin);
+        // This stores the TextButtons by the keyboard keys that they are mapped to on desktop.
         keyButtons = new IntMap<>(16);
 
+        // These three Labels show at the top, and provide info about your progress in the game and health.
         goalLabel = new Label("", skin);
         healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
         fpsLabel = new Label("0 FPS", skin);
@@ -343,14 +347,19 @@ public class Main extends ApplicationAdapter {
         root.add(healthLabel);
         root.add(goalLabel);
         root.add(fpsLabel).row();
+        // This makes a large gap between the Labels on top and the thicker widget row below.
         root.add(new Table(skin)).growY().row();
-        root.add(touchpad).width(128).height(128);
+        // This starts the widget row with the touchpad on the left.
+        root.add(touchpad);
+        // This adds as much space as possible between the touchpad and the buttons.
         root.add(new Table(skin)).growX();
+        // We use another Table for the buttons, because the touchpad is taller than any one button.
         Table buttonTable = new Table(skin);
         buttonTable.pad(5f);
         TextButton reset = new TextButton("RESET", skin);
         TextButton exit = new TextButton("EXIT", skin);
         TextButton zoomIn = new TextButton("Zoom In", skin);
+        // The ClickListeners define what happens when you click each TextButton.
         zoomIn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -378,6 +387,7 @@ public class Main extends ApplicationAdapter {
                 rotateCamera(-1);
             }
         });
+        // The Jump button can be held down to bounce continually, and it's handled like the keys that can be held.
         TextButton jump = new TextButton("Jump", skin);
         keyButtons.put(Input.Keys.Z, reset);
         keyButtons.put(Input.Keys.Q, exit);
@@ -388,16 +398,24 @@ public class Main extends ApplicationAdapter {
         keyButtons.put(Input.Keys.SPACE, jump);
         buttonTable.add(reset).width(90f);
         buttonTable.add(exit).width(90f).row();
+        // We add a little extra space between the "don't accidentally click" reset and exit keys, and the rest.
         buttonTable.row();
         buttonTable.add(rotateLeft).width(90);
         buttonTable.add(rotateRight).width(90).row();
         buttonTable.add(zoomIn).width(90);
         buttonTable.add(zoomOut).width(90).row();
+        // The jump key is bigger, since players need it often.
+        // It spans the two columns, making it extra-wide.
         buttonTable.add(jump).width(190).height(40f).colspan(2);
+        // The rightmost part of the thicker widget row holds the buttons.
         root.add(buttonTable).width(200);
+        // The root Table should resize as the window does.
         root.setFillParent(true);
+        // The root Table should be laid out by doing this.
         root.pack();
+        // The stage needs to have the root Table added so it can render it.
         stage.addActor(root);
+        // This allows the stage to actually respond to button clicks and drags on the touchpad.
         Gdx.input.setInputProcessor(stage);
 
         // All regions in the atlas for creatures start with "entity" and have an index.
@@ -449,15 +467,10 @@ public class Main extends ApplicationAdapter {
             TimeUtils.millis() >>> 22);
 
         // The goal label text changes when updateFish() or updateHealth() is called.
-//        goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
         // It shows " :( " if the player reaches 0 health, using darker red.
-//        healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
-
-        // The FPS label can be removed if you want in production.
-//        fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         // These enforce the FPS cap and VSync settings from the first frame rendered.
         // Pressing 'C' will toggle the frame rate cap on or off.
@@ -604,8 +617,11 @@ public class Main extends ApplicationAdapter {
         // Allows the FPS label to be drawn with the correct width.
         fpsLabel.invalidate();
 
+        // Without apply(true) on the Stage's Viewport, the Stage won't resize correctly when the window resizes.
         stage.getViewport().apply(true);
+        // This is important to allow widgets to respond to input.
         stage.act(delta);
+        // This draws the Stage and its contents completely separately from the rest of the gameplay sprites.
         stage.draw();
     }
 
@@ -857,7 +873,6 @@ public class Main extends ApplicationAdapter {
                     ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
         }
         goalLabel.setAlignment(Align.center);
-//        goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
     }
 
     /**
@@ -866,9 +881,8 @@ public class Main extends ApplicationAdapter {
     public void updateHealth() {
         if(player.health <= 0)
         {
-            goalLabel.setText("YOU FAILED.. BY DYING...");
+            goalLabel.setText("YOU FAILED... BY DYING...");
             goalLabel.setAlignment(Align.center);
-//            goalLabel.setPosition(goalLabel.getX(), goalLabel.getY(), Align.center);
             healthLabel.setText("[FIREBRICK]:(");
         }
         else {
