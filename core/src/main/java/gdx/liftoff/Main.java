@@ -69,13 +69,21 @@ public class Main extends ApplicationAdapter {
      */
     private SpriteBatch batch;
     /**
-     * This is the file name of the atlas of 2D assets used in the game. It uses
+     * This is the file name of the atlas of 2D gameplay assets used in the game. It uses
      * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
-     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a mangled, pixelated skin originally by Raymond Buckley</a>.
+     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a skin originally by Raymond Buckley</a>.
      * <br>
      * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
      */
     public static final String ATLAS_FILE_NAME = "isometric-trpg.atlas";
+    /**
+     * This is the file name of the atlas of 2D GUI assets used in the game. It uses
+     * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
+     * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a skin originally by Raymond Buckley</a>.
+     * <br>
+     * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
+     */
+    public static final String SKIN_ATLAS_FILE_NAME = "clean-crispy.atlas";
     /**
      * This is the actual TextureAtlas of 2D assets used in the game. It uses
      * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
@@ -321,7 +329,8 @@ public class Main extends ApplicationAdapter {
         // Not currently used, but present in the assets.
         // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
         // for more information on how to use a Skin.
-        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
+        Skin skin = new Skin(Gdx.files.internal("isometric-trpg.json"), new TextureAtlas(Gdx.files.internal("clean-crispy.atlas")));
+        Skin nearestSkin = new Skin(Gdx.files.internal("isometric-trpg.json"), atlas);
         root = new Table(skin);
         touchpad = new Touchpad(8f, skin);
         keyButtons = new IntMap<>(16);
@@ -407,17 +416,17 @@ public class Main extends ApplicationAdapter {
             TimeUtils.millis() >>> 22);
 
         // The goal label text changes when updateFish() or updateHealth() is called.
-        goalLabel = new Label("", skin);
+        goalLabel = new Label("", nearestSkin);
         goalLabel.setPosition(0, SCREEN_VERTICAL - 30, Align.center);
         updateFish();
         // The health label shows red hearts (using BitmapFont markup to make them red) for your current health.
         // It shows " :( " if the player reaches 0 health, using darker red.
-        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
+        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", nearestSkin);
         healthLabel.setPosition(-300, SCREEN_VERTICAL - 30, Align.left);
         updateHealth();
 
         // The FPS label can be removed if you want in production.
-        fpsLabel = new Label("0 FPS", skin);
+        fpsLabel = new Label("0 FPS", nearestSkin);
         fpsLabel.setPosition(0, SCREEN_VERTICAL - 50, Align.center);
 
         // These enforce the FPS cap and VSync settings from the first frame rendered.
