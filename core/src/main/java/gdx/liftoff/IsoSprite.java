@@ -7,6 +7,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
 import gdx.liftoff.game.AssetData;
 
+import static gdx.liftoff.Main.OFFSET_Y;
+
 /**
  * Wraps a {@link Sprite} so its position can be set using isometric coordinates.
  * There are many possible isometric coordinate systems, so the one used here intentionally avoids calling the isometric
@@ -267,7 +269,7 @@ public class IsoSprite {
         float rf = cosRotation * af - sinRotation * ag + originF;
         float rg = cosRotation * ag + sinRotation * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
-        float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
+        float worldY = (rf + rg) * UNIT + h * (2 * UNIT) + OFFSET_Y;
         sprite.setPosition(worldX, worldY);
         sprite.draw(batch);
     }
@@ -278,7 +280,7 @@ public class IsoSprite {
         float rf = cosRotation * af - sinRotation * ag + originF;
         float rg = cosRotation * ag + sinRotation * af + originG;
         float worldX = (rf - rg) * (2 * UNIT);
-        float worldY = (rf + rg) * UNIT + h * (2 * UNIT);
+        float worldY = (rf + rg) * UNIT + h * (2 * UNIT) + OFFSET_Y;
         sprite.setPosition(worldX, worldY);
         sprite.draw(batch, alphaModulation);
     }

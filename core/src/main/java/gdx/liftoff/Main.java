@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
@@ -154,6 +155,9 @@ public class Main extends ApplicationAdapter {
      * This is the player, which has {@code npc = false;} and so won't move on their own.
      */
     private Mover player;
+
+    private Sprite playerAxisX;
+    private Sprite playerAxisY;
     /**
      * The enemies are stored in a simple Array. There aren't ever so many of them that the data structure could matter.
      * There's currently no logic for an enemy receiving damage; the player just tries to avoid the orc enemies.
@@ -234,6 +238,7 @@ public class Main extends ApplicationAdapter {
      * {@link #MAP_PEAK}. This is used for the larger pixel view when the pixel art shader can't be used.
      */
     public static int ZOOMED_VERTICAL = SCREEN_VERTICAL * (ZOOM);
+    public static float OFFSET_Y = 64f;
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
@@ -355,7 +360,7 @@ public class Main extends ApplicationAdapter {
         root.add(new Table(skin)).growX();
         // We use another Table for the buttons, because the touchpad is taller than any one button.
         Table buttonTable = new Table(skin);
-        buttonTable.pad(5f);
+        buttonTable.pad(2f);
         TextButton reset = new TextButton("RESET", skin);
         TextButton exit = new TextButton("EXIT", skin);
         TextButton zoomIn = new TextButton("Zoom In", skin);
@@ -406,7 +411,7 @@ public class Main extends ApplicationAdapter {
         buttonTable.add(zoomOut).width(90).row();
         // The jump key is bigger, since players need it often.
         // It spans the two columns, making it extra-wide.
-        buttonTable.add(jump).width(190).height(40f).colspan(2);
+        buttonTable.add(jump).width(190).colspan(2);
         // The rightmost part of the thicker widget row holds the buttons.
         root.add(buttonTable).width(200);
         // The root Table should resize as the window does.
@@ -505,6 +510,10 @@ public class Main extends ApplicationAdapter {
         int id = MathUtils.random(3);
         player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
         map.addMover(player, Mover.PLAYER_W);
+        playerAxisX = new Sprite(player.visual.sprite);
+        playerAxisX.setY(OFFSET_Y - 16);
+        playerAxisY = new Sprite(player.visual.sprite);
+        playerAxisY.setX(SCREEN_HORIZONTAL * -0.5f + 8f);
         enemies = new Array<>(ENEMY_COUNT);
         for (int i = 0; i < ENEMY_COUNT; i++) {
             // enemies can be anywhere except the very edges of the map.
@@ -590,6 +599,11 @@ public class Main extends ApplicationAdapter {
             map.everything.remove(tempVector4);
             ((Main)Gdx.app.getApplicationListener()).updateFish();
         }
+
+        playerAxisX.setX(player.visual.getSprite().getX());
+        playerAxisY.setY(player.visual.getSprite().getY());
+        playerAxisX.draw(batch);
+        playerAxisY.draw(batch);
 
         // When we end the batch, everything scheduled to draw so far actually gets drawn.
         batch.end();
