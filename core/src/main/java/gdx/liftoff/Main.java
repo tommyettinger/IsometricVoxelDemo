@@ -156,7 +156,13 @@ public class Main extends ApplicationAdapter {
      */
     private Mover player;
 
+    /**
+     * A "crosshair-like" indicator of where the player character is on the x-axis, for when they can't be seen.
+     */
     private Sprite playerAxisX;
+    /**
+     * A "crosshair-like" indicator of where the player character is on the y-axis, for when they can't be seen.
+     */
     private Sprite playerAxisY;
     /**
      * The enemies are stored in a simple Array. There aren't ever so many of them that the data structure could matter.
@@ -438,14 +444,16 @@ public class Main extends ApplicationAdapter {
         // Extract animations from the atlas.
         // This step will be different for every game's assets.
         animations = new Array<>(4);
-        // Apologies for the duplicated lines; these use libGDX 1.13.5's preferred way of initializing an Array.
-        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation.class));
-        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation.class));
-        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation.class));
-        animations.add(new Array<Animation<TextureAtlas.AtlasSprite>>(true, 16, Animation.class));
+        // We create a single ArraySupplier with a constructor reference so Android won't create four different ones.
+        ArraySupplier<Animation<TextureAtlas.AtlasSprite>[]> animationSupplier = Animation[]::new;
+        // Apologies for the duplicated lines; these use libGDX 1.13.5 and later's way of initializing an Array.
+        animations.add(new Array<>(true, 16, animationSupplier));
+        animations.add(new Array<>(true, 16, animationSupplier));
+        animations.add(new Array<>(true, 16, animationSupplier));
+        animations.add(new Array<>(true, 16, animationSupplier));
         // Entities are stored in an odd order because of the tile sheet originally used for the atlas.
         // The original tile sheet is stored in the development repo for this demo:
-        // https://github.com/tommyettinger/IsometricVoxelDemo/blob/a9c31f3891567958c3a4b581772defa2e902a5af/raw-assets/isometric-trpg-originals/IsometricTRPGAssetPack_Entities.png?raw=true
+        // https://github.com/tommyettinger/IsometricVoxelDemo/blob/a3ed3ca4f0685e5dcb6a25e9250c62609f2627c1/raw-assets/isometric-trpg-originals/IsometricTRPGAssetPack_Entities.png?raw=true
         // It stores each 2-frame animation on the same row as another animation, and the next row has backwards-facing
         // versions of the forwards-facing animations above them. The tile sheet determined what indices each
         // AtlasRegion received, so we have to keep the tricky numbering convention. Your own game will probably have
@@ -520,10 +528,15 @@ public class Main extends ApplicationAdapter {
         int id = MathUtils.random(3);
         player = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1);
         map.addMover(player, Mover.PLAYER_W);
+
+        // The player axis sprites show a crosshair-like indicator of where the player character is on the x and y axes.
         playerAxisX = new Sprite(player.visual.sprite);
-        playerAxisX.setY(OFFSET_Y - 16);
         playerAxisY = new Sprite(player.visual.sprite);
+        // We try to place the x-axis indicator on the horizontal line just above the buttons.
+        playerAxisX.setY(OFFSET_Y - 16);
+        // We try to place the y-axis indicator on the very edge of the left of the screen.
         playerAxisY.setX(SCREEN_HORIZONTAL * -0.5f + 8f);
+
         enemies = new Array<>(ENEMY_COUNT);
         for (int i = 0; i < ENEMY_COUNT; i++) {
             // enemies can be anywhere except the very edges of the map.
@@ -531,6 +544,8 @@ public class Main extends ApplicationAdapter {
             rg = MathUtils.random(1, MAP_SIZE - 2);
             // id 4-7 will always be a green-skinned, brawny orc.
             id = MathUtils.random(4, 7);
+            // Here we drop the orcs from just below the highest elevation on the map to ensure they land on ground,
+            // rather than potentially starting "buried" in the ground itself.
             Mover enemy = new Mover(map, animations, id, rf, rg, MAP_PEAK - 1.6f);
             // We track enemies here as well as tracking them as general Movers in the map so that we can handle the
             // semi-random movement of enemies when we update them in Main, without semi-randomly moving the player.
@@ -600,7 +615,7 @@ public class Main extends ApplicationAdapter {
         }
 
         Vector3 pos = player.getPosition();
-        // Makes tempVector4 store the position we want to check: the players's location, rounded, at the fish depth.
+        // Makes tempVector4 store the position we want to check: the player's location, rounded, at the fish depth.
         // If there is anything at that position, it is a fish the player is touching, and so has rescued.
         map.setToFishPosition(tempVector4, pos.x, pos.y, pos.z);
         IsoSprite fish = map.everything.get(tempVector4);
