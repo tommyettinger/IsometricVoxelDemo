@@ -1,7 +1,7 @@
 package gdx.liftoff.teavm;
 
-import com.github.xpenatan.gdx.backends.teavm.TeaApplicationConfiguration;
-import com.github.xpenatan.gdx.backends.teavm.TeaApplication;
+import com.github.xpenatan.gdx.teavm.backends.web.WebApplication;
+import com.github.xpenatan.gdx.teavm.backends.web.WebApplicationConfiguration;
 import gdx.liftoff.Main;
 
 /**
@@ -9,7 +9,7 @@ import gdx.liftoff.Main;
  */
 public class TeaVMLauncher {
     public static void main(String[] args) {
-        TeaApplicationConfiguration config = new TeaApplicationConfiguration("canvas");
+        WebApplicationConfiguration config = new WebApplicationConfiguration("canvas");
         //// If width and height are each greater than 0, then the app will use a fixed size.
         //config.width = 640;
         //config.height = 480;
@@ -17,6 +17,6 @@ public class TeaVMLauncher {
         config.width = 0;
         config.height = 0;
         config.antialiasing = true;
-        new TeaApplication(new Main(), config);
+        new WebApplication(new Main(), config);
     }
 }
