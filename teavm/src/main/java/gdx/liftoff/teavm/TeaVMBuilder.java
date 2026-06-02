@@ -16,7 +16,7 @@ public class TeaVMBuilder {
         // Typically set by the Gradle task, but can also be set here or with the command-line arg "run"
         boolean startJetty = false;
         // If true, enables WASM output and allows a higher optimization level
-        boolean wasm = true;
+        boolean wasm = false;
         for (String arg : args) {
             if ("debug".equals(arg)) debug = true;
             else if ("run".equals(arg)) startJetty = true;
