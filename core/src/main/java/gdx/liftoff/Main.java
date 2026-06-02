@@ -362,9 +362,21 @@ public class Main extends ApplicationAdapter {
         Table buttonTable = new Table(skin);
         buttonTable.pad(2f);
         TextButton reset = new TextButton("RESET", skin);
-        TextButton exit = new TextButton("EXIT", skin);
-        TextButton zoomIn = new TextButton("Zoom In", skin);
         // The ClickListeners define what happens when you click each TextButton.
+        reset.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                reset();
+            }
+        });
+        TextButton exit = new TextButton("EXIT", skin);
+        exit.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
+        TextButton zoomIn = new TextButton("Zoom In", skin);
         zoomIn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -395,7 +407,7 @@ public class Main extends ApplicationAdapter {
         // The Jump button can be held down to bounce continually, and it's handled like the keys that can be held.
         TextButton jump = new TextButton("Jump", skin);
         keyButtons.put(Input.Keys.Z, reset);
-        keyButtons.put(Input.Keys.Q, exit);
+        keyButtons.put(Input.Keys.ESCAPE, exit);
         keyButtons.put(Input.Keys.I, zoomIn);
         keyButtons.put(Input.Keys.O, zoomOut);
         keyButtons.put(Input.Keys.LEFT_BRACKET, rotateLeft);
@@ -403,12 +415,10 @@ public class Main extends ApplicationAdapter {
         keyButtons.put(Input.Keys.SPACE, jump);
         buttonTable.add(reset).width(90f);
         buttonTable.add(exit).width(90f).row();
-        // We add a little extra space between the "don't accidentally click" reset and exit keys, and the rest.
-        buttonTable.row();
-        buttonTable.add(rotateLeft).width(90);
-        buttonTable.add(rotateRight).width(90).row();
         buttonTable.add(zoomIn).width(90);
         buttonTable.add(zoomOut).width(90).row();
+        buttonTable.add(rotateLeft).width(90);
+        buttonTable.add(rotateRight).width(90).row();
         // The jump key is bigger, since players need it often.
         // It spans the two columns, making it extra-wide.
         buttonTable.add(jump).width(190).colspan(2);

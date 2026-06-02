@@ -4,7 +4,7 @@ A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3
 
 ![Rotating the world](docs/rotation.gif)
 
-[**Playable Here!**](https://tommyettinger.github.io/IsometricVoxelDemo/Aug_1_2025_build1/index.html)
+[**Playable Here!**](https://tommyettinger.github.io/IsometricVoxelDemo/Jun_1_2026_build1/index.html)
 ----
 
 ## Controls
@@ -16,7 +16,9 @@ Ideally, use the numpad to move around, but you can also use the four keys `f`, 
 QWERTY keyboard were arrows pointing in an X shape.
 Spacebar, numpad 0, and numpad 5 let you jump. You can press the `[` and `]` keys
 to rotate the world, letting you see things you normally wouldn't be able to.
-You can press `z` to reset the game and make a new map.
+You can press `z` to reset the game and make a new map. Mobile controls exist on
+builds from June 2026 onward, allowing you to use an on-screen touchpad on a mobile
+device and tap buttons to jump or rotate the map, among other things.
 
 Your goal is to pick up goldfish (by walking into them) without bumping into orcs
 too many times. Pick up all 10 and you win!
