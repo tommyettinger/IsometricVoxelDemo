@@ -1,0 +1,9 @@
+Cozette-License.txt
+CozetteOutlined-standard.fnt
+Komiku - Road 4 Fight - License.txt
+Komiku - Road 4 Fight.ogg
+Skin-License.txt
+isometric-trpg-License.txt
+isometric-trpg.atlas
+isometric-trpg.json
+isometric-trpg.png
