@@ -4,7 +4,7 @@ A sample [libGDX](https://libgdx.com/) project showing voxels using 2D art but 3
 
 ![Rotating the world](docs/rotation.gif)
 
-[**Playable Here!**](https://tommyettinger.github.io/IsometricVoxelDemo/Jun_1_2026_build1/index.html)
+[**Playable Here!**](https://tommyettinger.github.io/IsometricVoxelDemo/Jun_1_2026_build2/index.html)
 ----
 
 ## Controls
