@@ -103,7 +103,7 @@ public class IsoSprite {
         this.g = g;
         this.h = h;
         float worldX = (f - g) * (2 * UNIT);
-        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT) + OFFSET_Y;
         sprite.setPosition(worldX, worldY);
     }
 
@@ -135,7 +135,7 @@ public class IsoSprite {
         this.g = g;
         this.h = h;
         float worldX = (f - g) * (2 * UNIT);
-        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT) + OFFSET_Y;
         sprite.setOriginBasedPosition(worldX, worldY);
     }
 
@@ -178,7 +178,7 @@ public class IsoSprite {
      */
     public void setSprite(Sprite sprite) {
         float worldX = (f - g) * (2 * UNIT);
-        float worldY = (f + g) * UNIT + h * (2 * UNIT);
+        float worldY = (f + g) * UNIT + h * (2 * UNIT) + OFFSET_Y;
         sprite.setPosition(worldX, worldY);
         sprite.setPackedColor(this.sprite.getPackedColor());
         sprite.setOrigin(this.sprite.getOriginX(), this.sprite.getOriginY());

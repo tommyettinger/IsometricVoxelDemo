@@ -19,9 +19,19 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArraySupplier;
+import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.OrderedMap;
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -112,6 +122,7 @@ public class Main extends ApplicationAdapter {
     /**
      * A mapping of keys (the ones a desktop would use to play the game) to TextButtons that can be used on mobile
      * devices. Only a few (or maybe just one) TextButton is actually accessed via this Map.
+     * This can be extended in your game to include any buttons that can be held down and act like holding down a key.
      */
     private IntMap<TextButton> keyButtons;
 
@@ -136,17 +147,21 @@ public class Main extends ApplicationAdapter {
      */
     private OrthographicCamera camera;
     /**
-     * ScreenViewport is used here for a tiny screen that will be drawn pixel-perfect and later scaled up using
-     * {@link #growingViewport} and a special shader for scaling pixel art.
+     * ScreenViewport is used here for a screen that will be drawn pixel-perfect with 8x scaling, and
+     * later scaled down using {@link #growingViewport} with arbitrary scaling. Each pixel drawn with this will be a
+     * 8x8 pixel square on the framebuffer before it gets scaled down. If {@link #ZOOM} changes, 8 will change.
      */
     private ScreenViewport viewport;
     /**
-     * A FitViewport is used to draw the tiny pixel-perfect screen so it is large enough to see. This uses a different
-     * shader from normal that is meant to scale pixel art, but this isn't strictly necessary.
+     * A FitViewport is used to draw the pixel-perfect zoomed-in screen so it fits on the user's chosen size of window.
+     * This usually shinks the zoomed-in framebuffer "canvas" a lot.
      */
     private Viewport growingViewport;
     /**
-     * A way to draw a tiny pixel-perfect image off-screen, then later draw it larger with better scaling.
+     * A way to draw a zoomed-in pixel-perfect image off-screen, then later draw it larger with better scaling. This
+     * has its texture use linear filtering, which blurs the edges between pixels, but because the image is zoomed-in,
+     * only a small part of each 8x8 pixel square actually gets blurred. If the entire square was subject to blur, the
+     * image would turn to "mush" at anything but an integer multiple for scale.
      */
     private FrameBuffer buffer;
 
@@ -170,7 +185,7 @@ public class Main extends ApplicationAdapter {
      */
     private Array<Mover> enemies;
     /**
-     * Shows current frames per second on the screen. The FPS label can be removed, if you want, in production.
+     * Shows current frames per second on the screen; you can remove this in production.
      */
     private Label fpsLabel;
     /**
@@ -236,14 +251,18 @@ public class Main extends ApplicationAdapter {
     public static final int SCREEN_VERTICAL = ((MAP_SIZE+3) * 2 * AssetData.TILE_HEIGHT + MAP_PEAK * AssetData.TILE_DEPTH);
     /**
      * The computed width in pixels of a zoomed-in complete map at its largest possible {@link #MAP_SIZE}.
-     * This is used for the larger pixel view when the pixel art shader can't be used.
+     * This is used for the larger-pixel framebuffer "canvas" that gets shrunk down to fit the user's chosen size.
      */
     public static int ZOOMED_HORIZONTAL = SCREEN_HORIZONTAL * (ZOOM);
     /**
      * The computed height in pixels of a zoomed-in complete map at its largest possible {@link #MAP_SIZE} and
-     * {@link #MAP_PEAK}. This is used for the larger pixel view when the pixel art shader can't be used.
+     * {@link #MAP_PEAK}.
+     * This is used for the larger-pixel framebuffer "canvas" that gets shrunk down to fit the user's chosen size.
      */
     public static int ZOOMED_VERTICAL = SCREEN_VERTICAL * (ZOOM);
+    /**
+     * Added to the screen y-position of sprites to account for the buttons and touchpad below.
+     */
     public static float OFFSET_Y = 64f;
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
@@ -507,7 +526,7 @@ public class Main extends ApplicationAdapter {
      */
     public void regenerate(long seed) {
 
-        // Needed so the PC Mover always has id 1
+        // Needed so the PC Mover always has id 1.
         Mover.ID_COUNTER = 1;
         startTime = TimeUtils.millis();
         map = LocalMap.generateTestMap(
@@ -895,6 +914,7 @@ public class Main extends ApplicationAdapter {
 
         // Or, we can use growingViewport and not need integer scales at all!
         growingViewport.update(width, height);
+        // The Stage is drawn separately, and has its own viewport that needs updating.
         stage.getViewport().update(width, height);
     }
 
