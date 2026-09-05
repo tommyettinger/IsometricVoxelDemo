@@ -18,7 +18,7 @@
 		"hex": "ffffffff"
 	},
 	"black": {
-		"hex": "000000ff"
+		"hex": "333333ff"
 	},
 	"selection": {
 		"hex": "b3b3b3ff"

@@ -372,7 +372,7 @@ public class Main extends ApplicationAdapter {
         // These three Labels show at the top, and provide info about your progress in the game and health.
         goalLabel = new Label("", skin);
         healthLabel = new Label("[SCARLET]<3<3<3", skin);
-        fpsLabel = new Label("0 FPS", skin);
+        fpsLabel = new Label("[#ddddddff]0 FPS", skin);
 
         root.add(healthLabel);
         root.add(goalLabel);
@@ -671,7 +671,7 @@ public class Main extends ApplicationAdapter {
         batch.end();
 
         fpsLabel.getText().clear();
-        fpsLabel.getText().append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
+        fpsLabel.getText().append("[#ddddddff]").append(Gdx.graphics.getFramesPerSecond()).append(" FPS");
         // Allows the FPS label to be drawn with the correct width.
         fpsLabel.invalidate();
 
@@ -924,11 +924,11 @@ public class Main extends ApplicationAdapter {
     public void updateFish() {
         if(player.health > 0) {
             if (map.totalFish == map.fishSaved) {
-                goalLabel.setText("YOU SAVED THEM ALL! Great job!");
+                goalLabel.setText("[ORANGE]YOU SAVED THEM ALL! Great job!");
                 player.makeInvincible(Float.NaN);
             }
             else
-                goalLabel.setText("SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
+                goalLabel.setText("[#ddddddff]SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
                     ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
         }
         goalLabel.setAlignment(Align.center);
@@ -940,7 +940,7 @@ public class Main extends ApplicationAdapter {
     public void updateHealth() {
         if(player.health <= 0)
         {
-            goalLabel.setText("YOU FAILED... BY DYING...");
+            goalLabel.setText("[#bbbbbbff]YOU FAILED... BY DYING...");
             goalLabel.setAlignment(Align.center);
             healthLabel.setText("[FIREBRICK]:(");
         }
