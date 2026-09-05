@@ -2,13 +2,13 @@
 "BitmapFont": {
 	"DINish-markup": {
 		"file": "DINish-Expanded.fnt",
-		"scaledSize": -1,
+		"scaledSize": 12,
 		"markupEnabled": true,
 		"flip": false
 	},
 	"DINish-standard": {
 		"file": "DINish-Expanded.fnt",
-		"scaledSize": -1,
+		"scaledSize": 12,
 		"markupEnabled": false,
 		"flip": false
 	}
@@ -366,8 +366,8 @@
 "ListStyle": {
 	"default": {
 		"font": "DINish-markup",
-		"fontColorSelected": "color",
-		"fontColorUnselected": "color",
+		"fontColorSelected": "black",
+		"fontColorUnselected": "black",
 		"selection": "selection",
 		"background": "list-c"
 	}
@@ -401,7 +401,7 @@
 "SelectBoxStyle": {
 	"default": {
 		"font": "DINish-markup",
-		"fontColor": "color",
+		"fontColor": "black",
 		"background": "selectbox-c",
 		"scrollStyle": "default",
 		"listStyle": "default",
@@ -442,14 +442,14 @@
 "TextButtonStyle": {
 	"default": {
 		"font": "DINish-markup",
-		"fontColor": "color",
+		"fontColor": "black",
 		"up": "button-c",
 		"down": "button-pressed-over-c",
 		"over": "button-over-c"
 	},
 	"toggle": {
 		"font": "DINish-markup",
-		"fontColor": "color",
+		"fontColor": "black",
 		"up": "button-c",
 		"down": "button-pressed-c",
 		"over": "button-over-c",
