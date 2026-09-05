@@ -2,13 +2,13 @@
 "BitmapFont": {
 	"DINish-markup": {
 		"file": "DINish-Expanded.fnt",
-		"scaledSize": 12,
+		"scaledSize": -1,
 		"markupEnabled": true,
 		"flip": false
 	},
 	"DINish-standard": {
 		"file": "DINish-Expanded.fnt",
-		"scaledSize": 12,
+		"scaledSize": -1,
 		"markupEnabled": false,
 		"flip": false
 	}
