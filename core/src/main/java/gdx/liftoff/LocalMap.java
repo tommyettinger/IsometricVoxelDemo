@@ -268,7 +268,7 @@ public class LocalMap {
      * @param f f-position as an int
      * @param g g-position as an int
      * @param h h-position as an int
-     * @param tileId an ID for a tile, typically from {@link AssetData}
+     * @param tileId an ID for a tile, typically from {@link AssetData}; may be -1 to remove a tile
      */
     public void setTile(int f, int g, int h, int tileId) {
         if (isValid(f, g, h)) {
@@ -400,7 +400,7 @@ public class LocalMap {
      * @param atlas should probably be the TextureAtlas loaded from {@code isometric-trpg.atlas}
      * @return a new LocalMap
      */
-    public static LocalMap generateTestMap(long seed, int mapSize, int mapPeak, TextureAtlas atlas) {
+    public static LocalMap generateMap(long seed, int mapSize, int mapPeak, TextureAtlas atlas) {
 
         // noise that gradually moves a little
         MiniNoise baseNoise = new MiniNoise((int) (seed), 0.06f, MiniNoise.FBM, 3);
@@ -493,7 +493,48 @@ public class LocalMap {
 
         // When we're done, we just need to take all the all-connected path tiles and change them to linear paths.
         AssetData.realignPaths(map);
+        // Remove this next line if you intend to allow players to edit the map or destroy tiles during play.
+        removeInvisibleTiles(map);
         return map;
+    }
+
+    /**
+     * Modifies the given LocalMap so completely-surrounded tiles are removed from the map, "hollowing" out the map.
+     * This is meant to reduce the amount of work needed to render large maps with lots of tiles that can't ever be
+     * seen because they are surrounded on all sides. Having a tile below another doesn't change its visibility.
+     * <br>
+     * This should not be called if you want to be able to edit the map at runtime. That would make digging caves
+     * impossible, because the ground is just a thin shell above empty space after this is called.
+     *
+     * @param editing a LocalMap that will be modified in-place and returned
+     * @return the given LocalMap, after changes
+     */
+    public static LocalMap removeInvisibleTiles(LocalMap editing) {
+        int fs = editing.getFSize();
+        int gs = editing.getGSize();
+        int hs = editing.getHSize();
+        boolean[][][] remove = new boolean[fs][gs][hs];
+        for (int f = 1; f < fs - 1; f++) {
+            for (int g = 1; g < gs - 1; g++) {
+                for (int h = hs - 1; h >= 0; h--) {
+                    remove[f][g][h] = h != hs - 1 &&
+                        editing.tiles[f][g][h + 1] != -1 &&
+                        editing.tiles[f + 1][g][h] != -1 &&
+                        editing.tiles[f - 1][g][h] != -1 &&
+                        editing.tiles[f][g + 1][h] != -1 &&
+                        editing.tiles[f][g - 1][h] != -1;
+                }
+            }
+        }
+        for (int f = 1; f < fs - 1; f++) {
+            for (int g = 1; g < gs - 1; g++) {
+                for (int h = hs - 1; h >= 0; h--) {
+                    if(remove[f][g][h])
+                        editing.setTile(f, g, h, -1);
+                }
+            }
+        }
+        return editing;
     }
 
     /**

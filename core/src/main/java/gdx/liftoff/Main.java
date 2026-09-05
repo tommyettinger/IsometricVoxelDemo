@@ -529,7 +529,7 @@ public class Main extends ApplicationAdapter {
         // Needed so the PC Mover always has id 1.
         Mover.ID_COUNTER = 1;
         startTime = TimeUtils.millis();
-        map = LocalMap.generateTestMap(
+        map = LocalMap.generateMap(
             seed,
             /* Used for both dimensions of the ground plane. */
             MAP_SIZE + ((int)seed & 3),
