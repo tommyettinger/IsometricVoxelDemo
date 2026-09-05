@@ -10,7 +10,7 @@ apply plugin: 'com.android.application'
 
 android {
   namespace = "gdx.liftoff"
-  compileSdk = 35
+  compileSdk = 36
   sourceSets {
     main {
       manifest.srcFile 'AndroidManifest.xml'
@@ -45,7 +45,7 @@ android {
   buildTypes {
     release {
       minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
   }
 }
