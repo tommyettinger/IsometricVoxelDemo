@@ -60,6 +60,9 @@ License is [CC0](assets/Komiku%20-%20Road%204%20Fight%20-%20License.txt).
 Contains the font [Cozette, by ines](https://github.com/the-moonwitch/Cozette).
 It is [MIT-licensed](assets/Cozette-License.txt).
 
+Contains the font [DINish, by playbeing](https://github.com/playbeing/dinish).
+It is [OFL-licensed](assets/DINish-License.txt).
+
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.

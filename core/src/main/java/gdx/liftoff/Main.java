@@ -92,7 +92,7 @@ public class Main extends ApplicationAdapter {
      * This is the actual TextureAtlas of 2D assets used in the game. It uses
      * <a href="https://gvituri.itch.io/isometric-trpg">these free-to-use assets by Gustavo Vituri</a> and
      * <a href="https://ray3k.wordpress.com/clean-crispy-ui-skin-for-libgdx/">a skin by Raymond Buckley</a> with the
-     * font changed to <a href="https://github.com/the-moonwitch/Cozette">Cozette</a>.
+     * font changed to <a href="https://github.com/playbeing/dinish">DINish</a>.
      * <br>
      * CUSTOM TO YOUR GAME. This is closely related to {@link AssetData}, and if one changes, both should.
      */
@@ -196,7 +196,7 @@ public class Main extends ApplicationAdapter {
      */
     public Label goalLabel;
     /**
-     * Only shows the current health of the player, using {@code "♥ "} for each point of health.
+     * Only shows the current health of the player, using {@code "<3"} for each point of health.
      * <br>
      * CUSTOM TO YOUR GAME.
      */
@@ -371,7 +371,7 @@ public class Main extends ApplicationAdapter {
 
         // These three Labels show at the top, and provide info about your progress in the game and health.
         goalLabel = new Label("", skin);
-        healthLabel = new Label("[SCARLET]♥ ♥ ♥ ", skin);
+        healthLabel = new Label("[SCARLET]<3<3<3", skin);
         fpsLabel = new Label("0 FPS", skin);
 
         root.add(healthLabel);
@@ -949,7 +949,7 @@ public class Main extends ApplicationAdapter {
             // Shows one red heart per point of health.
             healthLabel.getText().append("[SCARLET]");
             for (int i = 0; i < player.health; i++) {
-                healthLabel.getText().append(" ♥");
+                healthLabel.getText().append("<3");
             }
             healthLabel.setText(healthLabel.getText().toString());
             healthLabel.invalidate();
