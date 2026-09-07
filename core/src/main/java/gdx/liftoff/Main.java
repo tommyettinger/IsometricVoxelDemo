@@ -263,7 +263,7 @@ public class Main extends ApplicationAdapter {
     /**
      * Added to the screen y-position of sprites to account for the buttons and touchpad below.
      */
-    public static float OFFSET_Y = 64f;
+    public static int OFFSET_Y = 64;
     /**
      * The position in fractional tiles of the very center of the map, measured from bottom center.
      */
