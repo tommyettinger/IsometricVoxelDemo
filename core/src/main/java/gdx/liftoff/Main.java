@@ -549,12 +549,12 @@ public class Main extends ApplicationAdapter {
         map.addMover(player, Mover.PLAYER_W);
 
         // The player axis sprites show a crosshair-like indicator of where the player character is on the x and y axes.
-        playerAxisX = new Sprite(player.visual.sprite);
-        playerAxisY = new Sprite(player.visual.sprite);
+        playerAxisX = atlas.createSprite("highlight", 4);
+        playerAxisY = atlas.createSprite("highlight", 4);
         // We try to place the x-axis indicator on the horizontal line just above the buttons.
-        playerAxisX.setY(OFFSET_Y - 16);
+        playerAxisX.setY(SCREEN_VERTICAL - 4f);
         // We try to place the y-axis indicator on the very edge of the left of the screen.
-        playerAxisY.setX(SCREEN_HORIZONTAL * -0.5f + 8f);
+        playerAxisY.setX(SCREEN_HORIZONTAL * -0.5f);
 
         enemies = new Array<>(ENEMY_COUNT);
         for (int i = 0; i < ENEMY_COUNT; i++) {
