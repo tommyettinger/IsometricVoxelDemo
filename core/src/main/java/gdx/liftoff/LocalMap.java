@@ -161,6 +161,7 @@ public class LocalMap {
     public boolean isValid(float f, float g, float h) {
         return isValid(round(f), round(g), round(h));
     }
+
     /**
      * Delegates to {@link #isValid(float, float, float)} using only the x, y, and z coordinates of {@code point}.
      * @param point a Vector4 of which only x, y, and z will be checked
@@ -253,8 +254,8 @@ public class LocalMap {
 
     /**
      * When point.w is 0, this selects terrain; when it is ENTITY_W, it selects an entity.
-     * @param point
-     * @return
+     * @param point a Vector4 key in {@link #everything}
+     * @return an IsoSprite looked up in {@link #everything}, or null if nothing was found
      */
     public IsoSprite getIsoSprite(Vector4 point) {
         return everything.get(point);
@@ -348,14 +349,26 @@ public class LocalMap {
         }
     }
 
+    /**
+     * The size of the f-axis (the first dimension of tiles).
+     * @return {@code tiles.length}
+     */
     public int getFSize() {
         return tiles.length;
     }
 
+    /**
+     * The size of the g-axis (the second dimension of tiles).
+     * @return {@code tiles[0].length}
+     */
     public int getGSize() {
         return tiles[0].length;
     }
 
+    /**
+     * The size of the h-axis (the third dimension of tiles).
+     * @return {@code tiles[0][0].length}
+     */
     public int getHSize() {
         return tiles[0][0].length;
     }
@@ -506,17 +519,24 @@ public class LocalMap {
      * This should not be called if you want to be able to edit the map at runtime. That would make digging caves
      * impossible, because the ground is just a thin shell above empty space after this is called.
      *
-     * @param editing a LocalMap that will be modified in-place and returned
-     * @return the given LocalMap, after changes
+     * @param editing a LocalMap that will be modified in-place
      */
-    public static LocalMap removeInvisibleTiles(LocalMap editing) {
+    public static void removeInvisibleTiles(LocalMap editing) {
         int fs = editing.getFSize();
         int gs = editing.getGSize();
         int hs = editing.getHSize();
+        // We need two passes to first figure out which tiles to remove,
+        // and then to remove them once we know.
         boolean[][][] remove = new boolean[fs][gs][hs];
+        // These loops start at 1 and end early so the edges of the map don't get removed.
         for (int f = 1; f < fs - 1; f++) {
             for (int g = 1; g < gs - 1; g++) {
+                // This loop has to go through everything.
                 for (int h = hs - 1; h >= 0; h--) {
+                    // For a tile to be invisible, it:
+                    // can't be on the top level of the world,
+                    // can't have empty space above it, and
+                    // can't have empty space on any side.
                     remove[f][g][h] = h != hs - 1 &&
                         editing.tiles[f][g][h + 1] != -1 &&
                         editing.tiles[f + 1][g][h] != -1 &&
@@ -526,6 +546,7 @@ public class LocalMap {
                 }
             }
         }
+        // If we decided to remove a tile before, here is where we do that.
         for (int f = 1; f < fs - 1; f++) {
             for (int g = 1; g < gs - 1; g++) {
                 for (int h = hs - 1; h >= 0; h--) {
@@ -534,45 +555,7 @@ public class LocalMap {
                 }
             }
         }
-        return editing;
-    }
-
-    /**
-     * Places berry bushes, which were used in an earlier version instead of goldfish.
-     * Berry bushes are harder to notice than goldfish at small sizes, though.
-     * <br>
-     * This should be customized for your game, if you use it.
-     * @param seed if this {@code long} is the same, the same map will be produced on each call
-     * @param bushCount how many bushes to try to place
-     * @return this LocalMap, for chaining
-     */
-    public LocalMap placeBushes(long seed, int bushCount) {
-        GridPoint2 point = new GridPoint2();
-        int fs = getFSize(), gs = getGSize(), hs = getHSize();
-        seed = (seed ^ 0x9E3779B97F4A7C15L) * 0xD1B54A32D192ED03L;
-        PER_BUSH:
-        for (int i = 0; i < bushCount; i++) {
-            MathSupport.fillR2(point, seed + i, fs, gs);
-            for (int h = hs - 2; h >= 0; h--) {
-                int below = getTile(point.x, point.y, h);
-                if (below == AssetData.DECO_HEDGE) {
-                    bushCount++;
-                    continue PER_BUSH; // labeled break; we want to try to place a bush in another location.
-                }
-                if (below != -1) {
-                    tiles[point.x][point.y][h + 1] = AssetData.DECO_HEDGE;
-                    everything.put(new Vector4(point.x, point.y, h + 1, Mover.FISH_W),
-                        new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(AssetData.DECO_HEDGE)), point.x, point.y, h + 1));
-                    setTile(point.x, point.y, h, AssetData.DIRT);
-                    setTile(point.x + 1, point.y, h, AssetData.DIRT);
-                    setTile(point.x - 1, point.y, h, AssetData.DIRT);
-                    setTile(point.x, point.y + 1, h, AssetData.DIRT);
-                    setTile(point.x, point.y - 1, h, AssetData.DIRT);
-                    break;
-                }
-            }
-        }
-        return this;
+        // This modifies "editing" in-place, so we don't need to return.
     }
 
     /**
@@ -589,9 +572,14 @@ public class LocalMap {
     public LocalMap placeFish(long seed, int fishCount, Array<Array<Animation<TextureAtlas.AtlasSprite>>> animations) {
         GridPoint2 point = new GridPoint2();
         int fs = getFSize(), gs = getGSize(), hs = getHSize();
+        // Randomizes seed a little. Very similar seeds before this call will be very different after it.
         seed = (seed ^ 0x9E3779B97F4A7C15L) * 0xD1B54A32D192ED03L;
         for (int i = 0; i < fishCount; i++) {
+            // Assigns a somewhat-random position to point, based on seed and i.
+            // This uses the R2 sequence, which won't put points too close to each other when
+            // the second parameter goes between just a few close-together numbers.
             MathSupport.fillR2(point, seed + i, fs, gs);
+            // "Drop" the fish from above so it doesn't start inside a tile.
             for (int h = hs - 2; h >= 0; h--) {
                 int below = getTile(point.x, point.y, h);
                 if (below != -1) {
