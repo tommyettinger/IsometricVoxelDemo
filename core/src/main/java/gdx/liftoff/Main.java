@@ -47,7 +47,7 @@ import static gdx.liftoff.util.MathSupport.INVERSE_ROOT_2;
  * classes in other modules. This is an isometric pixel art demo project where the player (a little person in blue) runs
  * around trying to save goldfish (little orange fish out of water) without bumping into enemies (green-skinned, brawny
  * orcs). Bumping into enemies will take away your health, and reaching 0 health is a game-over condition. Saving all 10
- * goldfish is the win condition.
+ * goldfish is the win condition. Arrows point to your blue player character on the edges of the map.
  * <br>
  * This uses a special kind of coordinates because isometric coordinates just don't correspond nicely to x, y,
  * and z with any common convention. Here, when referring to isometric tiles, we use "f, g, h" positions.The f and g
@@ -601,7 +601,8 @@ public class Main extends ApplicationAdapter {
         if(player.health <= 0) player.visual.sprite.setAlpha(0.5f);
 
         // This bit of code gets a little complex to handle rotating the map...
-        // But rotating the map is so cool! You can do it by pressing '[' or ']' .
+        // But rotating the map is so cool! You can do it by pressing '[' or ']', or
+        // by clicking a Rotate button.
         float time = TimeUtils.timeSinceMillis(startTime) * 0.001f;
         // Rotations stop on a 90-degree angle increment, stored as an int from 0 to 3.
         int prevRotationIndex = (int)((map.rotationDegrees + 45f) * (1f / 90f)) & 3;
@@ -665,15 +666,15 @@ public class Main extends ApplicationAdapter {
 
         // When we end the batch, everything scheduled to draw so far actually gets drawn.
         batch.end();
-        // When we end the buffer, everything that has been drawn to the tiny screen is now available.
+        // When we end the buffer, everything that has been drawn to the pixel-perfect screen is now available.
         buffer.end();
         // Same background color, very dark blue.
         ScreenUtils.clear(.14f, .15f, .2f, 1f);
-        // Here we use the different, non-tiny viewport and its projection.
+        // Here we use the different, non-pixel-perfect viewport and its projection.
         batch.setProjectionMatrix(growingViewport.getCamera().combined);
         // We still need to apply the viewport, but here we pass true to center the camera.
         growingViewport.apply(true);
-        // This gets the "off-screen canvas" we drew the tiny texture to, and assigns it to fb.
+        // This gets the "off-screen canvas" we drew the pixel-perfect texture to, and assigns it to fb.
         Texture fb = buffer.getColorBufferTexture();
         // Causes a small amount of blur, but only at the edges between pixels.
         // Each pixel is already drawn significantly larger, based on ZOOM, so only part of each will blur.
@@ -981,7 +982,6 @@ public class Main extends ApplicationAdapter {
             for (int i = 0; i < player.health; i++) {
                 healthLabel.getText().append("<3");
             }
-            healthLabel.setText(healthLabel.getText().toString());
             healthLabel.invalidate();
         }
     }
