@@ -347,6 +347,8 @@ public class Main extends ApplicationAdapter {
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("Komiku - Road 4 Fight.ogg"));
         backgroundMusic.setVolume(0.5f);
         backgroundMusic.setLooping(true);
+        // If we are on a web platform, we have to delay playing any sounds or music until the user interacts.
+        // Music can also start playing in handleInput() if targeting a web platform.
         if(playMusic)
             backgroundMusic.play();
 
@@ -356,7 +358,11 @@ public class Main extends ApplicationAdapter {
         // Loads the atlas from an internal path, in "assets/".
         atlas = new TextureAtlas(ATLAS_FILE_NAME);
 
+        // Creates a Stage using a ScreenViewport and handling its own Batch.
         stage = new Stage(new ScreenViewport());
+
+        // If the text is too small to see, you can change the units per pixel to 0.5f, 0.25f, or something else small.
+//        ((ScreenViewport)stage.getViewport()).setUnitsPerPixel(1f/2f); // 1f/2f will double the size of the Stage.
 
         // Uses the same assets and a libGDX Skin JSON file to tell scene2d.ui widgets how to draw themselves.
         // See <a href="https://github.com/raeleus/skin-composer/wiki/From-the-Ground-Up:-Scene2D.UI-Tutorials">some scene2d.ui docs</a>
@@ -386,14 +392,18 @@ public class Main extends ApplicationAdapter {
         // We use another Table for the buttons, because the touchpad is taller than any one button.
         Table buttonTable = new Table(skin);
         buttonTable.pad(2f);
-        TextButton reset = new TextButton("RESET", skin);
+
         // The ClickListeners define what happens when you click each TextButton.
+
+        // Resets the game and generates a new map. The player will have full health and all goldfish will be present.
+        TextButton reset = new TextButton("RESET", skin);
         reset.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 reset();
             }
         });
+        // Closes the game on desktop. Doesn't do anything on the web.
         TextButton exit = new TextButton("EXIT", skin);
         exit.addListener(new ClickListener(){
             @Override
@@ -401,6 +411,7 @@ public class Main extends ApplicationAdapter {
                 Gdx.app.exit();
             }
         });
+        // Makes the map and sprites bigger.
         TextButton zoomIn = new TextButton("Zoom In", skin);
         zoomIn.addListener(new ClickListener(){
             @Override
@@ -408,6 +419,7 @@ public class Main extends ApplicationAdapter {
                 camera.zoom *= .5f;
             }
         });
+        // Makes the map and sprites smaller.
         TextButton zoomOut = new TextButton("Zoom Out", skin);
         zoomOut.addListener(new ClickListener(){
             @Override
@@ -415,6 +427,7 @@ public class Main extends ApplicationAdapter {
                 camera.zoom *= 2f;
             }
         });
+        // Spin the map and its contents counterclockwise.
         TextButton rotateLeft = new TextButton("<-Rotate", skin);
         rotateLeft.addListener(new ClickListener(){
             @Override
@@ -422,6 +435,7 @@ public class Main extends ApplicationAdapter {
                 rotateCamera(1);
             }
         });
+        // Spin the map and its contents clockwise.
         TextButton rotateRight = new TextButton("Rotate->", skin);
         rotateRight.addListener(new ClickListener(){
             @Override
@@ -816,7 +830,7 @@ public class Main extends ApplicationAdapter {
      * Individual voxels don't get moved; here, the map rotation is what determines where voxels are placed and how
      * they get sorted, but the rotation is just one float to change.
      *
-     * @param amount Almost always either 1 for a left rotation or -1 for a right rotation.
+     * @param amount Almost always either 1 for a counterclockwise rotation or -1 for a clockwise rotation.
      */
     public void rotateCamera(int amount) {
         map.previousRotation = map.rotationDegrees;
@@ -893,6 +907,9 @@ public class Main extends ApplicationAdapter {
         updateHealth();
     }
 
+    /**
+     * Not actually used here; this doesn't use Screen or Game, so when this object is disposed, the game is over.
+     */
     @Override
     public void dispose() {
         batch.dispose();
@@ -901,8 +918,19 @@ public class Main extends ApplicationAdapter {
         backgroundMusic.dispose();
     }
 
+    /**
+     * This gets called when the game window is first created and also whenever the window changes size. It is
+     * important to update viewports here if you want them to adapt to the window size.
+     *
+     * @param width the new width in pixels
+     * @param height the new height in pixels
+     */
     @Override
     public void resize(int width, int height) {
+        // In older code, we wanted pixel-perfect zooms only, but now we can make noninteger zooms look decent.
+
+        // The commented block can be used for pixel-perfect zooms without growingViewport.
+
         // If unitsPerPixel are a fraction like 1f/2 or 1f/3, then that makes each pixel 2x or 3x the size, resp.
         // This will only divide 1f by an integer amount 1 or greater, which makes pixels always the exact right size.
         // This meant to fit an isometric map that is about MAP_SIZE by MAP_PEAK by MAP_SIZE, where MAP_PEAK is how many
@@ -924,12 +952,14 @@ public class Main extends ApplicationAdapter {
     public void updateFish() {
         if(player.health > 0) {
             if (map.totalFish == map.fishSaved) {
+                // We use libGDX color markup to make any text some color other than blindingly-bright white.
                 goalLabel.setText("[ORANGE]YOU SAVED THEM ALL! Great job!");
                 player.makeInvincible(Float.NaN);
-            }
-            else
+            } else {
+                // You can use either named colors or the hex RRGGBBAA color format.
                 goalLabel.setText("[#ddddddff]SAVE THE GOLDFISH!!! " + (map.totalFish - map.fishSaved) + " still " +
                     ((map.totalFish - map.fishSaved) == 1 ? "needs" : "need") + " your help!");
+            }
         }
         goalLabel.setAlignment(Align.center);
     }
