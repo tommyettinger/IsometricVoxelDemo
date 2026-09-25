@@ -1,5 +1,6 @@
 package gdx.liftoff.game;
 
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector4;
 import com.badlogic.gdx.utils.Array;
+import gdx.liftoff.AlternateMain;
 import gdx.liftoff.AnimatedIsoSprite;
 import gdx.liftoff.Main;
 import gdx.liftoff.LocalMap;
@@ -256,7 +258,11 @@ public class Mover implements HasPosition3D {
         } else {
             invincibilityEndTime = totalMoveTime + 2f;
         }
-        if(!npc) ((Main) Gdx.app.getApplicationListener()).updateHealth();
+        if(!npc) {
+            ApplicationListener m = Gdx.app.getApplicationListener();
+            if(m instanceof Main) ((Main)m).updateHealth();
+            else if(m instanceof AlternateMain) ((AlternateMain)m).updateHealth();
+        }
     }
 
     /**

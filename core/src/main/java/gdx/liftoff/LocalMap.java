@@ -442,7 +442,7 @@ public class LocalMap {
                 map.setTile(f, g, height, tile);
                 // Anything below one of these tiles must be dirt.
                 for (int h = height - 1; h >= 0; h--) {
-                    map.setTile(f, g, h, AssetData.DIRT);
+                    map.setTile(f, g, h, 0);
                 }
             }
         }
@@ -475,7 +475,7 @@ public class LocalMap {
                     if(map.getTile(pathF, pathG, h) != -1) {
                         // we have an 80% change to place a path at any valid position, if we still have one.
                         if(MathUtils.randomBoolean(0.8f))
-                            map.setTile(pathF, pathG, h, AssetData.PATH_GRASS_FGTR);
+                            map.setTile(pathF, pathG, h, AssetData.pathTile);
                         break;
                     }
                 }
