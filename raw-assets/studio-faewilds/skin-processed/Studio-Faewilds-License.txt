@@ -1,0 +1,2 @@
+Assets with names starting with "tile_" in this folder are copyright (c) 2026 Studio Faewilds and infrared baron, and are not to be resold.
+Noncommercial usage is permitted with credit to Studio Faewilds and infrared baron.
