@@ -5,6 +5,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -654,8 +655,17 @@ public class AlternateMain extends ApplicationAdapter {
         for (int i = 0, n = order.size; i < n; i++) {
             Vector4 pos = order.get(i);
             // Updates each voxel in "everything" and then draws it with the parameters needed for rotation.
-            map.everything.get(pos).update(time).draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
+            IsoSprite sprite = map.everything.get(pos).update(time);
+            // Environment tiles (with w == 0) get darkened based on their elevation (h axis).
+            if(pos.w == 0f) {
+                final float tint = pos.z * 0.1f + 0.5f;
+                sprite.sprite.setColor(tint, tint, tint, 1f);
+            }
+            // Actually draw the sprite with the correct rotation center and map rotation.
+            sprite.draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
         }
+
+        batch.setPackedColor(Color.WHITE_FLOAT_BITS);
 
         Vector3 pos = player.getPosition();
         // Makes tempVector4 store the position we want to check: the player's location, rounded, at the fish depth.
