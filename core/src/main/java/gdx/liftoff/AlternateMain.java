@@ -500,6 +500,17 @@ public class AlternateMain extends ApplicationAdapter {
             animations.get(3).add(new Animation<>(0.2f, Array.with(new TextureAtlas.AtlasSprite(entities.get(outer+6)), new TextureAtlas.AtlasSprite(entities.get(outer+7))), Animation.PlayMode.LOOP));
         }
 
+        for (int i = 0; i < 4; i++) {
+            for(Animation<TextureAtlas.AtlasSprite> anim : animations.get(i)){
+                anim.getKeyFrames()[0].scale(2);
+                anim.getKeyFrames()[0].getAtlasRegion().offsetX += 24;
+                anim.getKeyFrames()[0].getAtlasRegion().offsetY += 24;
+                anim.getKeyFrames()[1].scale(2);
+                anim.getKeyFrames()[1].getAtlasRegion().offsetX += 24;
+                anim.getKeyFrames()[1].getAtlasRegion().offsetY += 24;
+            }
+        }
+
         // Initialize a Camera with the width and height of the area to be shown.
         camera = new OrthographicCamera(ZOOMED_HORIZONTAL, ZOOMED_VERTICAL);
         // Center the camera in the middle of the map.
