@@ -282,7 +282,7 @@ public class LocalMap {
                 if ((iso = everything.get(tempVec4.set(f, g, h, 0))) != null) {
                     iso.setSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)));
                 } else {
-                    everything.put(new Vector4(f, g, h, 0), new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
+                    everything.put(new Vector4(f, g, h, 0), iso = new IsoSprite(new TextureAtlas.AtlasSprite(tileset.get(tileId)), f, g, h));
                     // Environment tiles have an outline that may render if there is empty space behind them.
                     // The position has -1.5 for w, and w is added to the depth for the purpose of sorting.
                     // Adjacent environment tiles should have a depth that is +1 or -1 from this tile.
@@ -290,6 +290,9 @@ public class LocalMap {
                     // but if there is empty space behind a tile, the outline will be in front of the further tiles.
                     everything.put(new Vector4(f, g, h, -1.5f), new IsoSprite(edge, f, g, h));
                 }
+                // Environment tiles (with w == 0) get darkened based on their elevation (h axis).
+                final float tint = Math.min(1f, h * 0.08f + 0.6f);
+                iso.sprite.setColor(tint, tint, tint, 1f);
             }
         }
     }

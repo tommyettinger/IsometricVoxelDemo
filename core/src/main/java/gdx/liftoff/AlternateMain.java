@@ -656,11 +656,6 @@ public class AlternateMain extends ApplicationAdapter {
             Vector4 pos = order.get(i);
             // Updates each voxel in "everything" and then draws it with the parameters needed for rotation.
             IsoSprite sprite = map.everything.get(pos).update(time);
-            // Environment tiles (with w == 0) get darkened based on their elevation (h axis).
-            if(pos.w == 0f) {
-                final float tint = pos.z * 0.1f + 0.5f;
-                sprite.sprite.setColor(tint, tint, tint, 1f);
-            }
             // Actually draw the sprite with the correct rotation center and map rotation.
             sprite.draw(batch, (map.getFSize() - 1) * 0.5f, (map.getGSize() - 1) * 0.5f, map.cosRotation, map.sinRotation);
         }
