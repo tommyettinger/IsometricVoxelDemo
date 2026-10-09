@@ -3,8 +3,6 @@ package gdx.liftoff.util;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 
-import java.util.Comparator;
-
 /**
  * Allows checking a group of {@code T} entities, where an entity is any type that can have a Vector3 position retrieved
  * from it via the {@link HasPosition3D} interface, for collisions with another entity or a member of its own group.
@@ -68,7 +66,7 @@ public class VoxelCollider<T extends HasPosition3D> {
         colliding.clear();
         float x = voxelPosition.x, y = voxelPosition.y, z = voxelPosition.z;
         for (T e : entities) {
-            // if e is reference-identical to collider, and we added it to colliding, we would be including
+            // If e is reference-identical to collider, and we added it to colliding, we would be including
             // the collider in its own collisions. We don't do that!
             if(e != collider
                 && Math.abs(x - e.getPosition().x) < 1f
